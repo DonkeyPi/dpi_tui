@@ -26,7 +26,8 @@ defmodule Ash.Tui.Driver do
   def handles?(_state, {:event, _}), do: true
   def handles?(_state, _msg), do: false
 
-  def handle(%{dom: _dom}, {:event, _event}) do
+  def handle(%{dom: {_, {module, model}, _}}, {:event, event}) do
+    module.handle(model, event)
     :ok
   end
 

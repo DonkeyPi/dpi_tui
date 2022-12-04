@@ -4,11 +4,11 @@ defmodule Ash.Tui.Theme do
   def get(:default) do
     %{
       back_readonly: @black,
-      fore_readonly: @bblack,
+      fore_readonly: @black2,
       back_editable: @black,
       fore_editable: @white,
       back_disabled: @black,
-      fore_disabled: @bblack,
+      fore_disabled: @black2,
       back_selected: @white,
       fore_selected: @black,
       back_focused: @blue,

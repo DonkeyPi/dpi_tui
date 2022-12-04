@@ -22,7 +22,7 @@ defmodule Ash.Tui.Canvas do
     %{cols: cols, rows: rows} = canvas
     %{data: data} = canvas
     canvas = new(cols, rows)
-    data = for {key, {d, _, _}} <- data, do: {key, {d, @bblack, @black}}
+    data = for {key, {d, _, _}} <- data, do: {key, {d, @black2, @black}}
     data = Enum.into(data, %{})
     %{canvas | data: data}
   end

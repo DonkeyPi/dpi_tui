@@ -79,8 +79,8 @@ defmodule Ash.Tui.Panel do
     check(state)
   end
 
-  def handle(%{origin: {x, y}} = state, {:modal, [], {:mouse, s, mx, my, a}}) do
-    handle(state, {:mouse, s, mx - x, my - y, a})
+  def handle(%{origin: {x, y}} = state, {:modal, [], %{type: :mouse, x: mx, y: my} = event}) do
+    handle(state, %{event | x: mx - x, y: my - y})
   end
 
   def handle(state, {:modal, [], event}), do: handle(state, event)
@@ -92,9 +92,9 @@ defmodule Ash.Tui.Panel do
     {state, event}
   end
 
-  def handle(%{focus: nil} = state, {:key, _, _}), do: {state, nil}
+  def handle(%{focus: nil} = state, %{type: :key}), do: {state, nil}
 
-  def handle(%{focus: focus} = state, {:key, _, _} = event) do
+  def handle(%{focus: focus} = state, %{type: :key} = event) do
     mote = get_child(state, focus)
     {mote, event} = mote_handle(mote, event)
     child_event(state, mote, event)
@@ -102,9 +102,12 @@ defmodule Ash.Tui.Panel do
 
   # controls get focused before receiving a mouse event
   # unless the root panel has no focusable children at all
-  def handle(%{focus: nil} = state, {:mouse, _, _, _, _}), do: {state, nil}
+  def handle(%{focus: nil} = state, %{type: :mouse}), do: {state, nil}
 
-  def handle(%{focus: focus, index: index, children: children} = state, {:mouse, s, mx, my, a}) do
+  def handle(
+        %{focus: focus, index: index, children: children} = state,
+        %{type: :mouse, x: mx, y: my} = event
+      ) do
     Enum.find_value(index, {state, nil}, fn id ->
       mote = Map.get(children, id)
       focusable = mote_focusable(mote)
@@ -119,7 +122,7 @@ defmodule Ash.Tui.Panel do
           false
 
         {_, {dx, dy}, ^id} ->
-          event = {:mouse, s, dx, dy, a}
+          event = %{event | x: dx, y: dy}
           {mote, event} = mote_handle(mote, event)
           child_event(state, mote, event)
 
@@ -127,7 +130,7 @@ defmodule Ash.Tui.Panel do
           state = unfocus(state)
           state = %{state | focus: id}
           mote = mote_focused(mote, true, :next)
-          event = {:mouse, s, dx, dy, a}
+          event = %{event | x: dx, y: dy}
           {mote, event} = mote_handle(mote, event)
           child_event(state, mote, event)
       end

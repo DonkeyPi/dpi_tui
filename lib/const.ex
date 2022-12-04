@@ -1,12 +1,6 @@
 defmodule Ash.Tui.Const do
   defmacro __using__(_) do
     quote do
-      @esc "\e"
-
-      @ctl 1
-      @alt 2
-      @fun 4
-
       @black 0
       @red 1
       @green 2
@@ -18,14 +12,20 @@ defmodule Ash.Tui.Const do
 
       @bright 8
 
-      @bblack @bright + @black
-      @bred @bright + @red
-      @bgreen @bright + @green
-      @byellow @bright + @yellow
-      @bblue @bright + @blue
-      @bmagenta @bright + @magenta
-      @bcyan @bright + @cyan
-      @bwhite @bright + @white
+      @black2 @bright + @black
+      @red2 @bright + @red
+      @green2 @bright + @green
+      @yellow2 @bright + @yellow
+      @blue2 @bright + @blue
+      @magenta2 @bright + @magenta
+      @cyan2 @bright + @cyan
+      @white2 @bright + @white
+
+      @esc "\e"
+
+      @ctl 1
+      @alt 2
+      @fun 4
 
       @up 1
       @down 2
