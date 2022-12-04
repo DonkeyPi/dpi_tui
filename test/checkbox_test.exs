@@ -1,9 +1,10 @@
 defmodule CheckboxTest do
   use ExUnit.Case
-  use Ash.Tui.Const
-  alias Ash.Tui.Checkbox
+  use ControlTest
 
   test "basic checkbox check" do
+    control_test(Checkbox, input?: true)
+
     initial = Checkbox.init()
 
     # defaults

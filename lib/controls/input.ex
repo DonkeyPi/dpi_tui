@@ -43,7 +43,7 @@ defmodule Ash.Tui.Input do
   def visible(%{visible: visible}), do: visible
   def focusable(%{enabled: false}), do: false
   def focusable(%{visible: false}), do: false
-  def focusable(%{on_change: nil}), do: false
+  def focusable(%{on_change: cb}) when not is_function(cb, 1), do: false
   def focusable(%{findex: findex}), do: findex >= 0
   def focused(%{focused: focused}), do: focused
   def focused(state, focused), do: %{state | focused: focused}

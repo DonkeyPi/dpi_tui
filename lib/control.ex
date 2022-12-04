@@ -1,19 +1,24 @@
 defmodule Ash.Tui.Control do
-  @callback init(opts :: any()) :: state :: any()
-  @callback handle(state :: any(), event :: any()) :: {state :: any(), cmd :: any()}
-  @callback render(state :: any(), canvas :: any()) :: canvas :: any()
-  @callback bounds(state :: any()) :: {integer(), integer(), integer(), integer()}
-  @callback visible(state :: any()) :: true | false
-  @callback focusable(state :: any()) :: true | false
-  @callback focused(state :: any(), true | false) :: state :: any()
-  @callback focused(state :: any()) :: true | false
-  @callback refocus(state :: any(), dir :: any()) :: state :: any()
-  @callback findex(state :: any()) :: integer()
-  @callback children(state :: any()) :: Keyword.t()
-  @callback children(state :: any(), Keyword.t()) :: any()
-  @callback shortcut(state :: any()) :: any()
-  @callback modal(state :: any()) :: true | false
-  @callback update(state :: any(), Keyword.t()) :: any()
+  @callback init(opts :: map()) :: state :: map()
+  @callback handle(state :: map(), event :: any()) :: {state :: map(), cmd :: any()}
+  @callback render(state :: map(), canvas :: map()) :: canvas :: map()
+  @callback bounds(state :: map()) :: {integer(), integer(), integer(), integer()}
+  @callback visible(state :: map()) :: true | false
+  @callback update(state :: map(), Keyword.t()) :: any()
+  # bypassed by non input controls like nil, label, and frame
+  @callback focusable(state :: map()) :: true | false
+  @callback focused(state :: map(), true | false) :: state :: map()
+  @callback focused(state :: map()) :: true | false
+  @callback findex(state :: map()) :: integer()
+  # only used by button, ignored by all other controls
+  @callback shortcut(state :: map()) :: any()
+  # only used by panel, ignored by all other controls
+  @callback children(state :: map()) :: Keyword.t()
+  @callback children(state :: map(), Keyword.t()) :: any()
+  @callback refocus(state :: map(), dir :: any()) :: state :: map()
+  @callback modal(state :: map()) :: true | false
+  # The init | update mechanism is enough to support enabled control
+  # @callback enabled(state :: map()) :: true | false
 
   def init(module, opts \\ []), do: {module, module.init(opts)}
 

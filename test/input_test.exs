@@ -1,9 +1,10 @@
 defmodule InputTest do
   use ExUnit.Case
-  use Ash.Tui.Const
-  alias Ash.Tui.Input
+  use ControlTest
 
   test "basic input check" do
+    control_test(Input, input?: true)
+
     initial = Input.init()
 
     # defaults

@@ -17,7 +17,7 @@ defmodule Ash.Tui.Radio do
     theme = Map.get(opts, :theme, :default)
     items = Map.get(opts, :items, [])
     selected = Map.get(opts, :selected, 0)
-    on_change = Map.get(opts, :on_change, &Radio.nop/2)
+    on_change = Map.get(opts, :on_change, &Radio.nop/1)
 
     {count, map} = internals(items)
 
@@ -40,13 +40,13 @@ defmodule Ash.Tui.Radio do
     check(state)
   end
 
-  def nop(_index, _value), do: nil
+  def nop({_index, _value}), do: nil
 
   def bounds(%{origin: {x, y}, size: {w, h}}), do: {x, y, w, h}
   def visible(%{visible: visible}), do: visible
   def focusable(%{enabled: false}), do: false
   def focusable(%{visible: false}), do: false
-  def focusable(%{on_change: nil}), do: false
+  def focusable(%{on_change: cb}) when not is_function(cb, 1), do: false
   def focusable(%{findex: findex}), do: findex >= 0
   def focused(%{focused: focused}), do: focused
   def focused(state, focused), do: %{state | focused: focused}
@@ -77,7 +77,7 @@ defmodule Ash.Tui.Radio do
           props
       end
 
-    props = Control.coalesce(props, :on_change, &Radio.nop/2)
+    props = Control.coalesce(props, :on_change, &Radio.nop/1)
     state = Control.merge(state, props)
     state = recalculate(state)
     check(state)
@@ -220,7 +220,7 @@ defmodule Ash.Tui.Radio do
 
   defp trigger(%{selected: selected, map: map, on_change: on_change}) do
     item = map[selected]
-    resp = on_change.(selected, item)
+    resp = on_change.({selected, item})
     {:item, selected, item, resp}
   end
 
@@ -243,7 +243,7 @@ defmodule Ash.Tui.Radio do
     Check.assert_gte(:selected, state.selected, -1)
     Check.assert_map(:map, state.map)
     Check.assert_gte(:count, state.count, 0)
-    Check.assert_function(:on_change, state.on_change, 2)
+    Check.assert_function(:on_change, state.on_change, 1)
     state
   end
 end

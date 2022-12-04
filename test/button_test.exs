@@ -1,9 +1,10 @@
 defmodule ButtonTest do
   use ExUnit.Case
-  use Ash.Tui.Const
-  alias Ash.Tui.Button
+  use ControlTest
 
   test "basic button check" do
+    control_test(Button, input?: true, button?: true)
+
     initial = Button.init()
 
     # defaults
@@ -19,23 +20,6 @@ defmodule ButtonTest do
              shortcut: nil,
              on_click: &Button.nop/0
            }
-
-    # getters/setters
-    assert Button.bounds(%{origin: {1, 2}, size: {3, 4}}) == {1, 2, 3, 4}
-    assert Button.visible(%{visible: :visible}) == :visible
-    assert Button.focusable(%{enabled: false}) == false
-    assert Button.focusable(%{visible: false}) == false
-    assert Button.focusable(%{on_click: nil}) == false
-    assert Button.focusable(%{findex: -1}) == false
-    assert Button.focused(%{focused: false}) == false
-    assert Button.focused(%{focused: true}) == true
-    assert Button.focused(initial, true) == %{initial | focused: true}
-    assert Button.refocus(:state, :dir) == :state
-    assert Button.findex(%{findex: 0}) == 0
-    assert Button.shortcut(%{shortcut: :shortcut}) == :shortcut
-    assert Button.children(:state) == []
-    assert Button.children(:state, []) == :state
-    assert Button.modal(:state) == false
 
     # update
     on_click = fn -> :click end

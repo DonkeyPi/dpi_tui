@@ -1,9 +1,10 @@
 defmodule RadioTest do
   use ExUnit.Case
-  use Ash.Tui.Const
-  alias Ash.Tui.Radio
+  use ControlTest
 
   test "basic radio check" do
+    control_test(Radio, input?: true)
+
     initial = Radio.init()
 
     # defaults
@@ -19,7 +20,7 @@ defmodule RadioTest do
              selected: -1,
              count: 0,
              map: %{},
-             on_change: &Radio.nop/2
+             on_change: &Radio.nop/1
            }
 
     # getters/setters
@@ -40,7 +41,7 @@ defmodule RadioTest do
     assert Radio.modal(:state) == false
 
     # update
-    on_change = fn index, item -> {index, item} end
+    on_change = fn {index, item} -> {index, item} end
     assert Radio.update(initial, focused: :any) == initial
     assert Radio.update(initial, origin: {1, 2}) == %{initial | origin: {1, 2}}
     assert Radio.update(initial, size: {2, 3}) == %{initial | size: {2, 3}}

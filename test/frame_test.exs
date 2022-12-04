@@ -1,10 +1,10 @@
 defmodule FrameTest do
   use ExUnit.Case
-  use Ash.Tui.Const
-  alias Ash.Tui.Frame
-  alias Ash.Tui.Theme
+  use ControlTest
 
   test "basic frame check" do
+    control_test(Frame)
+
     theme = Theme.get(:default)
 
     initial = Frame.init()

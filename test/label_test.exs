@@ -1,10 +1,10 @@
 defmodule LabelTest do
   use ExUnit.Case
-  use Ash.Tui.Const
-  alias Ash.Tui.Label
-  alias Ash.Tui.Theme
+  use ControlTest
 
   test "basic label check" do
+    control_test(Label)
+
     theme = Theme.get(:default)
 
     initial = Label.init()

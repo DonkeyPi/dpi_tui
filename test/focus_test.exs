@@ -1,9 +1,6 @@
 defmodule FocusTest do
   use ExUnit.Case
-  use Ash.Tui.Const
-  alias Ash.Tui.Panel
-  alias Ash.Tui.Button
-  alias Ash.Tui.Label
+  use ControlTest
 
   test "basic single level focus check" do
     root = Panel.init(root: true)

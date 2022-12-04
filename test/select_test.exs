@@ -1,9 +1,10 @@
 defmodule SelectTest do
   use ExUnit.Case
-  use Ash.Tui.Const
-  alias Ash.Tui.Select
+  use ControlTest
 
   test "basic select check" do
+    control_test(Select, input?: true)
+
     initial = Select.init()
 
     # defaults
@@ -20,7 +21,7 @@ defmodule SelectTest do
              count: 0,
              map: %{},
              offset: 0,
-             on_change: &Select.nop/2
+             on_change: &Select.nop/1
            }
 
     # getters/setters
@@ -41,7 +42,7 @@ defmodule SelectTest do
     assert Select.modal(:state) == false
 
     # update
-    on_change = fn index, item -> {index, item} end
+    on_change = fn {index, item} -> {index, item} end
     assert Select.update(initial, focused: :any) == initial
     assert Select.update(initial, origin: {1, 2}) == %{initial | origin: {1, 2}}
     assert Select.update(initial, size: {2, 3}) == %{initial | size: {2, 3}}
