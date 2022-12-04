@@ -55,8 +55,8 @@ defmodule PanelTest do
     assert Panel.update(initial, focus: :any) == initial
 
     # nops
-    assert Panel.handle(initial, {:key, :any, :any}) == {initial, nil}
-    assert Panel.handle(initial, {:mouse, :any, :any, :any, :any}) == {initial, nil}
+    assert Panel.handle(initial, %{type: :key}) == {initial, nil}
+    assert Panel.handle(initial, %{type: :mouse}) == {initial, nil}
   end
 
   test "panel handle check" do
@@ -64,16 +64,18 @@ defmodule PanelTest do
     normal = Panel.init(root: false)
 
     panel = Panel.children(root, c0: Control.init(Label))
-    {^panel, nil} = Panel.handle(panel, {:key, :any, "\t"})
-    {^panel, nil} = Panel.handle(panel, {:key, :any, "\r"})
-    {^panel, nil} = Panel.handle(panel, {:mouse, :any, 0, 0, @mouse_down})
+    {^panel, nil} = Panel.handle(panel, %{type: :key, key: :tab})
+    {^panel, nil} = Panel.handle(panel, %{type: :key, key: :enter})
+    {^panel, nil} = Panel.handle(panel, %{type: :mouse, action: :press, x: 0, y: 0})
 
     panel = Panel.children(root, c0: Control.init(Button))
-    {^panel, nil} = Panel.handle(panel, {:key, :any, "\t"})
-    {^panel, {:c0, {:click, nil}}} = Panel.handle(panel, {:key, :any, "\r"})
+    {^panel, nil} = Panel.handle(panel, %{type: :key, key: :tab})
+    {^panel, {:c0, {:click, nil}}} = Panel.handle(panel, %{type: :key, key: :enter})
 
     panel = Panel.children(root, c0: Control.init(Button, size: {1, 1}))
-    {^panel, {:c0, {:click, nil}}} = Panel.handle(panel, {:mouse, :any, 0, 0, @mouse_down})
+
+    {^panel, {:c0, {:click, nil}}} =
+      Panel.handle(panel, %{type: :mouse, action: :press, x: 0, y: 0})
 
     # mouse changes focus with reversed order match search
     panel =
@@ -83,7 +85,10 @@ defmodule PanelTest do
       )
 
     assert panel.focus == :c0
-    {panel, {:c1, {:click, nil}}} = Panel.handle(panel, {:mouse, :any, 0, 0, @mouse_down})
+
+    {panel, {:c1, {:click, nil}}} =
+      Panel.handle(panel, %{type: :mouse, action: :press, x: 0, y: 0})
+
     assert panel.focus == :c1
     assert elem(panel.children.c0, 1).focused == false
     assert elem(panel.children.c1, 1).focused == true
@@ -95,19 +100,22 @@ defmodule PanelTest do
         c1: Control.init(Button, size: {1, 1}, visible: false)
       )
 
-    {^panel, {:c0, {:click, nil}}} = Panel.handle(panel, {:mouse, :any, 0, 0, @mouse_down})
+    {^panel, {:c0, {:click, nil}}} =
+      Panel.handle(panel, %{type: :mouse, action: :press, x: 0, y: 0})
 
     # keys get to nested focused control
     panel = Panel.children(normal, c0: Control.init(Button))
     panel = Panel.children(root, p0: {Panel, panel})
-    {^panel, nil} = Panel.handle(panel, {:key, :any, "\t"})
-    {^panel, {:p0, {:c0, {:click, nil}}}} = Panel.handle(panel, {:key, :any, "\r"})
+    {^panel, nil} = Panel.handle(panel, %{type: :key, key: :tab})
+    {^panel, {:p0, {:c0, {:click, nil}}}} = Panel.handle(panel, %{type: :key, key: :enter})
 
     # mouse gets to nested focused control
     panel = Panel.update(normal, size: {1, 1})
     panel = Panel.children(panel, c0: Control.init(Button, size: {1, 1}))
     panel = Panel.children(root, p0: {Panel, panel})
-    {^panel, {:p0, {:c0, {:click, nil}}}} = Panel.handle(panel, {:mouse, :any, 0, 0, @mouse_down})
+
+    {^panel, {:p0, {:c0, {:click, nil}}}} =
+      Panel.handle(panel, %{type: :mouse, action: :press, x: 0, y: 0})
 
     # mouse focuses nested control
     panel = Panel.update(normal, size: {1, 1})
@@ -119,7 +127,10 @@ defmodule PanelTest do
       )
 
     panel = Panel.children(root, p0: {Panel, panel})
-    {panel, {:p0, {:c1, {:click, nil}}}} = Panel.handle(panel, {:mouse, :any, 0, 0, @mouse_down})
+
+    {panel, {:p0, {:c1, {:click, nil}}}} =
+      Panel.handle(panel, %{type: :mouse, action: :press, x: 0, y: 0})
+
     panel = elem(panel.children.p0, 1)
     assert elem(panel.children.c0, 1).focused == false
     assert elem(panel.children.c1, 1).focused == true

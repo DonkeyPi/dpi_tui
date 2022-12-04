@@ -78,42 +78,38 @@ defmodule Ash.Tui.Input do
     check(state)
   end
 
-  def handle(state, {:key, @alt, "\t"}), do: {state, {:focus, :prev}}
-  def handle(state, {:key, _, "\t"}), do: {state, {:focus, :next}}
-  def handle(state, {:key, _, @arrow_down}), do: {state, {:focus, :next}}
-  def handle(state, {:key, _, @arrow_up}), do: {state, {:focus, :prev}}
-  def handle(state, {:key, @alt, "\r"}), do: {state, trigger(state)}
-  def handle(state, {:key, _, "\r"}), do: {state, {:focus, :next}}
-  def handle(state, {:mouse, @wheel_up, _, _, _}), do: {state, nil}
-  def handle(state, {:mouse, @wheel_down, _, _, _}), do: {state, nil}
-  # injecting escapes breaks rendering
-  def handle(state, {:key, _, "\e"}), do: {state, nil}
+  def handle(state, %{type: :key, key: :tab, flag: @rtab}), do: {state, {:focus, :prev}}
+  def handle(state, %{type: :key, key: :tab}), do: {state, {:focus, :next}}
+  def handle(state, %{type: :key, key: :kdown}), do: {state, {:focus, :next}}
+  def handle(state, %{type: :key, key: :kup}), do: {state, {:focus, :prev}}
+  def handle(state, %{type: :key, key: :enter, flag: @renter}), do: {state, trigger(state)}
+  def handle(state, %{type: :key, key: :enter}), do: {state, {:focus, :next}}
 
-  def handle(%{cursor: cursor} = state, {:key, _, @arrow_left}) do
+  def handle(%{cursor: cursor} = state, %{type: :key, key: :kleft}) do
     cursor = if cursor > 0, do: cursor - 1, else: cursor
     state = %{state | cursor: cursor}
     {state, nil}
   end
 
-  def handle(%{cursor: cursor, text: text} = state, {:key, _, @arrow_right}) do
+  def handle(%{cursor: cursor, text: text} = state, %{type: :key, key: :kright}) do
     count = String.length(text)
     cursor = if cursor < count, do: cursor + 1, else: cursor
     state = %{state | cursor: cursor}
     {state, nil}
   end
 
-  def handle(state, {:key, _, @home}) do
+  def handle(state, %{type: :key, key: :home}) do
     state = %{state | cursor: 0}
     {state, nil}
   end
 
-  def handle(%{text: text} = state, {:key, _, @hend}) do
+  def handle(%{text: text} = state, %{type: :key, key: :end}) do
     count = String.length(text)
     state = %{state | cursor: count}
     {state, nil}
   end
 
-  def handle(%{cursor: cursor, text: text} = state, {:key, _, @backspace}) do
+  def handle(%{cursor: cursor, text: text} = state, %{type: :key, key: :backspace}) do
     case cursor do
       0 ->
         {state, nil}
@@ -128,7 +124,7 @@ defmodule Ash.Tui.Input do
     end
   end
 
-  def handle(%{cursor: cursor, text: text} = state, {:key, _, @delete}) do
+  def handle(%{cursor: cursor, text: text} = state, %{type: :key, key: :delete}) do
     count = String.length(text)
 
     case cursor do
@@ -144,7 +140,7 @@ defmodule Ash.Tui.Input do
     end
   end
 
-  def handle(state, {:key, 0, data}) when is_binary(data) do
+  def handle(state, %{type: :key, key: data}) when is_list(data) do
     %{cursor: cursor, text: text, size: {cols, _}} = state
     count = String.length(text)
 
@@ -160,7 +156,7 @@ defmodule Ash.Tui.Input do
     end
   end
 
-  def handle(%{text: text} = state, {:mouse, _, mx, _, @mouse_down}) do
+  def handle(%{text: text} = state, %{type: :mouse, action: :press, x: mx}) do
     cursor = min(mx, String.length(text))
     state = %{state | cursor: cursor}
     {state, nil}

@@ -83,40 +83,40 @@ defmodule Ash.Tui.Radio do
     check(state)
   end
 
-  def handle(%{items: []} = state, {:key, _, _}), do: {state, nil}
-  def handle(%{items: []} = state, {:mouse, _, _}), do: {state, nil}
+  def handle(%{items: []} = state, %{type: :key}), do: {state, nil}
+  def handle(%{items: []} = state, %{type: :mouse}), do: {state, nil}
 
-  def handle(state, {:key, _, @arrow_right}) do
+  def handle(state, %{type: :key, key: :kright}) do
     %{count: count, selected: selected} = state
     next = min(selected + 1, count - 1)
     trigger(state, next, selected)
   end
 
-  def handle(state, {:key, _, @arrow_left}) do
+  def handle(state, %{type: :key, key: :kleft}) do
     %{selected: selected} = state
     next = max(0, selected - 1)
     trigger(state, next, selected)
   end
 
-  def handle(state, {:key, _, @hend}) do
+  def handle(state, %{type: :key, key: :end}) do
     %{count: count, selected: selected} = state
     trigger(state, count - 1, selected)
   end
 
-  def handle(state, {:key, _, @home}) do
+  def handle(state, %{type: :key, key: :home}) do
     %{selected: selected} = state
     trigger(state, 0, selected)
   end
 
-  def handle(state, {:mouse, @wheel_up, _, _, _}) do
-    handle(state, {:key, nil, @arrow_left})
+  def handle(state, %{type: :mouse, action: :scroll, dir: :up}) do
+    handle(state, %{type: :key, key: :kleft})
   end
 
-  def handle(state, {:mouse, @wheel_down, _, _, _}) do
-    handle(state, {:key, nil, @arrow_right})
+  def handle(state, %{type: :mouse, action: :scroll, dir: :down}) do
+    handle(state, %{type: :key, key: :kright})
   end
 
-  def handle(state, {:mouse, _, mx, _, @mouse_down}) do
+  def handle(state, %{type: :mouse, action: :press, x: mx}) do
     %{count: count, map: map, selected: selected} = state
 
     list = for i <- 0..(count - 1), do: {i, String.length("#{map[i]}")}
@@ -135,12 +135,12 @@ defmodule Ash.Tui.Radio do
     end)
   end
 
-  def handle(state, {:key, @alt, "\t"}), do: {state, {:focus, :prev}}
-  def handle(state, {:key, _, "\t"}), do: {state, {:focus, :next}}
-  def handle(state, {:key, _, @arrow_down}), do: {state, {:focus, :next}}
-  def handle(state, {:key, _, @arrow_up}), do: {state, {:focus, :prev}}
-  def handle(state, {:key, @alt, "\r"}), do: {state, trigger(state)}
-  def handle(state, {:key, _, "\r"}), do: {state, {:focus, :next}}
+  def handle(state, %{type: :key, key: :tab, flag: @rtab}), do: {state, {:focus, :prev}}
+  def handle(state, %{type: :key, key: :tab}), do: {state, {:focus, :next}}
+  def handle(state, %{type: :key, key: :kdown}), do: {state, {:focus, :next}}
+  def handle(state, %{type: :key, key: :kup}), do: {state, {:focus, :prev}}
+  def handle(state, %{type: :key, key: :enter, flag: @renter}), do: {state, trigger(state)}
+  def handle(state, %{type: :key, key: :enter}), do: {state, {:focus, :next}}
   def handle(state, _event), do: {state, nil}
 
   def render(state, canvas) do

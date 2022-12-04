@@ -65,11 +65,9 @@ defmodule Ash.Tui.Button do
   def handle(state, %{type: :key, key: :kdown}), do: {state, {:focus, :next}}
   def handle(state, %{type: :key, key: :kup}), do: {state, {:focus, :prev}}
   def handle(state, %{type: :key, key: :kright}), do: {state, {:focus, :next}}
-  def handle(state, %{type: :key, key: :kleft, flag: @rtab}), do: {state, {:focus, :prev}}
+  def handle(state, %{type: :key, key: :kleft}), do: {state, {:focus, :prev}}
   def handle(state, %{type: :key, key: ' '}), do: trigger(state)
   def handle(state, %{type: :key, key: :enter}), do: trigger(state)
-  def handle(state, %{type: :mouse, action: :scroll, dir: :up}), do: {state, nil}
-  def handle(state, %{type: :mouse, action: :scroll, dir: :down}), do: {state, nil}
   def handle(state, %{type: :mouse, action: :press}), do: trigger(state)
   def handle(%{shortcut: shortcut} = state, {:shortcut, shortcut}), do: trigger(state)
   def handle(state, _event), do: {state, nil}

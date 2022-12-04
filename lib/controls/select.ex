@@ -86,64 +86,64 @@ defmodule Ash.Tui.Select do
     check(state)
   end
 
-  def handle(%{items: []} = state, {:key, _, _}), do: {state, nil}
-  def handle(%{items: []} = state, {:mouse, _, _}), do: {state, nil}
+  def handle(%{items: []} = state, %{type: :key}), do: {state, nil}
+  def handle(%{items: []} = state, %{type: :mouse}), do: {state, nil}
 
-  def handle(state, {:key, _, @arrow_down}) do
+  def handle(state, %{type: :key, key: :kdown}) do
     %{count: count, selected: selected} = state
     next = min(selected + 1, count - 1)
     trigger(state, next, selected)
   end
 
-  def handle(state, {:key, _, @arrow_up}) do
+  def handle(state, %{type: :key, key: :kup}) do
     %{selected: selected} = state
     next = max(0, selected - 1)
     trigger(state, next, selected)
   end
 
-  def handle(state, {:key, _, @page_down}) do
+  def handle(state, %{type: :key, key: :pdown}) do
     %{count: count, selected: selected, size: {_, rows}} = state
     next = min(selected + rows, count - 1)
     trigger(state, next, selected)
   end
 
-  def handle(state, {:key, _, @page_up}) do
+  def handle(state, %{type: :key, key: :pup}) do
     %{selected: selected, size: {_, rows}} = state
     next = max(0, selected - rows)
     trigger(state, next, selected)
   end
 
-  def handle(state, {:key, _, @hend}) do
+  def handle(state, %{type: :key, key: :end}) do
     %{count: count, selected: selected} = state
     trigger(state, count - 1, selected)
   end
 
-  def handle(state, {:key, _, @home}) do
+  def handle(state, %{type: :key, key: :home}) do
     %{selected: selected} = state
     trigger(state, 0, selected)
   end
 
-  def handle(state, {:mouse, @wheel_up, _, _, _}) do
-    handle(state, {:key, nil, @arrow_up})
+  def handle(state, %{type: :mouse, action: :scroll, dir: :up}) do
+    handle(state, %{type: :key, key: :kup})
   end
 
-  def handle(state, {:mouse, @wheel_down, _, _, _}) do
-    handle(state, {:key, nil, @arrow_down})
+  def handle(state, %{type: :mouse, action: :scroll, dir: :down}) do
+    handle(state, %{type: :key, key: :kdown})
   end
 
-  def handle(state, {:mouse, _, _, my, @mouse_down}) do
+  def handle(state, %{type: :mouse, action: :press, y: my}) do
     %{count: count, selected: selected, offset: offset} = state
     next = my + offset
     next = if next >= count, do: selected, else: next
     trigger(state, next, selected)
   end
 
-  def handle(state, {:key, @alt, "\t"}), do: {state, {:focus, :prev}}
-  def handle(state, {:key, _, "\t"}), do: {state, {:focus, :next}}
-  def handle(state, {:key, _, @arrow_right}), do: {state, {:focus, :next}}
-  def handle(state, {:key, _, @arrow_left}), do: {state, {:focus, :prev}}
-  def handle(state, {:key, @alt, "\r"}), do: {state, trigger(state)}
-  def handle(state, {:key, _, "\r"}), do: {state, {:focus, :next}}
+  def handle(state, %{type: :key, key: :tab, flag: @rtab}), do: {state, {:focus, :prev}}
+  def handle(state, %{type: :key, key: :tab}), do: {state, {:focus, :next}}
+  def handle(state, %{type: :key, key: :kright}), do: {state, {:focus, :next}}
+  def handle(state, %{type: :key, key: :kleft}), do: {state, {:focus, :prev}}
+  def handle(state, %{type: :key, key: :enter, flag: @renter}), do: {state, trigger(state)}
+  def handle(state, %{type: :key, key: :enter}), do: {state, {:focus, :next}}
   def handle(state, _event), do: {state, nil}
 
   def render(state, canvas) do

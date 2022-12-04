@@ -47,26 +47,26 @@ defmodule ButtonTest do
     assert Button.update(initial, findex: -1) == %{initial | findex: -1}
     assert Button.update(initial, theme: :theme) == %{initial | theme: :theme}
     assert Button.update(initial, text: "text") == %{initial | text: "text"}
-    assert Button.update(initial, shortcut: @esc) == %{initial | shortcut: @esc}
+    assert Button.update(initial, shortcut: :esc) == %{initial | shortcut: :esc}
     assert Button.update(initial, on_click: on_click) == %{initial | on_click: on_click}
     assert Button.update(initial, on_click: nil) == initial
 
     # navigation
-    assert Button.handle(%{}, {:key, :any, "\t"}) == {%{}, {:focus, :next}}
-    assert Button.handle(%{}, {:key, :any, @arrow_down}) == {%{}, {:focus, :next}}
-    assert Button.handle(%{}, {:key, :any, @arrow_right}) == {%{}, {:focus, :next}}
-    assert Button.handle(%{}, {:key, @alt, "\t"}) == {%{}, {:focus, :prev}}
-    assert Button.handle(%{}, {:key, @alt, @arrow_up}) == {%{}, {:focus, :prev}}
-    assert Button.handle(%{}, {:key, @alt, @arrow_left}) == {%{}, {:focus, :prev}}
+    assert Button.handle(%{}, %{type: :key, key: :tab}) == {%{}, {:focus, :next}}
+    assert Button.handle(%{}, %{type: :key, key: :kdown}) == {%{}, {:focus, :next}}
+    assert Button.handle(%{}, %{type: :key, key: :kright}) == {%{}, {:focus, :next}}
+    assert Button.handle(%{}, %{type: :key, key: :tab, flag: @rtab}) == {%{}, {:focus, :prev}}
+    assert Button.handle(%{}, %{type: :key, key: :kup}) == {%{}, {:focus, :prev}}
+    assert Button.handle(%{}, %{type: :key, key: :kleft}) == {%{}, {:focus, :prev}}
 
     # triggers
-    assert Button.handle(%{on_click: on_click}, {:key, :any, "\r"}) ==
+    assert Button.handle(%{on_click: on_click}, %{type: :key, key: :enter}) ==
              {%{on_click: on_click}, {:click, :click}}
 
-    assert Button.handle(%{on_click: on_click}, {:key, :any, " "}) ==
+    assert Button.handle(%{on_click: on_click}, %{type: :key, key: ' '}) ==
              {%{on_click: on_click}, {:click, :click}}
 
-    assert Button.handle(%{on_click: on_click}, {:mouse, :any, :any, :any, @mouse_down}) ==
+    assert Button.handle(%{on_click: on_click}, %{type: :mouse, action: :press}) ==
              {%{on_click: on_click}, {:click, :click}}
 
     assert Button.handle(%{on_click: on_click, shortcut: :shortcut}, {:shortcut, :shortcut}) ==
@@ -74,8 +74,5 @@ defmodule ButtonTest do
 
     # nops
     assert Button.handle(%{}, :any) == {%{}, nil}
-    assert Button.handle(%{}, {:mouse, @wheel_up, :any, :any, :any}) == {%{}, nil}
-    assert Button.handle(%{}, {:mouse, @wheel_down, :any, :any, :any}) == {%{}, nil}
-    assert Button.handle(%{}, {:mouse, :any, :any, :any, @mouse_up}) == {%{}, nil}
   end
 end
