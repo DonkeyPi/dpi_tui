@@ -3,25 +3,25 @@ defmodule Ash.Tui.Canvas do
 
   @cell {' ', @white, @black}
 
-  def new(width, height) do
+  def new(cols, rows) do
     %{
       x: 0,
       y: 0,
       data: %{},
-      width: width,
-      height: height,
+      cols: cols,
+      rows: rows,
       cursor: {false, 0, 0},
       fore: @white,
       back: @black,
-      clip: {0, 0, width, height},
+      clip: {0, 0, cols, rows},
       clips: []
     }
   end
 
   def modal(canvas) do
-    %{width: width, height: height} = canvas
+    %{cols: cols, rows: rows} = canvas
     %{data: data} = canvas
-    canvas = new(width, height)
+    canvas = new(cols, rows)
     data = for {key, {d, _, _}} <- data, do: {key, {d, @bblack, @black}}
     data = Enum.into(data, %{})
     %{canvas | data: data}
@@ -37,8 +37,8 @@ defmodule Ash.Tui.Canvas do
     update_clip(canvas)
   end
 
-  defp update_clip(%{width: width, height: height, clips: clips} = canvas) do
-    clip = {0, 0, width, height}
+  defp update_clip(%{cols: cols, rows: rows, clips: clips} = canvas) do
+    clip = {0, 0, cols, rows}
 
     clip =
       for {ix, iy, iw, ih} <- Enum.reverse(clips), reduce: clip do
@@ -51,8 +51,8 @@ defmodule Ash.Tui.Canvas do
     %{canvas | clip: clip}
   end
 
-  def get(%{width: width, height: height}, :size) do
-    {width, height}
+  def get(%{cols: cols, rows: rows}, :size) do
+    {cols, rows}
   end
 
   def get(%{cursor: cursor}, :cursor) do
@@ -114,8 +114,8 @@ defmodule Ash.Tui.Canvas do
   def diff(canvas1, canvas2) do
     %{
       data: data1,
-      height: height,
-      width: width,
+      rows: rows,
+      cols: cols,
       cursor: {cursor1, x1, y1},
       back: b1,
       fore: f1
@@ -123,12 +123,12 @@ defmodule Ash.Tui.Canvas do
 
     %{
       data: data2,
-      height: ^height,
-      width: ^width
+      rows: ^rows,
+      cols: ^cols
     } = canvas2
 
     {list, f, b, x, y} =
-      for row <- 0..(height - 1), col <- 0..(width - 1), reduce: {[], f1, b1, x1, y1} do
+      for row <- 0..(rows - 1), col <- 0..(cols - 1), reduce: {[], f1, b1, x1, y1} do
         {list, f0, b0, x, y} ->
           cel1 = Map.get(data1, {col, row}, @cell)
           cel2 = Map.get(data2, {col, row}, @cell)
@@ -168,8 +168,8 @@ defmodule Ash.Tui.Canvas do
                   _ -> [{:d, [c2]} | list]
                 end
 
-              row = row + div(col + 1, width)
-              col = rem(col + 1, width)
+              row = row + div(col + 1, cols)
+              col = rem(col + 1, cols)
               {list, f2, b2, col, row}
           end
       end
@@ -208,41 +208,41 @@ defmodule Ash.Tui.Canvas do
     list
   end
 
-  def encode(term, list) when is_list(list) do
-    list = encode(term, [], list)
+  def encode(encoder, list) when is_list(list) do
+    list = encode(encoder, [], list)
     :lists.reverse(list)
   end
 
   defp encode(_, list, []), do: list
 
-  defp encode(term, list, [{:m, x, y} | tail]) do
-    d = term.cursor(x, y)
-    encode(term, [d | list], tail)
+  defp encode(encoder, list, [{:m, x, y} | tail]) do
+    d = encoder.(:move, {x, y})
+    encode(encoder, [d | list], tail)
   end
 
-  defp encode(term, list, [{:d, d} | tail]) do
+  defp encode(encoder, list, [{:d, d} | tail]) do
     d = :lists.reverse(d)
     d = IO.chardata_to_string(d)
-    encode(term, [d | list], tail)
+    encode(encoder, [d | list], tail)
   end
 
-  defp encode(term, list, [{:b, b} | tail]) do
-    d = term.color(:back, b)
-    encode(term, [d | list], tail)
+  defp encode(encoder, list, [{:b, b} | tail]) do
+    d = encoder.(:back, b)
+    encode(encoder, [d | list], tail)
   end
 
-  defp encode(term, list, [{:f, f} | tail]) do
-    d = term.color(:fore, f)
-    encode(term, [d | list], tail)
+  defp encode(encoder, list, [{:f, f} | tail]) do
+    d = encoder.(:fore, f)
+    encode(encoder, [d | list], tail)
   end
 
-  defp encode(term, list, [{:c, c} | tail]) do
+  defp encode(encoder, list, [{:c, c} | tail]) do
     d =
       case c do
-        true -> term.show(:cursor)
-        false -> term.hide(:cursor)
+        true -> encoder.(:show, nil)
+        false -> encoder.(:hide, nil)
       end
 
-    encode(term, [d | list], tail)
+    encode(encoder, [d | list], tail)
   end
 end

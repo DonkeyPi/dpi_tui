@@ -32,7 +32,7 @@ defmodule Ash.Tui.Control do
     end
   end
 
-  def tree({module, state}, keys \\ [], map \\ %{}) do
+  def tree({module, state}, keys, map \\ %{}) do
     map =
       for {key, mote} <- module.children(state), reduce: map do
         map -> tree(mote, [key | keys], map)

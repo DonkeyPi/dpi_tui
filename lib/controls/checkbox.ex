@@ -80,7 +80,7 @@ defmodule Ash.Tui.Checkbox do
       theme: theme,
       checked: checked,
       focused: focused,
-      size: {width, _},
+      size: {cols, _},
       enabled: enabled
     } = state
 
@@ -105,7 +105,7 @@ defmodule Ash.Tui.Checkbox do
     canvas = Canvas.write(canvas, "[")
     canvas = Canvas.write(canvas, if(checked, do: "x", else: " "))
     canvas = Canvas.write(canvas, "]")
-    text = String.pad_trailing(text, width - 3)
+    text = String.pad_trailing(text, cols - 3)
     Canvas.write(canvas, text)
   end
 

@@ -56,7 +56,7 @@ defmodule Ash.Tui.Frame do
     %{
       bracket: bracket,
       style: style,
-      size: {width, height},
+      size: {cols, rows},
       text: text,
       back: back,
       fore: fore
@@ -65,7 +65,7 @@ defmodule Ash.Tui.Frame do
     canvas = Canvas.clear(canvas, :colors)
     canvas = Canvas.color(canvas, :back, back)
     canvas = Canvas.color(canvas, :fore, fore)
-    last = height - 1
+    last = rows - 1
 
     canvas =
       for r <- 0..last, reduce: canvas do
@@ -79,19 +79,19 @@ defmodule Ash.Tui.Frame do
               0 ->
                 [
                   border_char(style, :top_left),
-                  String.duplicate(horizontal, width - 2),
+                  String.duplicate(horizontal, cols - 2),
                   border_char(style, :top_right)
                 ]
 
               ^last ->
                 [
                   border_char(style, :bottom_left),
-                  String.duplicate(horizontal, width - 2),
+                  String.duplicate(horizontal, cols - 2),
                   border_char(style, :bottom_right)
                 ]
 
               _ ->
-                [vertical, String.duplicate(" ", width - 2), vertical]
+                [vertical, String.duplicate(" ", cols - 2), vertical]
             end
 
           Canvas.write(canvas, border)

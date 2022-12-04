@@ -102,14 +102,14 @@ defmodule Ash.Tui.Select do
   end
 
   def handle(state, {:key, _, @page_down}) do
-    %{count: count, selected: selected, size: {_, height}} = state
-    next = min(selected + height, count - 1)
+    %{count: count, selected: selected, size: {_, rows}} = state
+    next = min(selected + rows, count - 1)
     trigger(state, next, selected)
   end
 
   def handle(state, {:key, _, @page_up}) do
-    %{selected: selected, size: {_, height}} = state
-    next = max(0, selected - height)
+    %{selected: selected, size: {_, rows}} = state
+    next = max(0, selected - rows)
     trigger(state, next, selected)
   end
 
@@ -151,7 +151,7 @@ defmodule Ash.Tui.Select do
       map: map,
       theme: theme,
       enabled: enabled,
-      size: {width, height},
+      size: {cols, rows},
       focused: focused,
       selected: selected,
       offset: offset
@@ -159,7 +159,7 @@ defmodule Ash.Tui.Select do
 
     theme = Theme.get(theme)
 
-    for i <- 0..(height - 1), reduce: canvas do
+    for i <- 0..(rows - 1), reduce: canvas do
       canvas ->
         canvas = Canvas.move(canvas, 0, i)
         canvas = Canvas.clear(canvas, :colors)
@@ -185,7 +185,7 @@ defmodule Ash.Tui.Select do
 
         item = Map.get(map, i + offset, "")
         item = "#{item}"
-        item = String.pad_trailing(item, width)
+        item = String.pad_trailing(item, cols)
         Canvas.write(canvas, item)
     end
   end
@@ -193,7 +193,7 @@ defmodule Ash.Tui.Select do
   defp recalculate(
          %{
            selected: selected,
-           size: {_, height},
+           size: {_, rows},
            count: count,
            offset: offset
          } = state
@@ -203,7 +203,7 @@ defmodule Ash.Tui.Select do
     selected = if count > 0, do: selected, else: -1
 
     offsel = max(0, selected)
-    offhei = max(1, height)
+    offhei = max(1, rows)
     offmin = max(0, offsel - offhei + 1)
     offset = if offset < offmin, do: offmin, else: offset
     offset = if offset > offsel, do: offsel, else: offset

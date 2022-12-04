@@ -145,11 +145,11 @@ defmodule Ash.Tui.Input do
   end
 
   def handle(state, {:key, 0, data}) when is_binary(data) do
-    %{cursor: cursor, text: text, size: {width, _}} = state
+    %{cursor: cursor, text: text, size: {cols, _}} = state
     count = String.length(text)
 
     case count do
-      ^width ->
+      ^cols ->
         {state, nil}
 
       _ ->
@@ -175,7 +175,7 @@ defmodule Ash.Tui.Input do
       cursor: cursor,
       enabled: enabled,
       password: password,
-      size: {width, _},
+      size: {cols, _},
       text: text
     } = state
 
@@ -201,16 +201,16 @@ defmodule Ash.Tui.Input do
 
     text =
       case {password, dotted} do
-        {_, true} -> String.duplicate("_", width)
+        {_, true} -> String.duplicate("_", cols)
         {true, _} -> String.duplicate("*", String.length(text))
         _ -> text
       end
 
-    text = String.pad_trailing(text, width)
+    text = String.pad_trailing(text, cols)
     canvas = Canvas.move(canvas, 0, 0)
     canvas = Canvas.write(canvas, text)
 
-    case {focused, enabled, cursor < width} do
+    case {focused, enabled, cursor < cols} do
       {true, true, true} ->
         Canvas.cursor(canvas, cursor, 0)
 

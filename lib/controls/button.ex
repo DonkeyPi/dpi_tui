@@ -79,7 +79,7 @@ defmodule Ash.Tui.Button do
       text: text,
       theme: theme,
       focused: focused,
-      size: {width, _},
+      size: {cols, _},
       enabled: enabled
     } = state
 
@@ -102,9 +102,9 @@ defmodule Ash.Tui.Button do
 
     canvas = Canvas.move(canvas, 0, 0)
     canvas = Canvas.write(canvas, "[")
-    canvas = Canvas.write(canvas, String.duplicate(" ", width - 2))
+    canvas = Canvas.write(canvas, String.duplicate(" ", cols - 2))
     canvas = Canvas.write(canvas, "]")
-    offset = div(width - String.length(text), 2)
+    offset = div(cols - String.length(text), 2)
     canvas = Canvas.move(canvas, offset, 0)
     Canvas.write(canvas, text)
   end

@@ -18,6 +18,8 @@ defmodule Ash.Tui.MixProject do
   end
 
   defp deps do
-    []
+    [
+      {:ash_react, path: "../ash_react"}
+    ]
   end
 end
