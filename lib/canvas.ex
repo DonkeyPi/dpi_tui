@@ -222,7 +222,7 @@ defmodule Ash.Tui.Canvas do
 
   defp encode(encoder, list, [{:d, d} | tail]) do
     d = :lists.reverse(d)
-    d = IO.chardata_to_string(d)
+    d = encoder.(:text, d)
     encode(encoder, [d | list], tail)
   end
 

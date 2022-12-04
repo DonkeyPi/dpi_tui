@@ -31,19 +31,21 @@ defmodule Ash.Tui.Driver do
   end
 
   def render(
-        %{screen: screen, canvas: canvas1, cols: cols, rows: rows} = state,
+        %{screen: screen, cols: cols, rows: rows} = state,
         {_, momo, _} = dom
       ) do
     {module, model} = momo
+    canvas1 = Canvas.new(cols, rows)
     canvas2 = Canvas.new(cols, rows)
     canvas2 = module.render(model, canvas2)
 
+    # FIXME pass canvas1 to optimize with diff
     data =
       encode(canvas1, canvas2, fn command, param ->
         Screen.encode(screen, command, param)
       end)
 
-    IO.puts("#{inspect(data)}")
+    :ok = Screen.write(screen, "#{data}")
     %{state | canvas: canvas2, dom: dom}
   end
 
