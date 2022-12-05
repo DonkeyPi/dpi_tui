@@ -31,17 +31,32 @@ defmodule Ash.Tui.Driver do
 
   def opts(), do: Screen.opts(get().screen)
 
+  # On root node it captures module, model, and id
+  # and appends extra props [root: true].
   def update(ids, node) do
-    %{tree: tree} = get()
+    state = get()
     {module, props, children} = node
 
+    {root, id, props} =
+      case ids do
+        [id] -> {true, id, props ++ [root: true]}
+        _ -> {false, nil, props}
+      end
+
     model =
-      case Map.get(tree, ids) do
+      case Map.get(state.tree, ids) do
         {^module, model} -> module.update(model, props)
         nil -> module.init(props)
       end
 
-    {module, module.children(model, children)}
+    model = module.children(model, children)
+
+    if root do
+      state = %{state | module: module, model: model, id: id}
+      put(state)
+    end
+
+    {module, model}
   end
 
   def handles?({:event, _}), do: true
@@ -60,9 +75,7 @@ defmodule Ash.Tui.Driver do
     :ok
   end
 
-  # Captures module, model, and id
-  def render(id, {module, model}) do
-    put(%{get() | module: module, model: model, id: id})
+  def render(_id, {module, model}) do
     %{screen: screen, cols: cols, rows: rows} = get()
 
     canvas1 = Canvas.new(cols, rows)
