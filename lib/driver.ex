@@ -31,13 +31,14 @@ defmodule Ash.Tui.Driver do
 
   def opts(), do: Screen.opts(get().screen)
 
-  def update(module, ids, children, props, extras) do
+  def update(ids, node) do
     %{tree: tree} = get()
+    {module, props, children} = node
 
     model =
       case Map.get(tree, ids) do
         {^module, model} -> module.update(model, props)
-        nil -> module.init(props ++ extras)
+        nil -> module.init(props)
       end
 
     {module, module.children(model, children)}
