@@ -1,6 +1,7 @@
 defmodule Ash.Tui.Select do
   @behaviour Ash.Tui.Control
   use Ash.Tui.Const
+  use Ash.Tui.Colors
   alias Ash.Tui.Control
   alias Ash.Tui.Check
   alias Ash.Tui.Select

@@ -1,5 +1,5 @@
 defmodule Ash.Tui.Theme do
-  use Ash.Tui.Const
+  use Ash.Tui.Colors
 
   def get(:default) do
     %{

@@ -1,5 +1,5 @@
 defmodule Ash.Tui.Canvas do
-  use Ash.Tui.Const
+  use Ash.Tui.Colors
 
   @cell {' ', @white, @black}
 
