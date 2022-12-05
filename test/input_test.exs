@@ -58,36 +58,48 @@ defmodule InputTest do
     assert Input.update(initial, on_change: nil) == initial
 
     # navigation
-    assert Input.handle(%{}, %{type: :key, key: :tab}) == {%{}, {:focus, :next}}
-    assert Input.handle(%{}, %{type: :key, key: :kdown}) == {%{}, {:focus, :next}}
-    assert Input.handle(%{}, %{type: :key, key: :tab, flag: @rtab}) == {%{}, {:focus, :prev}}
-    assert Input.handle(%{}, %{type: :key, key: :kup}) == {%{}, {:focus, :prev}}
-    assert Input.handle(%{}, %{type: :key, key: :enter}) == {%{}, {:focus, :next}}
+    assert Input.handle(%{}, %{type: :key, action: :press, key: :tab}) == {%{}, {:focus, :next}}
+    assert Input.handle(%{}, %{type: :key, action: :press, key: :kdown}) == {%{}, {:focus, :next}}
+
+    assert Input.handle(%{}, %{type: :key, action: :press, key: :tab, flag: @rtab}) ==
+             {%{}, {:focus, :prev}}
+
+    assert Input.handle(%{}, %{type: :key, action: :press, key: :kup}) == {%{}, {:focus, :prev}}
+    assert Input.handle(%{}, %{type: :key, action: :press, key: :enter}) == {%{}, {:focus, :next}}
 
     # triggers
     sample = Input.init(size: {10, 1}, on_change: on_change)
 
-    assert Input.handle(sample, %{type: :key, key: 'a'}) ==
+    assert Input.handle(sample, %{type: :key, action: :press, key: 'a'}) ==
              {%{sample | text: "a", cursor: 1}, {:text, "a", "a"}}
 
-    assert Input.handle(%{sample | text: "a", cursor: 1}, %{type: :key, key: 'b'}) ==
+    assert Input.handle(%{sample | text: "a", cursor: 1}, %{type: :key, action: :press, key: 'b'}) ==
              {%{sample | text: "ab", cursor: 2}, {:text, "ab", "ab"}}
 
-    assert Input.handle(%{sample | text: "a", cursor: 0}, %{type: :key, key: 'b'}) ==
+    assert Input.handle(%{sample | text: "a", cursor: 0}, %{type: :key, action: :press, key: 'b'}) ==
              {%{sample | text: "ba", cursor: 1}, {:text, "ba", "ba"}}
 
-    assert Input.handle(%{sample | text: "ab", cursor: 1}, %{type: :key, key: 'c'}) ==
+    assert Input.handle(%{sample | text: "ab", cursor: 1}, %{type: :key, action: :press, key: 'c'}) ==
              {%{sample | text: "acb", cursor: 2}, {:text, "acb", "acb"}}
 
-    assert Input.handle(%{sample | text: "abc", cursor: 1}, %{type: :key, key: :delete}) ==
+    assert Input.handle(%{sample | text: "abc", cursor: 1}, %{
+             type: :key,
+             action: :press,
+             key: :delete
+           }) ==
              {%{sample | text: "ac", cursor: 1}, {:text, "ac", "ac"}}
 
-    assert Input.handle(%{sample | text: "abc", cursor: 1}, %{type: :key, key: :backspace}) ==
+    assert Input.handle(%{sample | text: "abc", cursor: 1}, %{
+             type: :key,
+             action: :press,
+             key: :backspace
+           }) ==
              {%{sample | text: "bc", cursor: 0}, {:text, "bc", "bc"}}
 
     # retriggers
     assert Input.handle(%{sample | text: "abc", cursor: 1}, %{
              type: :key,
+             action: :press,
              key: :enter,
              flag: @renter
            }) ==
@@ -102,15 +114,19 @@ defmodule InputTest do
 
     # nops
     assert Input.handle(%{}, :any) == {%{}, nil}
-    assert Input.handle(initial, %{type: :key, key: :kleft}) == {initial, nil}
-    assert Input.handle(initial, %{type: :key, key: :kright}) == {initial, nil}
-    assert Input.handle(initial, %{type: :key, key: :delete}) == {initial, nil}
-    assert Input.handle(initial, %{type: :key, key: :backspace}) == {initial, nil}
-    assert Input.handle(initial, %{type: :key, key: :home}) == {initial, nil}
-    assert Input.handle(initial, %{type: :key, key: :end}) == {initial, nil}
-    assert Input.handle(initial, %{type: :key, key: 'a'}) == {initial, nil}
+    assert Input.handle(initial, %{type: :key, action: :press, key: :kleft}) == {initial, nil}
+    assert Input.handle(initial, %{type: :key, action: :press, key: :kright}) == {initial, nil}
+    assert Input.handle(initial, %{type: :key, action: :press, key: :delete}) == {initial, nil}
+    assert Input.handle(initial, %{type: :key, action: :press, key: :backspace}) == {initial, nil}
+    assert Input.handle(initial, %{type: :key, action: :press, key: :home}) == {initial, nil}
+    assert Input.handle(initial, %{type: :key, action: :press, key: :end}) == {initial, nil}
+    assert Input.handle(initial, %{type: :key, action: :press, key: 'a'}) == {initial, nil}
 
-    assert Input.handle(%{initial | size: {10, 1}, text: "a"}, %{type: :key, key: :backspace}) ==
+    assert Input.handle(%{initial | size: {10, 1}, text: "a"}, %{
+             type: :key,
+             action: :press,
+             key: :backspace
+           }) ==
              {%{initial | size: {10, 1}, text: "a"}, nil}
 
     assert Input.handle(%{initial | size: {10, 1}, text: "a", cursor: 1}, %{

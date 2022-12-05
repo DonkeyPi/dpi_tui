@@ -19,7 +19,7 @@ defmodule Ash.Tui.Button do
     shortcut = Map.get(opts, :shortcut, nil)
     on_click = Map.get(opts, :on_click, &Button.nop/0)
 
-    state = %{
+    model = %{
       focused: false,
       origin: origin,
       size: size,
@@ -32,7 +32,7 @@ defmodule Ash.Tui.Button do
       on_click: on_click
     }
 
-    check(state)
+    check(model)
   end
 
   def nop(), do: nil
@@ -44,42 +44,44 @@ defmodule Ash.Tui.Button do
   def focusable(%{on_click: cb}) when not is_function(cb, 0), do: false
   def focusable(%{findex: findex}), do: findex >= 0
   def focused(%{focused: focused}), do: focused
-  def focused(state, focused), do: %{state | focused: focused}
-  def refocus(state, _), do: state
+  def focused(model, focused), do: %{model | focused: focused}
+  def refocus(model, _), do: model
   def findex(%{findex: findex}), do: findex
   def shortcut(%{shortcut: shortcut}), do: shortcut
   def children(_), do: []
-  def children(state, _), do: state
+  def children(model, _), do: model
   def modal(_), do: false
 
-  def update(state, props) do
+  def update(model, props) do
     props = Enum.into(props, %{})
     props = Map.drop(props, [:focused])
     props = Control.coalesce(props, :on_click, &Button.nop/0)
-    state = Control.merge(state, props)
-    check(state)
+    model = Control.merge(model, props)
+    check(model)
   end
 
-  def handle(state, %{type: :key, key: :tab, flag: @rtab}), do: {state, {:focus, :prev}}
-  def handle(state, %{type: :key, key: :tab}), do: {state, {:focus, :next}}
-  def handle(state, %{type: :key, key: :kdown}), do: {state, {:focus, :next}}
-  def handle(state, %{type: :key, key: :kup}), do: {state, {:focus, :prev}}
-  def handle(state, %{type: :key, key: :kright}), do: {state, {:focus, :next}}
-  def handle(state, %{type: :key, key: :kleft}), do: {state, {:focus, :prev}}
-  def handle(state, %{type: :key, key: ' '}), do: trigger(state)
-  def handle(state, %{type: :key, key: :enter}), do: trigger(state)
-  def handle(state, %{type: :mouse, action: :press}), do: trigger(state)
-  def handle(%{shortcut: shortcut} = state, {:shortcut, shortcut}), do: trigger(state)
-  def handle(state, _event), do: {state, nil}
+  def handle(model, %{type: :key, action: :press, key: :tab, flag: @rtab}),
+    do: {model, {:focus, :prev}}
 
-  def render(state, canvas) do
+  def handle(model, %{type: :key, action: :press, key: :tab}), do: {model, {:focus, :next}}
+  def handle(model, %{type: :key, action: :press, key: :kdown}), do: {model, {:focus, :next}}
+  def handle(model, %{type: :key, action: :press, key: :kup}), do: {model, {:focus, :prev}}
+  def handle(model, %{type: :key, action: :press, key: :kright}), do: {model, {:focus, :next}}
+  def handle(model, %{type: :key, action: :press, key: :kleft}), do: {model, {:focus, :prev}}
+  def handle(model, %{type: :key, action: :press, key: ' '}), do: trigger(model)
+  def handle(model, %{type: :key, action: :press, key: :enter}), do: trigger(model)
+  def handle(model, %{type: :mouse, action: :press}), do: trigger(model)
+  def handle(%{shortcut: shortcut} = model, {:shortcut, shortcut}), do: trigger(model)
+  def handle(model, _event), do: {model, nil}
+
+  def render(model, canvas) do
     %{
       text: text,
       theme: theme,
       focused: focused,
       size: {cols, rows},
       enabled: enabled
-    } = state
+    } = model
 
     theme = Theme.get(theme)
 
@@ -119,22 +121,22 @@ defmodule Ash.Tui.Button do
     Canvas.write(canvas, text)
   end
 
-  defp trigger(%{on_click: on_click} = state) do
-    {state, {:click, on_click.()}}
+  defp trigger(%{on_click: on_click} = model) do
+    {model, {:click, on_click.()}}
   end
 
-  defp check(state) do
-    Check.assert_boolean(:focused, state.focused)
-    Check.assert_point_2d(:origin, state.origin)
-    Check.assert_point_2d(:size, state.size)
-    Check.assert_boolean(:visible, state.visible)
-    Check.assert_boolean(:enabled, state.enabled)
-    Check.assert_gte(:findex, state.findex, -1)
-    Check.assert_atom(:theme, state.theme)
-    Check.assert_string(:text, state.text)
+  defp check(model) do
+    Check.assert_boolean(:focused, model.focused)
+    Check.assert_point_2d(:origin, model.origin)
+    Check.assert_point_2d(:size, model.size)
+    Check.assert_boolean(:visible, model.visible)
+    Check.assert_boolean(:enabled, model.enabled)
+    Check.assert_gte(:findex, model.findex, -1)
+    Check.assert_atom(:theme, model.theme)
+    Check.assert_string(:text, model.text)
     shortcuts = [nil | @shortcuts]
-    Check.assert_in_list(:shortcut, state.shortcut, shortcuts)
-    Check.assert_function(:on_click, state.on_click, 0)
-    state
+    Check.assert_in_list(:shortcut, model.shortcut, shortcuts)
+    Check.assert_function(:on_click, model.on_click, 0)
+    model
   end
 end

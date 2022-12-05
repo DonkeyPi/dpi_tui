@@ -62,13 +62,15 @@ defmodule PanelTest do
     normal = Panel.init(root: false)
 
     panel = Panel.children(root, c0: Control.init(Label))
-    {^panel, nil} = Panel.handle(panel, %{type: :key, key: :tab})
-    {^panel, nil} = Panel.handle(panel, %{type: :key, key: :enter})
+    {^panel, nil} = Panel.handle(panel, %{type: :key, action: :press, key: :tab})
+    {^panel, nil} = Panel.handle(panel, %{type: :key, action: :press, key: :enter})
     {^panel, nil} = Panel.handle(panel, %{type: :mouse, action: :press, x: 0, y: 0})
 
     panel = Panel.children(root, c0: Control.init(Button))
-    {^panel, nil} = Panel.handle(panel, %{type: :key, key: :tab})
-    {^panel, {:c0, {:click, nil}}} = Panel.handle(panel, %{type: :key, key: :enter})
+    {^panel, nil} = Panel.handle(panel, %{type: :key, action: :press, key: :tab})
+
+    {^panel, {:c0, {:click, nil}}} =
+      Panel.handle(panel, %{type: :key, action: :press, key: :enter})
 
     panel = Panel.children(root, c0: Control.init(Button, size: {1, 1}))
 
@@ -104,8 +106,10 @@ defmodule PanelTest do
     # keys get to nested focused control
     panel = Panel.children(normal, c0: Control.init(Button))
     panel = Panel.children(root, p0: {Panel, panel})
-    {^panel, nil} = Panel.handle(panel, %{type: :key, key: :tab})
-    {^panel, {:p0, {:c0, {:click, nil}}}} = Panel.handle(panel, %{type: :key, key: :enter})
+    {^panel, nil} = Panel.handle(panel, %{type: :key, action: :press, key: :tab})
+
+    {^panel, {:p0, {:c0, {:click, nil}}}} =
+      Panel.handle(panel, %{type: :key, action: :press, key: :enter})
 
     # mouse gets to nested focused control
     panel = Panel.update(normal, size: {1, 1})

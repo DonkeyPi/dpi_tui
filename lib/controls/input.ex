@@ -20,7 +20,7 @@ defmodule Ash.Tui.Input do
     cursor = Map.get(opts, :cursor, String.length(text))
     on_change = Map.get(opts, :on_change, &Input.nop/1)
 
-    state = %{
+    model = %{
       focused: false,
       origin: origin,
       size: size,
@@ -34,7 +34,7 @@ defmodule Ash.Tui.Input do
       on_change: on_change
     }
 
-    check(state)
+    check(model)
   end
 
   def nop(_value), do: nil
@@ -46,15 +46,15 @@ defmodule Ash.Tui.Input do
   def focusable(%{on_change: cb}) when not is_function(cb, 1), do: false
   def focusable(%{findex: findex}), do: findex >= 0
   def focused(%{focused: focused}), do: focused
-  def focused(state, focused), do: %{state | focused: focused}
-  def refocus(state, _), do: state
+  def focused(model, focused), do: %{model | focused: focused}
+  def refocus(model, _), do: model
   def findex(%{findex: findex}), do: findex
   def shortcut(_), do: nil
   def children(_), do: []
-  def children(state, _), do: state
+  def children(model, _), do: model
   def modal(_), do: false
 
-  def update(%{text: text} = state, props) do
+  def update(%{text: text} = model, props) do
     props = Enum.into(props, %{})
     props = Map.drop(props, [:focused, :cursor])
 
@@ -74,97 +74,102 @@ defmodule Ash.Tui.Input do
       end
 
     props = Control.coalesce(props, :on_change, &Input.nop/1)
-    state = Control.merge(state, props)
-    check(state)
+    model = Control.merge(model, props)
+    check(model)
   end
 
-  def handle(state, %{type: :key, key: :tab, flag: @rtab}), do: {state, {:focus, :prev}}
-  def handle(state, %{type: :key, key: :tab}), do: {state, {:focus, :next}}
-  def handle(state, %{type: :key, key: :kdown}), do: {state, {:focus, :next}}
-  def handle(state, %{type: :key, key: :kup}), do: {state, {:focus, :prev}}
-  def handle(state, %{type: :key, key: :enter, flag: @renter}), do: {state, trigger(state)}
-  def handle(state, %{type: :key, key: :enter}), do: {state, {:focus, :next}}
+  def handle(model, %{type: :key, action: :press, key: :tab, flag: @rtab}),
+    do: {model, {:focus, :prev}}
 
-  def handle(%{cursor: cursor} = state, %{type: :key, key: :kleft}) do
+  def handle(model, %{type: :key, action: :press, key: :tab}), do: {model, {:focus, :next}}
+  def handle(model, %{type: :key, action: :press, key: :kdown}), do: {model, {:focus, :next}}
+  def handle(model, %{type: :key, action: :press, key: :kup}), do: {model, {:focus, :prev}}
+
+  def handle(model, %{type: :key, action: :press, key: :enter, flag: @renter}),
+    do: {model, trigger(model)}
+
+  def handle(model, %{type: :key, action: :press, key: :enter}), do: {model, {:focus, :next}}
+
+  def handle(%{cursor: cursor} = model, %{type: :key, action: :press, key: :kleft}) do
     cursor = if cursor > 0, do: cursor - 1, else: cursor
-    state = %{state | cursor: cursor}
-    {state, nil}
+    model = %{model | cursor: cursor}
+    {model, nil}
   end
 
-  def handle(%{cursor: cursor, text: text} = state, %{type: :key, key: :kright}) do
+  def handle(%{cursor: cursor, text: text} = model, %{type: :key, action: :press, key: :kright}) do
     count = String.length(text)
     cursor = if cursor < count, do: cursor + 1, else: cursor
-    state = %{state | cursor: cursor}
-    {state, nil}
+    model = %{model | cursor: cursor}
+    {model, nil}
   end
 
-  def handle(state, %{type: :key, key: :home}) do
-    state = %{state | cursor: 0}
-    {state, nil}
+  def handle(model, %{type: :key, action: :press, key: :home}) do
+    model = %{model | cursor: 0}
+    {model, nil}
   end
 
-  def handle(%{text: text} = state, %{type: :key, key: :end}) do
+  def handle(%{text: text} = model, %{type: :key, action: :press, key: :end}) do
     count = String.length(text)
-    state = %{state | cursor: count}
-    {state, nil}
+    model = %{model | cursor: count}
+    {model, nil}
   end
 
-  def handle(%{cursor: cursor, text: text} = state, %{type: :key, key: :backspace}) do
+  def handle(%{cursor: cursor, text: text} = model, %{type: :key, action: :press, key: :backspace}) do
     case cursor do
       0 ->
-        {state, nil}
+        {model, nil}
 
       _ ->
         {prefix, suffix} = String.split_at(text, cursor)
         {prefix, _} = String.split_at(prefix, cursor - 1)
         cursor = cursor - 1
         text = "#{prefix}#{suffix}"
-        state = %{state | text: text, cursor: cursor}
-        {state, trigger(state)}
+        model = %{model | text: text, cursor: cursor}
+        {model, trigger(model)}
     end
   end
 
-  def handle(%{cursor: cursor, text: text} = state, %{type: :key, key: :delete}) do
+  def handle(%{cursor: cursor, text: text} = model, %{type: :key, action: :press, key: :delete}) do
     count = String.length(text)
 
     case cursor do
       ^count ->
-        {state, nil}
+        {model, nil}
 
       _ ->
         {prefix, suffix} = String.split_at(text, cursor)
         suffix = String.slice(suffix, 1..String.length(suffix))
         text = "#{prefix}#{suffix}"
-        state = %{state | text: text}
-        {state, trigger(state)}
+        model = %{model | text: text}
+        {model, trigger(model)}
     end
   end
 
-  def handle(state, %{type: :key, key: data}) when is_list(data) do
-    %{cursor: cursor, text: text, size: {cols, _}} = state
+  def handle(model, %{type: :key, action: :press, key: data}) when is_list(data) do
+    %{cursor: cursor, text: text, size: {cols, _}} = model
     count = String.length(text)
 
     case count do
       ^cols ->
-        {state, nil}
+        {model, nil}
 
       _ ->
         {prefix, suffix} = String.split_at(text, cursor)
         text = "#{prefix}#{data}#{suffix}"
-        state = %{state | text: text, cursor: cursor + 1}
-        {state, trigger(state)}
+        model = %{model | text: text, cursor: cursor + 1}
+        {model, trigger(model)}
     end
   end
 
-  def handle(%{text: text} = state, %{type: :mouse, action: :press, x: mx}) do
+  def handle(%{text: text} = model, %{type: :mouse, action: :press, x: mx}) do
     cursor = min(mx, String.length(text))
-    state = %{state | cursor: cursor}
-    {state, nil}
+    model = %{model | cursor: cursor}
+    {model, nil}
   end
 
-  def handle(state, _event), do: {state, nil}
+  def handle(model, _event), do: {model, nil}
 
-  def render(state, canvas) do
+  def render(model, canvas) do
     %{
       focused: focused,
       theme: theme,
@@ -173,7 +178,7 @@ defmodule Ash.Tui.Input do
       password: password,
       size: {cols, _},
       text: text
-    } = state
+    } = model
 
     theme = Theme.get(theme)
     canvas = Canvas.clear(canvas, :colors)
@@ -220,18 +225,18 @@ defmodule Ash.Tui.Input do
     {:text, text, resp}
   end
 
-  defp check(state) do
-    Check.assert_boolean(:focused, state.focused)
-    Check.assert_point_2d(:origin, state.origin)
-    Check.assert_point_2d(:size, state.size)
-    Check.assert_boolean(:visible, state.visible)
-    Check.assert_boolean(:enabled, state.enabled)
-    Check.assert_gte(:findex, state.findex, -1)
-    Check.assert_atom(:theme, state.theme)
-    Check.assert_boolean(:password, state.password)
-    Check.assert_string(:text, state.text)
-    Check.assert_gte(:cursor, state.cursor, 0)
-    Check.assert_function(:on_change, state.on_change, 1)
-    state
+  defp check(model) do
+    Check.assert_boolean(:focused, model.focused)
+    Check.assert_point_2d(:origin, model.origin)
+    Check.assert_point_2d(:size, model.size)
+    Check.assert_boolean(:visible, model.visible)
+    Check.assert_boolean(:enabled, model.enabled)
+    Check.assert_gte(:findex, model.findex, -1)
+    Check.assert_atom(:theme, model.theme)
+    Check.assert_boolean(:password, model.password)
+    Check.assert_string(:text, model.text)
+    Check.assert_gte(:cursor, model.cursor, 0)
+    Check.assert_function(:on_change, model.on_change, 1)
+    model
   end
 end

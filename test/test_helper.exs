@@ -107,41 +107,77 @@ defmodule ControlTest do
 
     # navigation (except Panel)
     if input? do
-      assert module.handle(%{}, %{type: :key, key: :tab}) == {%{}, {:focus, :next}}
-      assert module.handle(%{}, %{type: :key, key: :tab, flag: @rtab}) == {%{}, {:focus, :prev}}
+      assert module.handle(%{}, %{type: :key, action: :press, key: :tab}) ==
+               {%{}, {:focus, :next}}
+
+      assert module.handle(%{}, %{type: :key, action: :press, key: :tab, flag: @rtab}) ==
+               {%{}, {:focus, :prev}}
     else
-      assert module.handle(%{}, %{type: :key, key: :tab}) == {%{}, nil}
-      assert module.handle(%{}, %{type: :key, key: :tab, flag: @rtab}) == {%{}, nil}
+      assert module.handle(%{}, %{type: :key, action: :press, key: :tab}) == {%{}, nil}
+
+      assert module.handle(%{}, %{type: :key, action: :press, key: :tab, flag: @rtab}) ==
+               {%{}, nil}
     end
 
     case module do
       Button ->
-        assert module.handle(%{}, %{type: :key, key: :kdown}) == {%{}, {:focus, :next}}
-        assert module.handle(%{}, %{type: :key, key: :kright}) == {%{}, {:focus, :next}}
-        assert module.handle(%{}, %{type: :key, key: :kup}) == {%{}, {:focus, :prev}}
-        assert module.handle(%{}, %{type: :key, key: :kleft}) == {%{}, {:focus, :prev}}
+        assert module.handle(%{}, %{type: :key, action: :press, key: :kdown}) ==
+                 {%{}, {:focus, :next}}
+
+        assert module.handle(%{}, %{type: :key, action: :press, key: :kright}) ==
+                 {%{}, {:focus, :next}}
+
+        assert module.handle(%{}, %{type: :key, action: :press, key: :kup}) ==
+                 {%{}, {:focus, :prev}}
+
+        assert module.handle(%{}, %{type: :key, action: :press, key: :kleft}) ==
+                 {%{}, {:focus, :prev}}
 
       Checkbox ->
-        assert module.handle(%{}, %{type: :key, key: :enter}) == {%{}, {:focus, :next}}
-        assert module.handle(%{}, %{type: :key, key: :kdown}) == {%{}, {:focus, :next}}
-        assert module.handle(%{}, %{type: :key, key: :kright}) == {%{}, {:focus, :next}}
-        assert module.handle(%{}, %{type: :key, key: :kup}) == {%{}, {:focus, :prev}}
-        assert module.handle(%{}, %{type: :key, key: :kleft}) == {%{}, {:focus, :prev}}
+        assert module.handle(%{}, %{type: :key, action: :press, key: :enter}) ==
+                 {%{}, {:focus, :next}}
+
+        assert module.handle(%{}, %{type: :key, action: :press, key: :kdown}) ==
+                 {%{}, {:focus, :next}}
+
+        assert module.handle(%{}, %{type: :key, action: :press, key: :kright}) ==
+                 {%{}, {:focus, :next}}
+
+        assert module.handle(%{}, %{type: :key, action: :press, key: :kup}) ==
+                 {%{}, {:focus, :prev}}
+
+        assert module.handle(%{}, %{type: :key, action: :press, key: :kleft}) ==
+                 {%{}, {:focus, :prev}}
 
       Input ->
-        assert module.handle(%{}, %{type: :key, key: :enter}) == {%{}, {:focus, :next}}
-        assert module.handle(%{}, %{type: :key, key: :kdown}) == {%{}, {:focus, :next}}
-        assert module.handle(%{}, %{type: :key, key: :kup}) == {%{}, {:focus, :prev}}
+        assert module.handle(%{}, %{type: :key, action: :press, key: :enter}) ==
+                 {%{}, {:focus, :next}}
+
+        assert module.handle(%{}, %{type: :key, action: :press, key: :kdown}) ==
+                 {%{}, {:focus, :next}}
+
+        assert module.handle(%{}, %{type: :key, action: :press, key: :kup}) ==
+                 {%{}, {:focus, :prev}}
 
       Radio ->
-        assert module.handle(%{}, %{type: :key, key: :enter}) == {%{}, {:focus, :next}}
-        assert module.handle(%{}, %{type: :key, key: :kdown}) == {%{}, {:focus, :next}}
-        assert module.handle(%{}, %{type: :key, key: :kup}) == {%{}, {:focus, :prev}}
+        assert module.handle(%{}, %{type: :key, action: :press, key: :enter}) ==
+                 {%{}, {:focus, :next}}
+
+        assert module.handle(%{}, %{type: :key, action: :press, key: :kdown}) ==
+                 {%{}, {:focus, :next}}
+
+        assert module.handle(%{}, %{type: :key, action: :press, key: :kup}) ==
+                 {%{}, {:focus, :prev}}
 
       Select ->
-        assert module.handle(%{}, %{type: :key, key: :enter}) == {%{}, {:focus, :next}}
-        assert module.handle(%{}, %{type: :key, key: :kright}) == {%{}, {:focus, :next}}
-        assert module.handle(%{}, %{type: :key, key: :kleft}) == {%{}, {:focus, :prev}}
+        assert module.handle(%{}, %{type: :key, action: :press, key: :enter}) ==
+                 {%{}, {:focus, :next}}
+
+        assert module.handle(%{}, %{type: :key, action: :press, key: :kright}) ==
+                 {%{}, {:focus, :next}}
+
+        assert module.handle(%{}, %{type: :key, action: :press, key: :kleft}) ==
+                 {%{}, {:focus, :prev}}
 
       _ ->
         nil

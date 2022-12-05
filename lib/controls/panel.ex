@@ -13,7 +13,7 @@ defmodule Ash.Tui.Panel do
     findex = Map.get(opts, :findex, 0)
     root = Map.get(opts, :root, false)
 
-    state = %{
+    model = %{
       focused: root,
       origin: origin,
       size: size,
@@ -26,14 +26,14 @@ defmodule Ash.Tui.Panel do
       focus: nil
     }
 
-    check(state)
+    check(model)
   end
 
   def bounds(%{origin: {x, y}, size: {w, h}}), do: {x, y, w, h}
   def visible(%{visible: visible}), do: visible
   def focused(%{focused: focused}), do: focused
-  def focused(state, focused), do: Map.put(state, :focused, focused)
-  def refocus(state, dir), do: recalculate(state, dir)
+  def focused(model, focused), do: Map.put(model, :focused, focused)
+  def refocus(model, dir), do: recalculate(model, dir)
   def findex(%{findex: findex}), do: findex
   def shortcut(_), do: nil
   def modal(%{root: root}), do: root
@@ -46,8 +46,8 @@ defmodule Ash.Tui.Panel do
 
   def focusable(%{children: children, index: index}) do
     Enum.find_value(index, false, fn id ->
-      mote = Map.get(children, id)
-      mote_focusable(mote)
+      momo = Map.get(children, id)
+      momo_focusable(momo)
     end)
   end
 
@@ -57,7 +57,7 @@ defmodule Ash.Tui.Panel do
     end
   end
 
-  def children(state, children) do
+  def children(model, children) do
     {index, children} =
       for {id, child} <- children, reduce: {[], %{}} do
         {index, map} ->
@@ -66,52 +66,52 @@ defmodule Ash.Tui.Panel do
           {[id | index], Map.put(map, id, child)}
       end
 
-    state = Map.put(state, :children, children)
-    state = Map.put(state, :index, index)
-    recalculate(state, :next)
+    model = Map.put(model, :children, children)
+    model = Map.put(model, :index, index)
+    recalculate(model, :next)
   end
 
-  def update(state, props) do
+  def update(model, props) do
     props = Enum.into(props, %{})
     props = Map.drop(props, [:root, :children, :focus, :index, :focused])
-    state = Control.merge(state, props)
-    state = recalculate(state, :next)
-    check(state)
+    model = Control.merge(model, props)
+    model = recalculate(model, :next)
+    check(model)
   end
 
-  def handle(%{origin: {x, y}} = state, {:modal, [], %{type: :mouse, x: mx, y: my} = event}) do
-    handle(state, %{event | x: mx - x, y: my - y})
+  def handle(%{origin: {x, y}} = model, {:modal, [], %{type: :mouse, x: mx, y: my} = event}) do
+    handle(model, %{event | x: mx - x, y: my - y})
   end
 
-  def handle(state, {:modal, [], event}), do: handle(state, event)
+  def handle(model, {:modal, [], event}), do: handle(model, event)
 
-  def handle(state, {:modal, [key | tail], event}) do
-    mote = state.children[key]
-    {mote, event} = mote_handle(mote, {:modal, tail, event})
-    state = put_child(state, key, mote)
-    {state, event}
+  def handle(model, {:modal, [key | tail], event}) do
+    momo = model.children[key]
+    {momo, event} = momo_handle(momo, {:modal, tail, event})
+    model = put_child(model, key, momo)
+    {model, event}
   end
 
-  def handle(%{focus: nil} = state, %{type: :key}), do: {state, nil}
+  def handle(%{focus: nil} = model, %{type: :key}), do: {model, nil}
 
-  def handle(%{focus: focus} = state, %{type: :key} = event) do
-    mote = get_child(state, focus)
-    {mote, event} = mote_handle(mote, event)
-    child_event(state, mote, event)
+  def handle(%{focus: focus} = model, %{type: :key} = event) do
+    momo = get_child(model, focus)
+    {momo, event} = momo_handle(momo, event)
+    child_event(model, momo, event)
   end
 
   # controls get focused before receiving a mouse event
   # unless the root panel has no focusable children at all
-  def handle(%{focus: nil} = state, %{type: :mouse}), do: {state, nil}
+  def handle(%{focus: nil} = model, %{type: :mouse}), do: {model, nil}
 
   def handle(
-        %{focus: focus, index: index, children: children} = state,
+        %{focus: focus, index: index, children: children} = model,
         %{type: :mouse, x: mx, y: my} = event
       ) do
-    Enum.find_value(index, {state, nil}, fn id ->
-      mote = Map.get(children, id)
-      focusable = mote_focusable(mote)
-      bounds = mote_bounds(mote)
+    Enum.find_value(index, {model, nil}, fn id ->
+      momo = Map.get(children, id)
+      focusable = momo_focusable(momo)
+      bounds = momo_bounds(momo)
       client = toclient(bounds, mx, my)
 
       case {focusable, client, focus} do
@@ -123,92 +123,92 @@ defmodule Ash.Tui.Panel do
 
         {_, {dx, dy}, ^id} ->
           event = %{event | x: dx, y: dy}
-          {mote, event} = mote_handle(mote, event)
-          child_event(state, mote, event)
+          {momo, event} = momo_handle(momo, event)
+          child_event(model, momo, event)
 
         {_, {dx, dy}, _} ->
-          state = unfocus(state)
-          state = %{state | focus: id}
-          mote = mote_focused(mote, true, :next)
+          model = unfocus(model)
+          model = %{model | focus: id}
+          momo = momo_focused(momo, true, :next)
           event = %{event | x: dx, y: dy}
-          {mote, event} = mote_handle(mote, event)
-          child_event(state, mote, event)
+          {momo, event} = momo_handle(momo, event)
+          child_event(model, momo, event)
       end
     end)
   end
 
   # shortcuts are broadcasted without focus pre-assigment
-  def handle(%{index: index, children: children} = state, {:shortcut, _} = event) do
+  def handle(%{index: index, children: children} = model, {:shortcut, _} = event) do
     Enum.each(index, fn id ->
-      mote = Map.get(children, id)
+      momo = Map.get(children, id)
 
-      if mote_focusable(mote) do
-        mote_handle(mote, event)
+      if momo_focusable(momo) do
+        momo_handle(momo, event)
       end
     end)
 
-    {state, nil}
+    {model, nil}
   end
 
-  def handle(state, _event), do: {state, nil}
+  def handle(model, _event), do: {model, nil}
 
   def render(%{index: index, children: children}, canvas) do
     for id <- Enum.reverse(index), reduce: canvas do
       canvas ->
-        mote = Map.get(children, id)
-        mote_render(mote, canvas)
+        momo = Map.get(children, id)
+        momo_render(momo, canvas)
     end
   end
 
   # assumes no child other than the pointed
   # by the focus key will be ever focused
   # no attempt is made to unfocus every children
-  defp recalculate(state, dir) do
+  defp recalculate(model, dir) do
     %{
       visible: visible,
       enabled: enabled,
       focused: focused,
       findex: findex,
       focus: focus
-    } = state
+    } = model
 
     expected = visible && enabled && focused && findex >= 0
 
     # try to recover the current focus key
     # returning nil if not recoverable
-    {state, focus} =
+    {model, focus} =
       case focus do
         nil ->
-          {state, nil}
+          {model, nil}
 
         _ ->
-          case get_child(state, focus) do
+          case get_child(model, focus) do
             nil ->
-              state = Map.put(state, :focus, nil)
-              {state, nil}
+              model = Map.put(model, :focus, nil)
+              {model, nil}
 
-            mote ->
-              focused = mote_focused(mote)
-              focusable = mote_focusable(mote)
+            momo ->
+              focused = momo_focused(momo)
+              focusable = momo_focusable(momo)
 
               case {focusable && expected, focused} do
                 {false, false} ->
-                  state = Map.put(state, :focus, nil)
-                  {state, nil}
+                  model = Map.put(model, :focus, nil)
+                  {model, nil}
 
                 {false, true} ->
-                  mote = mote_focused(mote, false, dir)
-                  state = put_child(state, focus, mote)
-                  state = Map.put(state, :focus, nil)
-                  {state, nil}
+                  momo = momo_focused(momo, false, dir)
+                  model = put_child(model, focus, momo)
+                  model = Map.put(model, :focus, nil)
+                  {model, nil}
 
                 {true, false} ->
-                  mote = mote_focused(mote, true, dir)
-                  state = put_child(state, focus, mote)
-                  {state, focus}
+                  momo = momo_focused(momo, true, dir)
+                  model = put_child(model, focus, momo)
+                  {model, focus}
 
                 {true, true} ->
-                  {state, focus}
+                  {model, focus}
               end
           end
       end
@@ -216,26 +216,26 @@ defmodule Ash.Tui.Panel do
     # try to initialize the focus key if nil
     case {expected, focus} do
       {true, nil} ->
-        case focus_list(state, dir) do
+        case focus_list(model, dir) do
           [] ->
-            state
+            model
 
           [focus | _] ->
-            mote = get_child(state, focus)
-            mote = mote_focused(mote, true, dir)
-            state = put_child(state, focus, mote)
-            Map.put(state, :focus, focus)
+            momo = get_child(model, focus)
+            momo = momo_focused(momo, true, dir)
+            model = put_child(model, focus, momo)
+            Map.put(model, :focus, focus)
         end
 
       _ ->
-        state
+        model
     end
   end
 
-  defp child_event(%{focus: focus, root: root} = state, mote, event) do
+  defp child_event(%{focus: focus, root: root} = model, momo, event) do
     case event do
       {:focus, dir} ->
-        {first, next} = focus_next(state, focus, dir)
+        {first, next} = focus_next(model, focus, dir)
 
         # critical to remove and reapply focused even
         # and specially when next equals current focus
@@ -248,27 +248,27 @@ defmodule Ash.Tui.Panel do
 
         case next do
           nil ->
-            {put_child(state, focus, mote), {:focus, dir}}
+            {put_child(model, focus, momo), {:focus, dir}}
 
           _ ->
-            mote = mote_focused(mote, false, dir)
-            state = put_child(state, focus, mote)
-            mote = get_child(state, next)
-            mote = mote_focused(mote, true, dir)
-            state = put_child(state, next, mote)
-            {Map.put(state, :focus, next), nil}
+            momo = momo_focused(momo, false, dir)
+            model = put_child(model, focus, momo)
+            momo = get_child(model, next)
+            momo = momo_focused(momo, true, dir)
+            model = put_child(model, next, momo)
+            {Map.put(model, :focus, next), nil}
         end
 
       nil ->
-        {put_child(state, focus, mote), nil}
+        {put_child(model, focus, momo), nil}
 
       _ ->
-        {put_child(state, focus, mote), {focus, event}}
+        {put_child(model, focus, momo), {focus, event}}
     end
   end
 
-  defp focus_next(state, focus, dir) do
-    index = focus_list(state, dir)
+  defp focus_next(model, focus, dir) do
+    index = focus_list(model, dir)
 
     case index do
       [] ->
@@ -288,27 +288,27 @@ defmodule Ash.Tui.Panel do
     end
   end
 
-  defp focus_list(state, :next) do
-    index = focus_list(state, :prev)
+  defp focus_list(model, :next) do
+    index = focus_list(model, :prev)
     Enum.reverse(index)
   end
 
-  defp focus_list(state, :prev) do
-    %{index: index} = state
-    index = Enum.filter(index, &child_focusable(state, &1))
-    Enum.sort(index, &focus_compare(state, &1, &2))
+  defp focus_list(model, :prev) do
+    %{index: index} = model
+    index = Enum.filter(index, &child_focusable(model, &1))
+    Enum.sort(index, &focus_compare(model, &1, &2))
   end
 
-  defp focus_compare(state, id1, id2) do
-    fi1 = child_findex(state, id1)
-    fi2 = child_findex(state, id2)
+  defp focus_compare(model, id1, id2) do
+    fi1 = child_findex(model, id1)
+    fi2 = child_findex(model, id2)
     fi1 >= fi2
   end
 
-  defp unfocus(%{focus: focus} = state) do
-    mote = get_child(state, focus)
-    mote = mote_focused(mote, false, :next)
-    put_child(state, focus, mote)
+  defp unfocus(%{focus: focus} = model) do
+    momo = get_child(model, focus)
+    momo = momo_focused(momo, false, :next)
+    put_child(model, focus, momo)
   end
 
   defp toclient({x, y, w, h}, mx, my) do
@@ -318,18 +318,18 @@ defmodule Ash.Tui.Panel do
     end
   end
 
-  defp get_child(state, id), do: get_in(state, [:children, id])
-  defp put_child(state, id, child), do: put_in(state, [:children, id], child)
-  defp child_focusable(state, id), do: mote_focusable(get_child(state, id))
-  defp child_findex(state, id), do: mote_findex(get_child(state, id))
-  defp mote_bounds({module, state}), do: module.bounds(state)
-  defp mote_findex({module, state}), do: module.findex(state)
-  defp mote_focusable({module, state}), do: module.focusable(state)
-  defp mote_focused({module, state}), do: module.focused(state)
+  defp get_child(model, id), do: get_in(model, [:children, id])
+  defp put_child(model, id, child), do: put_in(model, [:children, id], child)
+  defp child_focusable(model, id), do: momo_focusable(get_child(model, id))
+  defp child_findex(model, id), do: momo_findex(get_child(model, id))
+  defp momo_bounds({module, model}), do: module.bounds(model)
+  defp momo_findex({module, model}), do: module.findex(model)
+  defp momo_focusable({module, model}), do: module.focusable(model)
+  defp momo_focused({module, model}), do: module.focused(model)
 
-  defp mote_render({module, state}, canvas) do
-    visible = module.visible(state)
-    modal = module.modal(state)
+  defp momo_render({module, model}, canvas) do
+    visible = module.visible(model)
+    modal = module.modal(model)
 
     case {visible, modal} do
       {false, _} ->
@@ -339,34 +339,34 @@ defmodule Ash.Tui.Panel do
         canvas
 
       _ ->
-        bounds = module.bounds(state)
+        bounds = module.bounds(model)
         canvas = Canvas.push(canvas, bounds)
-        canvas = module.render(state, canvas)
+        canvas = module.render(model, canvas)
         Canvas.pop(canvas)
     end
   end
 
-  defp mote_focused({module, state}, focused, dir) do
-    state = module.focused(state, focused)
-    state = module.refocus(state, dir)
-    {module, state}
+  defp momo_focused({module, model}, focused, dir) do
+    model = module.focused(model, focused)
+    model = module.refocus(model, dir)
+    {module, model}
   end
 
-  defp mote_handle({module, state}, event) do
-    {state, event} = module.handle(state, event)
-    {{module, state}, event}
+  defp momo_handle({module, model}, event) do
+    {model, event} = module.handle(model, event)
+    {{module, model}, event}
   end
 
-  defp check(state) do
-    Check.assert_boolean(:focused, state.focused)
-    Check.assert_point_2d(:origin, state.origin)
-    Check.assert_point_2d(:size, state.size)
-    Check.assert_boolean(:visible, state.visible)
-    Check.assert_boolean(:enabled, state.enabled)
-    Check.assert_gte(:findex, state.findex, -1)
-    Check.assert_boolean(:root, state.root)
-    Check.assert_map(:children, state.children)
-    Check.assert_list(:index, state.index)
-    state
+  defp check(model) do
+    Check.assert_boolean(:focused, model.focused)
+    Check.assert_point_2d(:origin, model.origin)
+    Check.assert_point_2d(:size, model.size)
+    Check.assert_boolean(:visible, model.visible)
+    Check.assert_boolean(:enabled, model.enabled)
+    Check.assert_gte(:findex, model.findex, -1)
+    Check.assert_boolean(:root, model.root)
+    Check.assert_map(:children, model.children)
+    Check.assert_list(:index, model.index)
+    model
   end
 end

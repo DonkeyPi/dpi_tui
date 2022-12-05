@@ -22,7 +22,7 @@ defmodule Ash.Tui.Select do
 
     {count, map} = internals(items)
 
-    state = %{
+    model = %{
       focused: false,
       origin: origin,
       size: size,
@@ -38,8 +38,8 @@ defmodule Ash.Tui.Select do
       on_change: on_change
     }
 
-    state = recalculate(state)
-    check(state)
+    model = recalculate(model)
+    check(model)
   end
 
   def nop({_index, _value}), do: nil
@@ -51,15 +51,15 @@ defmodule Ash.Tui.Select do
   def focusable(%{on_change: cb}) when not is_function(cb, 1), do: false
   def focusable(%{findex: findex}), do: findex >= 0
   def focused(%{focused: focused}), do: focused
-  def focused(state, focused), do: %{state | focused: focused}
-  def refocus(state, _), do: state
+  def focused(model, focused), do: %{model | focused: focused}
+  def refocus(model, _), do: model
   def findex(%{findex: findex}), do: findex
   def shortcut(_), do: nil
   def children(_), do: []
-  def children(state, _), do: state
+  def children(model, _), do: model
   def modal(_), do: false
 
-  def update(%{items: items} = state, props) do
+  def update(%{items: items} = model, props) do
     props = Enum.into(props, %{})
     props = Map.drop(props, [:focused, :count, :map, :offset])
 
@@ -81,72 +81,77 @@ defmodule Ash.Tui.Select do
       end
 
     props = Control.coalesce(props, :on_change, &Select.nop/1)
-    state = Control.merge(state, props)
-    state = recalculate(state)
-    check(state)
+    model = Control.merge(model, props)
+    model = recalculate(model)
+    check(model)
   end
 
-  def handle(%{items: []} = state, %{type: :key}), do: {state, nil}
-  def handle(%{items: []} = state, %{type: :mouse}), do: {state, nil}
+  def handle(%{items: []} = model, %{type: :key}), do: {model, nil}
+  def handle(%{items: []} = model, %{type: :mouse}), do: {model, nil}
 
-  def handle(state, %{type: :key, key: :kdown}) do
-    %{count: count, selected: selected} = state
+  def handle(model, %{type: :key, action: :press, key: :kdown}) do
+    %{count: count, selected: selected} = model
     next = min(selected + 1, count - 1)
-    trigger(state, next, selected)
+    trigger(model, next, selected)
   end
 
-  def handle(state, %{type: :key, key: :kup}) do
-    %{selected: selected} = state
+  def handle(model, %{type: :key, action: :press, key: :kup}) do
+    %{selected: selected} = model
     next = max(0, selected - 1)
-    trigger(state, next, selected)
+    trigger(model, next, selected)
   end
 
-  def handle(state, %{type: :key, key: :pdown}) do
-    %{count: count, selected: selected, size: {_, rows}} = state
+  def handle(model, %{type: :key, action: :press, key: :pdown}) do
+    %{count: count, selected: selected, size: {_, rows}} = model
     next = min(selected + rows, count - 1)
-    trigger(state, next, selected)
+    trigger(model, next, selected)
   end
 
-  def handle(state, %{type: :key, key: :pup}) do
-    %{selected: selected, size: {_, rows}} = state
+  def handle(model, %{type: :key, action: :press, key: :pup}) do
+    %{selected: selected, size: {_, rows}} = model
     next = max(0, selected - rows)
-    trigger(state, next, selected)
+    trigger(model, next, selected)
   end
 
-  def handle(state, %{type: :key, key: :end}) do
-    %{count: count, selected: selected} = state
-    trigger(state, count - 1, selected)
+  def handle(model, %{type: :key, action: :press, key: :end}) do
+    %{count: count, selected: selected} = model
+    trigger(model, count - 1, selected)
   end
 
-  def handle(state, %{type: :key, key: :home}) do
-    %{selected: selected} = state
-    trigger(state, 0, selected)
+  def handle(model, %{type: :key, action: :press, key: :home}) do
+    %{selected: selected} = model
+    trigger(model, 0, selected)
   end
 
-  def handle(state, %{type: :mouse, action: :scroll, dir: :up}) do
-    handle(state, %{type: :key, key: :kup})
+  def handle(model, %{type: :mouse, action: :scroll, dir: :up}) do
+    handle(model, %{type: :key, action: :press, key: :kup})
   end
 
-  def handle(state, %{type: :mouse, action: :scroll, dir: :down}) do
-    handle(state, %{type: :key, key: :kdown})
+  def handle(model, %{type: :mouse, action: :scroll, dir: :down}) do
+    handle(model, %{type: :key, action: :press, key: :kdown})
   end
 
-  def handle(state, %{type: :mouse, action: :press, y: my}) do
-    %{count: count, selected: selected, offset: offset} = state
+  def handle(model, %{type: :mouse, action: :press, y: my}) do
+    %{count: count, selected: selected, offset: offset} = model
     next = my + offset
     next = if next >= count, do: selected, else: next
-    trigger(state, next, selected)
+    trigger(model, next, selected)
   end
 
-  def handle(state, %{type: :key, key: :tab, flag: @rtab}), do: {state, {:focus, :prev}}
-  def handle(state, %{type: :key, key: :tab}), do: {state, {:focus, :next}}
-  def handle(state, %{type: :key, key: :kright}), do: {state, {:focus, :next}}
-  def handle(state, %{type: :key, key: :kleft}), do: {state, {:focus, :prev}}
-  def handle(state, %{type: :key, key: :enter, flag: @renter}), do: {state, trigger(state)}
-  def handle(state, %{type: :key, key: :enter}), do: {state, {:focus, :next}}
-  def handle(state, _event), do: {state, nil}
+  def handle(model, %{type: :key, action: :press, key: :tab, flag: @rtab}),
+    do: {model, {:focus, :prev}}
 
-  def render(state, canvas) do
+  def handle(model, %{type: :key, action: :press, key: :tab}), do: {model, {:focus, :next}}
+  def handle(model, %{type: :key, action: :press, key: :kright}), do: {model, {:focus, :next}}
+  def handle(model, %{type: :key, action: :press, key: :kleft}), do: {model, {:focus, :prev}}
+
+  def handle(model, %{type: :key, action: :press, key: :enter, flag: @renter}),
+    do: {model, trigger(model)}
+
+  def handle(model, %{type: :key, action: :press, key: :enter}), do: {model, {:focus, :next}}
+  def handle(model, _event), do: {model, nil}
+
+  def render(model, canvas) do
     %{
       map: map,
       theme: theme,
@@ -155,7 +160,7 @@ defmodule Ash.Tui.Select do
       focused: focused,
       selected: selected,
       offset: offset
-    } = state
+    } = model
 
     theme = Theme.get(theme)
 
@@ -199,7 +204,7 @@ defmodule Ash.Tui.Select do
            size: {_, rows},
            count: count,
            offset: offset
-         } = state
+         } = model
        ) do
     outofrange = selected < 0 or selected >= count
     offmin = if selected >= rows, do: selected + 1 - rows, else: 0
@@ -214,16 +219,16 @@ defmodule Ash.Tui.Select do
         true -> {selected, offset}
       end
 
-    %{state | selected: selected, offset: offset}
+    %{model | selected: selected, offset: offset}
   end
 
-  defp trigger(state, next, selected) do
-    state = %{state | selected: next}
-    state = recalculate(state)
+  defp trigger(model, next, selected) do
+    model = %{model | selected: next}
+    model = recalculate(model)
 
-    case state.selected do
-      ^selected -> {state, nil}
-      _ -> {state, trigger(state)}
+    case model.selected do
+      ^selected -> {model, nil}
+      _ -> {model, trigger(model)}
     end
   end
 
@@ -240,20 +245,20 @@ defmodule Ash.Tui.Select do
     end
   end
 
-  defp check(state) do
-    Check.assert_boolean(:focused, state.focused)
-    Check.assert_point_2d(:origin, state.origin)
-    Check.assert_point_2d(:size, state.size)
-    Check.assert_boolean(:visible, state.visible)
-    Check.assert_boolean(:enabled, state.enabled)
-    Check.assert_gte(:findex, state.findex, -1)
-    Check.assert_atom(:theme, state.theme)
-    Check.assert_list(:items, state.items)
-    Check.assert_integer(:selected, state.selected)
-    Check.assert_map(:map, state.map)
-    Check.assert_gte(:count, state.count, 0)
-    Check.assert_gte(:offset, state.offset, 0)
-    Check.assert_function(:on_change, state.on_change, 1)
-    state
+  defp check(model) do
+    Check.assert_boolean(:focused, model.focused)
+    Check.assert_point_2d(:origin, model.origin)
+    Check.assert_point_2d(:size, model.size)
+    Check.assert_boolean(:visible, model.visible)
+    Check.assert_boolean(:enabled, model.enabled)
+    Check.assert_gte(:findex, model.findex, -1)
+    Check.assert_atom(:theme, model.theme)
+    Check.assert_list(:items, model.items)
+    Check.assert_integer(:selected, model.selected)
+    Check.assert_map(:map, model.map)
+    Check.assert_gte(:count, model.count, 0)
+    Check.assert_gte(:offset, model.offset, 0)
+    Check.assert_function(:on_change, model.on_change, 1)
+    model
   end
 end

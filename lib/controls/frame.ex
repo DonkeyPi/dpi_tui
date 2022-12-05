@@ -18,7 +18,7 @@ defmodule Ash.Tui.Frame do
     back = Map.get(opts, :back, theme.back_readonly)
     fore = Map.get(opts, :fore, theme.fore_readonly)
 
-    state = %{
+    model = %{
       origin: origin,
       size: size,
       visible: visible,
@@ -29,30 +29,30 @@ defmodule Ash.Tui.Frame do
       fore: fore
     }
 
-    check(state)
+    check(model)
   end
 
   def bounds(%{origin: {x, y}, size: {w, h}}), do: {x, y, w, h}
   def visible(%{visible: visible}), do: visible
   def focusable(_), do: false
   def focused(_), do: false
-  def focused(state, _), do: state
-  def refocus(state, _), do: state
+  def focused(model, _), do: model
+  def refocus(model, _), do: model
   def findex(_), do: -1
   def shortcut(_), do: nil
   def children(_), do: []
-  def children(state, _), do: state
+  def children(model, _), do: model
   def modal(_), do: false
 
-  def update(state, props) do
+  def update(model, props) do
     props = Enum.into(props, %{})
-    state = Control.merge(state, props)
-    check(state)
+    model = Control.merge(model, props)
+    check(model)
   end
 
-  def handle(state, _event), do: {state, nil}
+  def handle(model, _event), do: {model, nil}
 
-  def render(state, canvas) do
+  def render(model, canvas) do
     %{
       bracket: bracket,
       style: style,
@@ -60,7 +60,7 @@ defmodule Ash.Tui.Frame do
       text: text,
       back: back,
       fore: fore
-    } = state
+    } = model
 
     canvas = Canvas.clear(canvas, :colors)
     canvas = Canvas.color(canvas, :back, back)
@@ -108,16 +108,16 @@ defmodule Ash.Tui.Frame do
     Canvas.write(canvas, text)
   end
 
-  defp check(state) do
-    Check.assert_point_2d(:origin, state.origin)
-    Check.assert_point_2d(:size, state.size)
-    Check.assert_boolean(:visible, state.visible)
-    Check.assert_boolean(:bracket, state.bracket)
-    Check.assert_in_list(:style, state.style, [:single, :double])
-    Check.assert_string(:text, state.text)
-    Check.assert_color(:back, state.back)
-    Check.assert_color(:fore, state.fore)
-    state
+  defp check(model) do
+    Check.assert_point_2d(:origin, model.origin)
+    Check.assert_point_2d(:size, model.size)
+    Check.assert_boolean(:visible, model.visible)
+    Check.assert_boolean(:bracket, model.bracket)
+    Check.assert_in_list(:style, model.style, [:single, :double])
+    Check.assert_string(:text, model.text)
+    Check.assert_color(:back, model.back)
+    Check.assert_color(:fore, model.fore)
+    model
   end
 
   # https://en.wikipedia.org/wiki/Box-drawing_character

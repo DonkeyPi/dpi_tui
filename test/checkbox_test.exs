@@ -53,16 +53,33 @@ defmodule CheckboxTest do
     assert Checkbox.update(initial, on_change: nil) == initial
 
     # navigation
-    assert Checkbox.handle(%{}, %{type: :key, key: :tab}) == {%{}, {:focus, :next}}
-    assert Checkbox.handle(%{}, %{type: :key, key: :kdown}) == {%{}, {:focus, :next}}
-    assert Checkbox.handle(%{}, %{type: :key, key: :kright}) == {%{}, {:focus, :next}}
-    assert Checkbox.handle(%{}, %{type: :key, key: :enter}) == {%{}, {:focus, :next}}
-    assert Checkbox.handle(%{}, %{type: :key, key: :tab, flag: @rtab}) == {%{}, {:focus, :prev}}
-    assert Checkbox.handle(%{}, %{type: :key, key: :kup}) == {%{}, {:focus, :prev}}
-    assert Checkbox.handle(%{}, %{type: :key, key: :kleft}) == {%{}, {:focus, :prev}}
+    assert Checkbox.handle(%{}, %{type: :key, action: :press, key: :tab}) ==
+             {%{}, {:focus, :next}}
+
+    assert Checkbox.handle(%{}, %{type: :key, action: :press, key: :kdown}) ==
+             {%{}, {:focus, :next}}
+
+    assert Checkbox.handle(%{}, %{type: :key, action: :press, key: :kright}) ==
+             {%{}, {:focus, :next}}
+
+    assert Checkbox.handle(%{}, %{type: :key, action: :press, key: :enter}) ==
+             {%{}, {:focus, :next}}
+
+    assert Checkbox.handle(%{}, %{type: :key, action: :press, key: :tab, flag: @rtab}) ==
+             {%{}, {:focus, :prev}}
+
+    assert Checkbox.handle(%{}, %{type: :key, action: :press, key: :kup}) ==
+             {%{}, {:focus, :prev}}
+
+    assert Checkbox.handle(%{}, %{type: :key, action: :press, key: :kleft}) ==
+             {%{}, {:focus, :prev}}
 
     # triggers
-    assert Checkbox.handle(%{on_change: on_change, checked: false}, %{type: :key, key: ' '}) ==
+    assert Checkbox.handle(%{on_change: on_change, checked: false}, %{
+             type: :key,
+             action: :press,
+             key: ' '
+           }) ==
              {%{on_change: on_change, checked: true}, {:checked, true, true}}
 
     assert Checkbox.handle(
@@ -74,6 +91,7 @@ defmodule CheckboxTest do
     # retriggers
     assert Checkbox.handle(%{on_change: on_change, checked: true}, %{
              type: :key,
+             action: :press,
              key: :enter,
              flag: @renter
            }) ==

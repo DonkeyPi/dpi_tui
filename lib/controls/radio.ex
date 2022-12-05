@@ -21,7 +21,7 @@ defmodule Ash.Tui.Radio do
 
     {count, map} = internals(items)
 
-    state = %{
+    model = %{
       focused: false,
       origin: origin,
       size: size,
@@ -36,8 +36,8 @@ defmodule Ash.Tui.Radio do
       on_change: on_change
     }
 
-    state = recalculate(state)
-    check(state)
+    model = recalculate(model)
+    check(model)
   end
 
   def nop({_index, _value}), do: nil
@@ -49,15 +49,15 @@ defmodule Ash.Tui.Radio do
   def focusable(%{on_change: cb}) when not is_function(cb, 1), do: false
   def focusable(%{findex: findex}), do: findex >= 0
   def focused(%{focused: focused}), do: focused
-  def focused(state, focused), do: %{state | focused: focused}
-  def refocus(state, _), do: state
+  def focused(model, focused), do: %{model | focused: focused}
+  def refocus(model, _), do: model
   def findex(%{findex: findex}), do: findex
   def shortcut(_), do: nil
   def children(_), do: []
-  def children(state, _), do: state
+  def children(model, _), do: model
   def modal(_), do: false
 
-  def update(%{items: items} = state, props) do
+  def update(%{items: items} = model, props) do
     props = Enum.into(props, %{})
     props = Map.drop(props, [:focused, :count, :map])
 
@@ -78,46 +78,46 @@ defmodule Ash.Tui.Radio do
       end
 
     props = Control.coalesce(props, :on_change, &Radio.nop/1)
-    state = Control.merge(state, props)
-    state = recalculate(state)
-    check(state)
+    model = Control.merge(model, props)
+    model = recalculate(model)
+    check(model)
   end
 
-  def handle(%{items: []} = state, %{type: :key}), do: {state, nil}
-  def handle(%{items: []} = state, %{type: :mouse}), do: {state, nil}
+  def handle(%{items: []} = model, %{type: :key}), do: {model, nil}
+  def handle(%{items: []} = model, %{type: :mouse}), do: {model, nil}
 
-  def handle(state, %{type: :key, key: :kright}) do
-    %{count: count, selected: selected} = state
+  def handle(model, %{type: :key, action: :press, key: :kright}) do
+    %{count: count, selected: selected} = model
     next = min(selected + 1, count - 1)
-    trigger(state, next, selected)
+    trigger(model, next, selected)
   end
 
-  def handle(state, %{type: :key, key: :kleft}) do
-    %{selected: selected} = state
+  def handle(model, %{type: :key, action: :press, key: :kleft}) do
+    %{selected: selected} = model
     next = max(0, selected - 1)
-    trigger(state, next, selected)
+    trigger(model, next, selected)
   end
 
-  def handle(state, %{type: :key, key: :end}) do
-    %{count: count, selected: selected} = state
-    trigger(state, count - 1, selected)
+  def handle(model, %{type: :key, action: :press, key: :end}) do
+    %{count: count, selected: selected} = model
+    trigger(model, count - 1, selected)
   end
 
-  def handle(state, %{type: :key, key: :home}) do
-    %{selected: selected} = state
-    trigger(state, 0, selected)
+  def handle(model, %{type: :key, action: :press, key: :home}) do
+    %{selected: selected} = model
+    trigger(model, 0, selected)
   end
 
-  def handle(state, %{type: :mouse, action: :scroll, dir: :up}) do
-    handle(state, %{type: :key, key: :kleft})
+  def handle(model, %{type: :mouse, action: :scroll, dir: :up}) do
+    handle(model, %{type: :key, action: :press, key: :kleft})
   end
 
-  def handle(state, %{type: :mouse, action: :scroll, dir: :down}) do
-    handle(state, %{type: :key, key: :kright})
+  def handle(model, %{type: :mouse, action: :scroll, dir: :down}) do
+    handle(model, %{type: :key, action: :press, key: :kright})
   end
 
-  def handle(state, %{type: :mouse, action: :press, x: mx}) do
-    %{count: count, map: map, selected: selected} = state
+  def handle(model, %{type: :mouse, action: :press, x: mx}) do
+    %{count: count, map: map, selected: selected} = model
 
     list = for i <- 0..(count - 1), do: {i, String.length("#{map[i]}")}
 
@@ -127,23 +127,28 @@ defmodule Ash.Tui.Radio do
         [{_, _, e} | _] = list -> [{i, e + 1, e + 1 + l} | list]
       end
 
-    Enum.find_value(list, {state, nil}, fn {i, s, e} ->
+    Enum.find_value(list, {model, nil}, fn {i, s, e} ->
       case mx >= s && mx < e do
         false -> false
-        true -> trigger(state, i, selected)
+        true -> trigger(model, i, selected)
       end
     end)
   end
 
-  def handle(state, %{type: :key, key: :tab, flag: @rtab}), do: {state, {:focus, :prev}}
-  def handle(state, %{type: :key, key: :tab}), do: {state, {:focus, :next}}
-  def handle(state, %{type: :key, key: :kdown}), do: {state, {:focus, :next}}
-  def handle(state, %{type: :key, key: :kup}), do: {state, {:focus, :prev}}
-  def handle(state, %{type: :key, key: :enter, flag: @renter}), do: {state, trigger(state)}
-  def handle(state, %{type: :key, key: :enter}), do: {state, {:focus, :next}}
-  def handle(state, _event), do: {state, nil}
+  def handle(model, %{type: :key, action: :press, key: :tab, flag: @rtab}),
+    do: {model, {:focus, :prev}}
 
-  def render(state, canvas) do
+  def handle(model, %{type: :key, action: :press, key: :tab}), do: {model, {:focus, :next}}
+  def handle(model, %{type: :key, action: :press, key: :kdown}), do: {model, {:focus, :next}}
+  def handle(model, %{type: :key, action: :press, key: :kup}), do: {model, {:focus, :prev}}
+
+  def handle(model, %{type: :key, action: :press, key: :enter, flag: @renter}),
+    do: {model, trigger(model)}
+
+  def handle(model, %{type: :key, action: :press, key: :enter}), do: {model, {:focus, :next}}
+  def handle(model, _event), do: {model, nil}
+
+  def render(model, canvas) do
     %{
       map: map,
       focused: focused,
@@ -151,7 +156,7 @@ defmodule Ash.Tui.Radio do
       theme: theme,
       count: count,
       selected: selected
-    } = state
+    } = model
 
     theme = Theme.get(theme)
 
@@ -198,7 +203,7 @@ defmodule Ash.Tui.Radio do
   end
 
   # -1 if empty or out of range
-  defp recalculate(%{selected: selected, count: count} = state) do
+  defp recalculate(%{selected: selected, count: count} = model) do
     selected =
       case {count, selected < 0 or selected >= count} do
         {0, _} -> -1
@@ -206,15 +211,15 @@ defmodule Ash.Tui.Radio do
         _ -> selected
       end
 
-    %{state | selected: selected}
+    %{model | selected: selected}
   end
 
-  defp trigger(state, next, selected) do
-    state = %{state | selected: next}
+  defp trigger(model, next, selected) do
+    model = %{model | selected: next}
 
-    case state.selected do
-      ^selected -> {state, nil}
-      _ -> {state, trigger(state)}
+    case model.selected do
+      ^selected -> {model, nil}
+      _ -> {model, trigger(model)}
     end
   end
 
@@ -231,19 +236,19 @@ defmodule Ash.Tui.Radio do
     end
   end
 
-  defp check(state) do
-    Check.assert_boolean(:focused, state.focused)
-    Check.assert_point_2d(:origin, state.origin)
-    Check.assert_point_2d(:size, state.size)
-    Check.assert_boolean(:visible, state.visible)
-    Check.assert_boolean(:enabled, state.enabled)
-    Check.assert_gte(:findex, state.findex, -1)
-    Check.assert_atom(:theme, state.theme)
-    Check.assert_list(:items, state.items)
-    Check.assert_gte(:selected, state.selected, -1)
-    Check.assert_map(:map, state.map)
-    Check.assert_gte(:count, state.count, 0)
-    Check.assert_function(:on_change, state.on_change, 1)
-    state
+  defp check(model) do
+    Check.assert_boolean(:focused, model.focused)
+    Check.assert_point_2d(:origin, model.origin)
+    Check.assert_point_2d(:size, model.size)
+    Check.assert_boolean(:visible, model.visible)
+    Check.assert_boolean(:enabled, model.enabled)
+    Check.assert_gte(:findex, model.findex, -1)
+    Check.assert_atom(:theme, model.theme)
+    Check.assert_list(:items, model.items)
+    Check.assert_gte(:selected, model.selected, -1)
+    Check.assert_map(:map, model.map)
+    Check.assert_gte(:count, model.count, 0)
+    Check.assert_function(:on_change, model.on_change, 1)
+    model
   end
 end

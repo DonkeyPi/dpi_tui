@@ -36,18 +36,27 @@ defmodule ButtonTest do
     assert Button.update(initial, on_click: nil) == initial
 
     # navigation
-    assert Button.handle(%{}, %{type: :key, key: :tab}) == {%{}, {:focus, :next}}
-    assert Button.handle(%{}, %{type: :key, key: :kdown}) == {%{}, {:focus, :next}}
-    assert Button.handle(%{}, %{type: :key, key: :kright}) == {%{}, {:focus, :next}}
-    assert Button.handle(%{}, %{type: :key, key: :tab, flag: @rtab}) == {%{}, {:focus, :prev}}
-    assert Button.handle(%{}, %{type: :key, key: :kup}) == {%{}, {:focus, :prev}}
-    assert Button.handle(%{}, %{type: :key, key: :kleft}) == {%{}, {:focus, :prev}}
+    assert Button.handle(%{}, %{type: :key, action: :press, key: :tab}) == {%{}, {:focus, :next}}
+
+    assert Button.handle(%{}, %{type: :key, action: :press, key: :kdown}) ==
+             {%{}, {:focus, :next}}
+
+    assert Button.handle(%{}, %{type: :key, action: :press, key: :kright}) ==
+             {%{}, {:focus, :next}}
+
+    assert Button.handle(%{}, %{type: :key, action: :press, key: :tab, flag: @rtab}) ==
+             {%{}, {:focus, :prev}}
+
+    assert Button.handle(%{}, %{type: :key, action: :press, key: :kup}) == {%{}, {:focus, :prev}}
+
+    assert Button.handle(%{}, %{type: :key, action: :press, key: :kleft}) ==
+             {%{}, {:focus, :prev}}
 
     # triggers
-    assert Button.handle(%{on_click: on_click}, %{type: :key, key: :enter}) ==
+    assert Button.handle(%{on_click: on_click}, %{type: :key, action: :press, key: :enter}) ==
              {%{on_click: on_click}, {:click, :click}}
 
-    assert Button.handle(%{on_click: on_click}, %{type: :key, key: ' '}) ==
+    assert Button.handle(%{on_click: on_click}, %{type: :key, action: :press, key: ' '}) ==
              {%{on_click: on_click}, {:click, :click}}
 
     assert Button.handle(%{on_click: on_click}, %{type: :mouse, action: :press}) ==
