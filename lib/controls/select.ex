@@ -190,6 +190,9 @@ defmodule Ash.Tui.Select do
     end
   end
 
+  # -1 if empty or out of range (selected)
+  # offset is recalculated to make selected visible
+  # to support :kdown | :kup | :pdown | :pup events
   defp recalculate(
          %{
            selected: selected,
@@ -198,15 +201,18 @@ defmodule Ash.Tui.Select do
            offset: offset
          } = state
        ) do
-    selected = if selected < 0, do: -1, else: selected
-    selected = if selected >= count, do: -1, else: selected
-    selected = if count > 0, do: selected, else: -1
+    outofrange = selected < 0 or selected >= count
+    offmin = if selected >= rows, do: selected + 1 - rows, else: 0
 
-    offsel = max(0, selected)
-    offhei = max(1, rows)
-    offmin = max(0, offsel - offhei + 1)
-    offset = if offset < offmin, do: offmin, else: offset
-    offset = if offset > offsel, do: offsel, else: offset
+    {selected, offset} =
+      cond do
+        count == 0 -> {-1, 0}
+        outofrange -> {-1, 0}
+        rows == 0 -> {-1, 0}
+        offset < offmin -> {selected, offmin}
+        offset > selected -> {selected, selected}
+        true -> {selected, offset}
+      end
 
     %{state | selected: selected, offset: offset}
   end

@@ -16,7 +16,9 @@ defmodule Ash.Tui.Theme do
       back_notice: @blue,
       fore_notice: @white,
       back_error: @red,
-      fore_error: @white
+      fore_error: @white,
+      # for testing
+      not_used: @red
     }
   end
 

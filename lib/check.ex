@@ -42,7 +42,7 @@ defmodule Ash.Tui.Check do
 
   def assert_point_2d(name, value) do
     case value do
-      {x, y} when is_integer(x) and is_integer(y) -> nil
+      {x, y} when is_integer(x) and is_integer(y) and x >= 0 and y >= 0 -> nil
       _ -> raise("#{name} not {integer, integer}: #{inspect(value)}")
     end
   end

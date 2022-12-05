@@ -197,12 +197,12 @@ defmodule Ash.Tui.Radio do
     canvas
   end
 
+  # -1 if empty or out of range
   defp recalculate(%{selected: selected, count: count} = state) do
     selected =
-      case {count, selected < 0, selected >= count} do
-        {0, _, _} -> -1
-        {_, true, _} -> -1
-        {_, _, true} -> -1
+      case {count, selected < 0 or selected >= count} do
+        {0, _} -> -1
+        {_, true} -> -1
         _ -> selected
       end
 

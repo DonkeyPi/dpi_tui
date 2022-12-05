@@ -3,7 +3,7 @@ defmodule ButtonTest do
   use ControlTest
 
   test "basic button check" do
-    control_test(Button, input?: true, button?: true)
+    common_checks(Button, input?: true, button?: true)
 
     initial = Button.init()
 

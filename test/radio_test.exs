@@ -3,7 +3,7 @@ defmodule RadioTest do
   use ControlTest
 
   test "basic radio check" do
-    control_test(Radio, input?: true)
+    common_checks(Radio, input?: true)
 
     initial = Radio.init()
 

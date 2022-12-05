@@ -3,7 +3,7 @@ defmodule LabelTest do
   use ControlTest
 
   test "basic label check" do
-    control_test(Label)
+    common_checks(Label)
 
     theme = Theme.get(:default)
 

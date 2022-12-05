@@ -3,7 +3,7 @@ defmodule CheckboxTest do
   use ControlTest
 
   test "basic checkbox check" do
-    control_test(Checkbox, input?: true)
+    common_checks(Checkbox, input?: true)
 
     initial = Checkbox.init()
 

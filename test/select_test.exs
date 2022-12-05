@@ -3,7 +3,7 @@ defmodule SelectTest do
   use ControlTest
 
   test "basic select check" do
-    control_test(Select, input?: true)
+    common_checks(Select, input?: true)
 
     initial = Select.init()
 
@@ -144,7 +144,7 @@ defmodule SelectTest do
     assert Select.update(initial, items: [:item0, :item1]) == %{
              initial
              | items: [:item0, :item1],
-               selected: 0,
+               selected: -1,
                count: 2,
                map: %{0 => :item0, 1 => :item1}
            }
@@ -153,8 +153,8 @@ defmodule SelectTest do
     assert Select.update(initial, items: [:item0, :item1], selected: 1) == %{
              initial
              | items: [:item0, :item1],
-               selected: 1,
-               offset: 1,
+               selected: -1,
+               offset: 0,
                count: 2,
                map: %{0 => :item0, 1 => :item1}
            }
@@ -163,8 +163,8 @@ defmodule SelectTest do
     assert Select.update(initial, selected: 1, items: [:item0, :item1]) == %{
              initial
              | items: [:item0, :item1],
-               selected: 1,
-               offset: 1,
+               selected: -1,
+               offset: 0,
                count: 2,
                map: %{0 => :item0, 1 => :item1}
            }
@@ -173,7 +173,7 @@ defmodule SelectTest do
     assert Select.update(%{initial | selected: 1, offset: 2}, items: [:item0, :item1]) == %{
              initial
              | items: [:item0, :item1],
-               selected: 0,
+               selected: -1,
                offset: 0,
                count: 2,
                map: %{0 => :item0, 1 => :item1}

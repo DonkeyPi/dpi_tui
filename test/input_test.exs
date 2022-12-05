@@ -3,7 +3,7 @@ defmodule InputTest do
   use ControlTest
 
   test "basic input check" do
-    control_test(Input, input?: true)
+    common_checks(Input, input?: true)
 
     initial = Input.init()
 

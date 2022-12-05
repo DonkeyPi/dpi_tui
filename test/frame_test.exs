@@ -3,7 +3,7 @@ defmodule FrameTest do
   use ControlTest
 
   test "basic frame check" do
-    control_test(Frame)
+    common_checks(Frame)
 
     theme = Theme.get(:default)
 

@@ -3,7 +3,7 @@ defmodule PanelTest do
   use ControlTest
 
   test "basic panel check" do
-    control_test(Panel, panel?: true)
+    common_checks(Panel, panel?: true)
 
     initial = Panel.init()
 
