@@ -77,7 +77,7 @@ defmodule Ash.Tui.Button do
       text: text,
       theme: theme,
       focused: focused,
-      size: {cols, _},
+      size: {cols, rows},
       enabled: enabled
     } = state
 
@@ -98,12 +98,22 @@ defmodule Ash.Tui.Button do
           Canvas.color(canvas, :back, theme.back_editable)
       end
 
-    canvas = Canvas.move(canvas, 0, 0)
+    # center vertically and horizontally
+    offy = div(rows - 1, 2)
+
+    canvas =
+      for r <- 0..(rows - 1), reduce: canvas do
+        canvas ->
+          canvas = Canvas.move(canvas, 0, r)
+          Canvas.write(canvas, String.duplicate(" ", cols))
+      end
+
+    canvas = Canvas.move(canvas, 0, offy)
     canvas = Canvas.write(canvas, "[")
-    canvas = Canvas.write(canvas, String.duplicate(" ", cols - 2))
+    canvas = Canvas.move(canvas, cols - 1, offy)
     canvas = Canvas.write(canvas, "]")
     offset = div(cols - String.length(text), 2)
-    canvas = Canvas.move(canvas, offset, 0)
+    canvas = Canvas.move(canvas, offset, offy)
     Canvas.write(canvas, text)
   end
 
