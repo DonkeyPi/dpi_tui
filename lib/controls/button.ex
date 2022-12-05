@@ -98,15 +98,17 @@ defmodule Ash.Tui.Button do
           Canvas.color(canvas, :back, theme.back_editable)
       end
 
-    # center vertically and horizontally
-    offy = div(rows - 1, 2)
+    line = String.duplicate(" ", cols)
 
     canvas =
       for r <- 0..(rows - 1), reduce: canvas do
         canvas ->
           canvas = Canvas.move(canvas, 0, r)
-          Canvas.write(canvas, String.duplicate(" ", cols))
+          Canvas.write(canvas, line)
       end
+
+    # center vertically and horizontally
+    offy = div(rows - 1, 2)
 
     canvas = Canvas.move(canvas, 0, offy)
     canvas = Canvas.write(canvas, "[")

@@ -51,15 +51,27 @@ defmodule Ash.Tui.Label do
   def render(state, canvas) do
     %{
       text: text,
-      size: {w, _h},
+      size: {cols, rows},
       back: back,
       fore: fore
     } = state
 
-    text = String.pad_trailing(text, w)
     canvas = Canvas.color(canvas, :back, back)
     canvas = Canvas.color(canvas, :fore, fore)
-    canvas = Canvas.move(canvas, 0, 0)
+
+    line = String.duplicate(" ", cols)
+
+    canvas =
+      for r <- 0..(rows - 1), reduce: canvas do
+        canvas ->
+          canvas = Canvas.move(canvas, 0, r)
+          Canvas.write(canvas, line)
+      end
+
+    # center vertically
+    offy = div(rows - 1, 2)
+    text = String.pad_trailing(text, rows)
+    canvas = Canvas.move(canvas, 0, offy)
     Canvas.write(canvas, text)
   end
 
@@ -68,8 +80,8 @@ defmodule Ash.Tui.Label do
     Check.assert_point_2d(:size, state.size)
     Check.assert_boolean(:visible, state.visible)
     Check.assert_string(:text, state.text)
-    Check.assert_in_range(:back, state.back, 0..255)
-    Check.assert_in_range(:fore, state.fore, 0..255)
+    Check.assert_color(:back, state.back)
+    Check.assert_color(:fore, state.fore)
     state
   end
 end

@@ -47,6 +47,19 @@ defmodule Ash.Tui.Check do
     end
   end
 
+  def assert_color(name, value) do
+    case value do
+      {r, g, b} when r in 0..255 and g in 0..255 and b in 0..255 ->
+        nil
+
+      c when c in 0..255 ->
+        nil
+
+      _ ->
+        raise("#{name} not a valid 0..255 or {0..255, 0..255, 0..255} color: #{inspect(value)}")
+    end
+  end
+
   def assert_gte(name, value, limit) do
     if !is_integer(value), do: raise("#{name} not integer: #{inspect(value)}")
     if value < limit, do: raise("#{name} not >= #{limit}: #{inspect(value)}")

@@ -115,8 +115,8 @@ defmodule Ash.Tui.Frame do
     Check.assert_boolean(:bracket, state.bracket)
     Check.assert_in_list(:style, state.style, [:single, :double])
     Check.assert_string(:text, state.text)
-    Check.assert_in_range(:back, state.back, 0..255)
-    Check.assert_in_range(:fore, state.fore, 0..255)
+    Check.assert_color(:back, state.back)
+    Check.assert_color(:fore, state.fore)
     state
   end
 
