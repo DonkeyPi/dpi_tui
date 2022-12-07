@@ -69,14 +69,15 @@ defmodule Ash.Tui.Driver do
     # FIXME what is event for?
     # FIXME ensure event always returns nil
     {model, _event} = module.handle(model, event)
-    IO.inspect({:handle, _event})
+    # IO.inspect({:handle, _event})
     tree = Control.tree({module, model}, [id])
     put(%{get() | model: model, tree: tree})
     :ok
   end
 
   def render(_id, {module, model}) do
-    %{screen: screen, cols: cols, rows: rows} = get()
+    state = get()
+    %{screen: screen, cols: cols, rows: rows} = state
 
     canvas1 = Canvas.new(cols, rows)
     canvas2 = Canvas.new(cols, rows)
@@ -89,7 +90,8 @@ defmodule Ash.Tui.Driver do
       end)
 
     :ok = Screen.write(screen, "#{data}")
-    %{get() | canvas: canvas2}
+    put(%{state | canvas: canvas2})
+    :ok
   end
 
   defp encode(canvas1, canvas2, encoder) do
