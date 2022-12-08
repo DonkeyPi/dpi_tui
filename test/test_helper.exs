@@ -3,12 +3,15 @@ ExUnit.start()
 # FIXME understand why Button requires the outer `use Ash.Tui`
 defmodule ControlTest do
   use ExUnit.Case
-  use Ash.Tui
+  use Ash.Tui.Aliases
+  use Ash.Tui.Colors
+  use Ash.Tui.Const
 
   defmacro __using__(_) do
     quote do
-      use Ash.Tui
-      alias Ash.Tui.Control
+      use Ash.Tui.Aliases
+      use Ash.Tui.Colors
+      use Ash.Tui.Const
       import ControlTest
     end
   end
@@ -16,9 +19,18 @@ defmodule ControlTest do
   def nop(), do: :nop
   def nop(value), do: {:nop, value}
 
-  # Per feature testing is in this case better than per control testing.
-  # It makes clear the differences between controls.
+  # Per feature testing is in this case better than per control
+  # testing. It makes clear the differences between controls.
+
   def common_checks(module, opts \\ []) do
+    accesors_checks(module, opts)
+    navigation_checks(module, opts)
+    update_checks(module, opts)
+    triggers_checks(module, opts)
+    nops_checks(module, opts)
+  end
+
+  def accesors_checks(module, opts \\ []) do
     input? = Keyword.get(opts, :input?, false)
     panel? = Keyword.get(opts, :panel?, false)
     button? = Keyword.get(opts, :button?, false)
@@ -104,6 +116,12 @@ defmodule ControlTest do
       assert module.children(:state) == []
       assert module.children(:state, []) == :state
     end
+  end
+
+  def navigation_checks(module, opts \\ []) do
+    input? = Keyword.get(opts, :input?, false)
+    panel? = Keyword.get(opts, :panel?, false)
+    button? = Keyword.get(opts, :button?, false)
 
     # navigation (except Panel)
     if input? do
@@ -182,6 +200,12 @@ defmodule ControlTest do
       _ ->
         nil
     end
+  end
+
+  def update_checks(module, opts \\ []) do
+    input? = Keyword.get(opts, :input?, false)
+    panel? = Keyword.get(opts, :panel?, false)
+    button? = Keyword.get(opts, :button?, false)
 
     # update
     initial = module.init()
@@ -379,8 +403,20 @@ defmodule ControlTest do
       _ ->
         nil
     end
+  end
+
+  def triggers_checks(module, opts \\ []) do
+    input? = Keyword.get(opts, :input?, false)
+    panel? = Keyword.get(opts, :panel?, false)
+    button? = Keyword.get(opts, :button?, false)
 
     # triggers
+  end
+
+  def nops_checks(module, opts \\ []) do
+    input? = Keyword.get(opts, :input?, false)
+    panel? = Keyword.get(opts, :panel?, false)
+    button? = Keyword.get(opts, :button?, false)
 
     # nop
     assert module.handle(%{}, :any) == {%{}, nil}
