@@ -1,6 +1,6 @@
 defmodule Ash.Tui.Input do
   @behaviour Ash.Tui.Control
-  use Ash.Tui.Const
+  use Ash.Tui.Events
   use Ash.Tui.Colors
   alias Ash.Tui.Control
   alias Ash.Tui.Check
@@ -38,7 +38,7 @@ defmodule Ash.Tui.Input do
     check(model)
   end
 
-  def nop(_value), do: nil
+  def nop(value), do: {:nop, value}
 
   def bounds(%{origin: {x, y}, size: {w, h}}), do: {x, y, w, h}
   def visible(%{visible: visible}), do: visible
@@ -79,43 +79,38 @@ defmodule Ash.Tui.Input do
     check(model)
   end
 
-  def handle(model, %{type: :key, action: :press, key: :tab, flag: @rtab}),
-    do: {model, {:focus, :prev}}
+  def handle(model, @ev_kp_fprev), do: {model, {:focus, :prev}}
+  def handle(model, @ev_kp_fnext), do: {model, {:focus, :next}}
+  def handle(model, @ev_kp_kdown), do: {model, {:focus, :next}}
+  def handle(model, @ev_kp_kup), do: {model, {:focus, :prev}}
+  def handle(model, @ev_kp_trigger), do: {model, trigger(model)}
+  def handle(model, @ev_kp_enter), do: {model, {:focus, :next}}
 
-  def handle(model, %{type: :key, action: :press, key: :tab}), do: {model, {:focus, :next}}
-  def handle(model, %{type: :key, action: :press, key: :kdown}), do: {model, {:focus, :next}}
-  def handle(model, %{type: :key, action: :press, key: :kup}), do: {model, {:focus, :prev}}
-
-  def handle(model, %{type: :key, action: :press, key: :enter, flag: @renter}),
-    do: {model, trigger(model)}
-
-  def handle(model, %{type: :key, action: :press, key: :enter}), do: {model, {:focus, :next}}
-
-  def handle(%{cursor: cursor} = model, %{type: :key, action: :press, key: :kleft}) do
+  def handle(%{cursor: cursor} = model, @ev_kp_kleft) do
     cursor = if cursor > 0, do: cursor - 1, else: cursor
     model = %{model | cursor: cursor}
     {model, nil}
   end
 
-  def handle(%{cursor: cursor, text: text} = model, %{type: :key, action: :press, key: :kright}) do
+  def handle(%{cursor: cursor, text: text} = model, @ev_kp_kright) do
     count = String.length(text)
     cursor = if cursor < count, do: cursor + 1, else: cursor
     model = %{model | cursor: cursor}
     {model, nil}
   end
 
-  def handle(model, %{type: :key, action: :press, key: :home}) do
+  def handle(model, @ev_kp_home) do
     model = %{model | cursor: 0}
     {model, nil}
   end
 
-  def handle(%{text: text} = model, %{type: :key, action: :press, key: :end}) do
+  def handle(%{text: text} = model, @ev_kp_end) do
     count = String.length(text)
     model = %{model | cursor: count}
     {model, nil}
   end
 
-  def handle(%{cursor: cursor, text: text} = model, %{type: :key, action: :press, key: :backspace}) do
+  def handle(%{cursor: cursor, text: text} = model, @ev_kp_backspace) do
     case cursor do
       0 ->
         {model, nil}
@@ -130,7 +125,7 @@ defmodule Ash.Tui.Input do
     end
   end
 
-  def handle(%{cursor: cursor, text: text} = model, %{type: :key, action: :press, key: :delete}) do
+  def handle(%{cursor: cursor, text: text} = model, @ev_kp_delete) do
     count = String.length(text)
 
     case cursor do
@@ -184,7 +179,7 @@ defmodule Ash.Tui.Input do
     theme = Theme.get(theme)
     canvas = Canvas.clear(canvas, :colors)
     empty = String.length(text) == 0
-    dotted = empty && !focused && enabled
+    dotted = empty and !focused and enabled
 
     canvas =
       case {enabled, focused} do

@@ -3,7 +3,7 @@ defmodule InputTest do
   use ControlTest
 
   test "basic input check" do
-    common_checks(Input, input?: true)
+    ControlTest.common_checks(Input, input?: true)
 
     initial = Input.init()
 
@@ -58,14 +58,14 @@ defmodule InputTest do
     assert Input.update(initial, on_change: nil) == initial
 
     # navigation
-    assert Input.handle(%{}, %{type: :key, action: :press, key: :tab}) == {%{}, {:focus, :next}}
-    assert Input.handle(%{}, %{type: :key, action: :press, key: :kdown}) == {%{}, {:focus, :next}}
+    assert Input.handle(%{}, @ev_kp_fnext) == {%{}, {:focus, :next}}
+    assert Input.handle(%{}, @ev_kp_kdown) == {%{}, {:focus, :next}}
 
-    assert Input.handle(%{}, %{type: :key, action: :press, key: :tab, flag: @rtab}) ==
+    assert Input.handle(%{}, @ev_kp_fprev) ==
              {%{}, {:focus, :prev}}
 
-    assert Input.handle(%{}, %{type: :key, action: :press, key: :kup}) == {%{}, {:focus, :prev}}
-    assert Input.handle(%{}, %{type: :key, action: :press, key: :enter}) == {%{}, {:focus, :next}}
+    assert Input.handle(%{}, @ev_kp_kup) == {%{}, {:focus, :prev}}
+    assert Input.handle(%{}, @ev_kp_enter) == {%{}, {:focus, :next}}
 
     # triggers
     sample = Input.init(size: {10, 1}, on_change: on_change)
@@ -97,12 +97,7 @@ defmodule InputTest do
              {%{sample | text: "bc", cursor: 0}, {:text, "bc", "bc"}}
 
     # retriggers
-    assert Input.handle(%{sample | text: "abc", cursor: 1}, %{
-             type: :key,
-             action: :press,
-             key: :enter,
-             flag: @renter
-           }) ==
+    assert Input.handle(%{sample | text: "abc", cursor: 1}, @ev_kp_trigger) ==
              {%{sample | text: "abc", cursor: 1}, {:text, "abc", "abc"}}
 
     # mouse
@@ -114,12 +109,12 @@ defmodule InputTest do
 
     # nops
     assert Input.handle(%{}, :any) == {%{}, nil}
-    assert Input.handle(initial, %{type: :key, action: :press, key: :kleft}) == {initial, nil}
-    assert Input.handle(initial, %{type: :key, action: :press, key: :kright}) == {initial, nil}
-    assert Input.handle(initial, %{type: :key, action: :press, key: :delete}) == {initial, nil}
-    assert Input.handle(initial, %{type: :key, action: :press, key: :backspace}) == {initial, nil}
-    assert Input.handle(initial, %{type: :key, action: :press, key: :home}) == {initial, nil}
-    assert Input.handle(initial, %{type: :key, action: :press, key: :end}) == {initial, nil}
+    assert Input.handle(initial, @ev_kp_kleft) == {initial, nil}
+    assert Input.handle(initial, @ev_kp_kright) == {initial, nil}
+    assert Input.handle(initial, @ev_kp_delete) == {initial, nil}
+    assert Input.handle(initial, @ev_kp_backspace) == {initial, nil}
+    assert Input.handle(initial, @ev_kp_home) == {initial, nil}
+    assert Input.handle(initial, @ev_kp_end) == {initial, nil}
     assert Input.handle(initial, %{type: :key, action: :press, key: 'a'}) == {initial, nil}
 
     assert Input.handle(%{initial | size: {10, 1}, text: "a"}, %{

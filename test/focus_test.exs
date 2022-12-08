@@ -15,17 +15,17 @@ defmodule FocusTest do
     # focus next, single level, multiple children
     panel = Panel.children(root, children)
     assert panel.focus == :c0
-    {panel, nil} = Panel.handle(panel, %{type: :key, action: :press, key: :tab})
+    {panel, nil} = Panel.handle(panel, @ev_kp_fnext)
     assert panel.focus == :c1
-    {panel, nil} = Panel.handle(panel, %{type: :key, action: :press, key: :tab})
+    {panel, nil} = Panel.handle(panel, @ev_kp_fnext)
     assert panel.focus == :c0
 
     # focus prev, single level, multiple children
     panel = Panel.children(root, children)
     assert panel.focus == :c0
-    {panel, nil} = Panel.handle(panel, %{type: :key, action: :press, key: :tab, flag: @rtab})
+    {panel, nil} = Panel.handle(panel, @ev_kp_fprev)
     assert panel.focus == :c1
-    {panel, nil} = Panel.handle(panel, %{type: :key, action: :press, key: :tab, flag: @rtab})
+    {panel, nil} = Panel.handle(panel, @ev_kp_fprev)
     assert panel.focus == :c0
 
     children = [
@@ -37,13 +37,13 @@ defmodule FocusTest do
     # focus next, single level, single child
     panel = Panel.children(root, children)
     assert panel.focus == :c0
-    {panel, nil} = Panel.handle(panel, %{type: :key, action: :press, key: :tab})
+    {panel, nil} = Panel.handle(panel, @ev_kp_fnext)
     assert panel.focus == :c0
 
     # focus prev, single level, single child
     panel = Panel.children(root, children)
     assert panel.focus == :c0
-    {panel, nil} = Panel.handle(panel, %{type: :key, action: :press, key: :tab, flag: @rtab})
+    {panel, nil} = Panel.handle(panel, @ev_kp_fprev)
     assert panel.focus == :c0
   end
 
@@ -62,18 +62,18 @@ defmodule FocusTest do
     panel = Panel.children(normal, children)
     panel = Panel.children(root, p0: {Panel, panel})
     assert elem(panel.children.p0, 1).focus == :c0
-    {panel, nil} = Panel.handle(panel, %{type: :key, action: :press, key: :tab})
+    {panel, nil} = Panel.handle(panel, @ev_kp_fnext)
     assert elem(panel.children.p0, 1).focus == :c1
-    {panel, nil} = Panel.handle(panel, %{type: :key, action: :press, key: :tab})
+    {panel, nil} = Panel.handle(panel, @ev_kp_fnext)
     assert elem(panel.children.p0, 1).focus == :c0
 
     # focus prev, multi level, multiple children
     panel = Panel.children(normal, children)
     panel = Panel.children(root, p0: {Panel, panel})
     assert elem(panel.children.p0, 1).focus == :c0
-    {panel, nil} = Panel.handle(panel, %{type: :key, action: :press, key: :tab, flag: @rtab})
+    {panel, nil} = Panel.handle(panel, @ev_kp_fprev)
     assert elem(panel.children.p0, 1).focus == :c1
-    {panel, nil} = Panel.handle(panel, %{type: :key, action: :press, key: :tab, flag: @rtab})
+    {panel, nil} = Panel.handle(panel, @ev_kp_fprev)
     assert elem(panel.children.p0, 1).focus == :c0
   end
 end

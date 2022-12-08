@@ -98,7 +98,7 @@ defmodule Ash.Tui.Canvas do
       |> IO.chardata_to_string()
       |> String.to_charlist()
       |> Enum.reduce_while({data, x, y}, fn c, {data, x, y} ->
-        case x < cx || y < cy || x >= mx || y >= my do
+        case x < cx or y < cy or x >= mx or y >= my do
           true ->
             {:halt, {data, x, y}}
 

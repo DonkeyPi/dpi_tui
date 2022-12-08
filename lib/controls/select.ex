@@ -1,6 +1,6 @@
 defmodule Ash.Tui.Select do
   @behaviour Ash.Tui.Control
-  use Ash.Tui.Const
+  use Ash.Tui.Events
   use Ash.Tui.Colors
   alias Ash.Tui.Control
   alias Ash.Tui.Check
@@ -43,7 +43,7 @@ defmodule Ash.Tui.Select do
     check(model)
   end
 
-  def nop({_index, _value}), do: nil
+  def nop({index, value}), do: {:nop, {index, value}}
 
   def bounds(%{origin: {x, y}, size: {w, h}}), do: {x, y, w, h}
   def visible(%{visible: visible}), do: visible
@@ -90,13 +90,13 @@ defmodule Ash.Tui.Select do
   def handle(%{items: []} = model, %{type: :key}), do: {model, nil}
   def handle(%{items: []} = model, %{type: :mouse}), do: {model, nil}
 
-  def handle(model, %{type: :key, action: :press, key: :kdown}) do
+  def handle(model, @ev_kp_kdown) do
     %{count: count, selected: selected} = model
     next = min(selected + 1, count - 1)
     trigger(model, next, selected)
   end
 
-  def handle(model, %{type: :key, action: :press, key: :kup}) do
+  def handle(model, @ev_kp_kup) do
     %{selected: selected} = model
     next = max(0, selected - 1)
     trigger(model, next, selected)
@@ -114,22 +114,22 @@ defmodule Ash.Tui.Select do
     trigger(model, next, selected)
   end
 
-  def handle(model, %{type: :key, action: :press, key: :end}) do
+  def handle(model, @ev_kp_end) do
     %{count: count, selected: selected} = model
     trigger(model, count - 1, selected)
   end
 
-  def handle(model, %{type: :key, action: :press, key: :home}) do
+  def handle(model, @ev_kp_home) do
     %{selected: selected} = model
     trigger(model, 0, selected)
   end
 
-  def handle(model, %{type: :mouse, action: :scroll, dir: :up}) do
-    handle(model, %{type: :key, action: :press, key: :kup})
+  def handle(model, @ev_ms_up) do
+    handle(model, @ev_kp_kup)
   end
 
-  def handle(model, %{type: :mouse, action: :scroll, dir: :down}) do
-    handle(model, %{type: :key, action: :press, key: :kdown})
+  def handle(model, @ev_ms_down) do
+    handle(model, @ev_kp_kdown)
   end
 
   def handle(model, %{type: :mouse, action: :press, y: my}) do
@@ -139,17 +139,17 @@ defmodule Ash.Tui.Select do
     trigger(model, next, selected)
   end
 
-  def handle(model, %{type: :key, action: :press, key: :tab, flag: @rtab}),
+  def handle(model, @ev_kp_fprev),
     do: {model, {:focus, :prev}}
 
-  def handle(model, %{type: :key, action: :press, key: :tab}), do: {model, {:focus, :next}}
-  def handle(model, %{type: :key, action: :press, key: :kright}), do: {model, {:focus, :next}}
-  def handle(model, %{type: :key, action: :press, key: :kleft}), do: {model, {:focus, :prev}}
+  def handle(model, @ev_kp_fnext), do: {model, {:focus, :next}}
+  def handle(model, @ev_kp_kright), do: {model, {:focus, :next}}
+  def handle(model, @ev_kp_kleft), do: {model, {:focus, :prev}}
 
-  def handle(model, %{type: :key, action: :press, key: :enter, flag: @renter}),
+  def handle(model, @ev_kp_trigger),
     do: {model, trigger(model)}
 
-  def handle(model, %{type: :key, action: :press, key: :enter}), do: {model, {:focus, :next}}
+  def handle(model, @ev_kp_enter), do: {model, {:focus, :next}}
   def handle(model, _event), do: {model, nil}
 
   def render(model, canvas) do

@@ -1,6 +1,6 @@
 defmodule Ash.Tui.Checkbox do
   @behaviour Ash.Tui.Control
-  use Ash.Tui.Const
+  use Ash.Tui.Events
   use Ash.Tui.Colors
   alias Ash.Tui.Control
   alias Ash.Tui.Check
@@ -36,7 +36,7 @@ defmodule Ash.Tui.Checkbox do
     check(model)
   end
 
-  def nop(_), do: nil
+  def nop(value), do: {:nop, value}
 
   def bounds(%{origin: {x, y}, size: {w, h}}), do: {x, y, w, h}
   def visible(%{visible: visible}), do: visible
@@ -61,21 +61,16 @@ defmodule Ash.Tui.Checkbox do
     check(model)
   end
 
-  def handle(model, %{type: :key, action: :press, key: :tab, flag: @rtab}),
-    do: {model, {:focus, :prev}}
-
-  def handle(model, %{type: :key, action: :press, key: :tab}), do: {model, {:focus, :next}}
-  def handle(model, %{type: :key, action: :press, key: :kdown}), do: {model, {:focus, :next}}
-  def handle(model, %{type: :key, action: :press, key: :kup}), do: {model, {:focus, :prev}}
-  def handle(model, %{type: :key, action: :press, key: :kright}), do: {model, {:focus, :next}}
-  def handle(model, %{type: :key, action: :press, key: :kleft}), do: {model, {:focus, :prev}}
-
-  def handle(model, %{type: :key, action: :press, key: :enter, flag: @renter}),
-    do: retrigger(model)
-
-  def handle(model, %{type: :key, action: :press, key: :enter}), do: {model, {:focus, :next}}
-  def handle(model, %{type: :key, action: :press, key: ' '}), do: trigger(model)
-  def handle(model, %{type: :mouse, action: :press}), do: trigger(model)
+  def handle(model, @ev_kp_fprev), do: {model, {:focus, :prev}}
+  def handle(model, @ev_kp_fnext), do: {model, {:focus, :next}}
+  def handle(model, @ev_kp_kdown), do: {model, {:focus, :next}}
+  def handle(model, @ev_kp_kright), do: {model, {:focus, :next}}
+  def handle(model, @ev_kp_kleft), do: {model, {:focus, :prev}}
+  def handle(model, @ev_kp_kup), do: {model, {:focus, :prev}}
+  def handle(model, @ev_kp_enter), do: {model, {:focus, :next}}
+  def handle(model, @ev_kp_trigger), do: retrigger(model)
+  def handle(model, @ev_kp_space), do: trigger(model)
+  def handle(model, @ev_mp_left), do: trigger(model)
   def handle(model, _event), do: {model, nil}
 
   def render(model, canvas) do

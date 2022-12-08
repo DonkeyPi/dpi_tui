@@ -172,7 +172,7 @@ defmodule Ash.Tui.Panel do
       focus: focus
     } = model
 
-    expected = visible && enabled && focused && findex >= 0
+    expected = visible and enabled and focused and findex >= 0
 
     # try to recover the current focus key
     # returning nil if not recoverable
@@ -191,7 +191,7 @@ defmodule Ash.Tui.Panel do
               focused = momo_focused(momo)
               focusable = momo_focusable(momo)
 
-              case {focusable && expected, focused} do
+              case {focusable and expected, focused} do
                 {false, false} ->
                   model = Map.put(model, :focus, nil)
                   {model, nil}
@@ -312,7 +312,7 @@ defmodule Ash.Tui.Panel do
   end
 
   defp toclient({x, y, w, h}, mx, my) do
-    case mx >= x && mx < x + w && my >= y && my < y + h do
+    case mx >= x and mx < x + w and my >= y and my < y + h do
       false -> false
       true -> {mx - x, my - y}
     end

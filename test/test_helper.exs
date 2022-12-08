@@ -1,18 +1,16 @@
 ExUnit.start()
 
-# FIXME understand why Button requires the outer `use Ash.Tui`
 defmodule ControlTest do
   use ExUnit.Case
   use Ash.Tui.Aliases
   use Ash.Tui.Colors
-  use Ash.Tui.Const
+  use Ash.Tui.Events
 
   defmacro __using__(_) do
     quote do
       use Ash.Tui.Aliases
       use Ash.Tui.Colors
-      use Ash.Tui.Const
-      import ControlTest
+      use Ash.Tui.Events
     end
   end
 
@@ -23,17 +21,18 @@ defmodule ControlTest do
   # testing. It makes clear the differences between controls.
 
   def common_checks(module, opts \\ []) do
-    accesors_checks(module, opts)
+    accessors_checks(module, opts)
     navigation_checks(module, opts)
     update_checks(module, opts)
-    triggers_checks(module, opts)
+    trigger_checks(module, opts)
     nops_checks(module, opts)
   end
 
-  def accesors_checks(module, opts \\ []) do
+  def accessors_checks(module, opts \\ []) do
     input? = Keyword.get(opts, :input?, false)
     panel? = Keyword.get(opts, :panel?, false)
     button? = Keyword.get(opts, :button?, false)
+    unused(input?, panel?, button?)
 
     # this should make any focusable control focusable
     focusable = %{
@@ -101,11 +100,13 @@ defmodule ControlTest do
       assert module.focusable(%{focusable | root: true}) == false
       assert module.focusable(%{focusable | index: []}) == false
     else
-      assert module.focusable(%{focusable | on_click: nil}) ==
-               if(input?, do: not button?, else: false)
-
-      assert module.focusable(%{focusable | on_change: nil}) ==
-               if(input?, do: button?, else: false)
+      if input? do
+        assert module.focusable(%{focusable | on_click: nil}) == not button?
+        assert module.focusable(%{focusable | on_change: nil}) == button?
+      else
+        assert module.focusable(%{focusable | on_click: nil}) == false
+        assert module.focusable(%{focusable | on_change: nil}) == false
+      end
     end
 
     # children setter (except Panel)
@@ -122,80 +123,47 @@ defmodule ControlTest do
     input? = Keyword.get(opts, :input?, false)
     panel? = Keyword.get(opts, :panel?, false)
     button? = Keyword.get(opts, :button?, false)
+    unused(input?, panel?, button?)
 
     # navigation (except Panel)
     if input? do
-      assert module.handle(%{}, %{type: :key, action: :press, key: :tab}) ==
-               {%{}, {:focus, :next}}
-
-      assert module.handle(%{}, %{type: :key, action: :press, key: :tab, flag: @rtab}) ==
-               {%{}, {:focus, :prev}}
+      assert module.handle(%{}, @ev_kp_enter) == {%{}, {:focus, :next}}
+      assert module.handle(%{}, @ev_kp_fnext) == {%{}, {:focus, :next}}
+      assert module.handle(%{}, @ev_kp_fprev) == {%{}, {:focus, :prev}}
     else
-      assert module.handle(%{}, %{type: :key, action: :press, key: :tab}) == {%{}, nil}
-
-      assert module.handle(%{}, %{type: :key, action: :press, key: :tab, flag: @rtab}) ==
-               {%{}, nil}
+      assert module.handle(%{}, @ev_kp_enter) == {%{}, nil}
+      assert module.handle(%{}, @ev_kp_fnext) == {%{}, nil}
+      assert module.handle(%{}, @ev_kp_fprev) == {%{}, nil}
     end
 
     case module do
       Button ->
-        assert module.handle(%{}, %{type: :key, action: :press, key: :kdown}) ==
-                 {%{}, {:focus, :next}}
-
-        assert module.handle(%{}, %{type: :key, action: :press, key: :kright}) ==
-                 {%{}, {:focus, :next}}
-
-        assert module.handle(%{}, %{type: :key, action: :press, key: :kup}) ==
-                 {%{}, {:focus, :prev}}
-
-        assert module.handle(%{}, %{type: :key, action: :press, key: :kleft}) ==
-                 {%{}, {:focus, :prev}}
+        assert module.handle(%{}, @ev_kp_kdown) == {%{}, {:focus, :next}}
+        assert module.handle(%{}, @ev_kp_kright) == {%{}, {:focus, :next}}
+        assert module.handle(%{}, @ev_kp_kup) == {%{}, {:focus, :prev}}
+        assert module.handle(%{}, @ev_kp_kleft) == {%{}, {:focus, :prev}}
 
       Checkbox ->
-        assert module.handle(%{}, %{type: :key, action: :press, key: :enter}) ==
-                 {%{}, {:focus, :next}}
-
-        assert module.handle(%{}, %{type: :key, action: :press, key: :kdown}) ==
-                 {%{}, {:focus, :next}}
-
-        assert module.handle(%{}, %{type: :key, action: :press, key: :kright}) ==
-                 {%{}, {:focus, :next}}
-
-        assert module.handle(%{}, %{type: :key, action: :press, key: :kup}) ==
-                 {%{}, {:focus, :prev}}
-
-        assert module.handle(%{}, %{type: :key, action: :press, key: :kleft}) ==
-                 {%{}, {:focus, :prev}}
+        assert module.handle(%{}, @ev_kp_enter) == {%{}, {:focus, :next}}
+        assert module.handle(%{}, @ev_kp_kdown) == {%{}, {:focus, :next}}
+        assert module.handle(%{}, @ev_kp_kright) == {%{}, {:focus, :next}}
+        assert module.handle(%{}, @ev_kp_kup) == {%{}, {:focus, :prev}}
+        assert module.handle(%{}, @ev_kp_kleft) == {%{}, {:focus, :prev}}
 
       Input ->
-        assert module.handle(%{}, %{type: :key, action: :press, key: :enter}) ==
-                 {%{}, {:focus, :next}}
-
-        assert module.handle(%{}, %{type: :key, action: :press, key: :kdown}) ==
-                 {%{}, {:focus, :next}}
-
-        assert module.handle(%{}, %{type: :key, action: :press, key: :kup}) ==
-                 {%{}, {:focus, :prev}}
+        assert module.handle(%{}, @ev_kp_enter) == {%{}, {:focus, :next}}
+        assert module.handle(%{}, @ev_kp_kdown) == {%{}, {:focus, :next}}
+        assert module.handle(%{}, @ev_kp_kup) == {%{}, {:focus, :prev}}
 
       Radio ->
-        assert module.handle(%{}, %{type: :key, action: :press, key: :enter}) ==
-                 {%{}, {:focus, :next}}
-
-        assert module.handle(%{}, %{type: :key, action: :press, key: :kdown}) ==
-                 {%{}, {:focus, :next}}
-
-        assert module.handle(%{}, %{type: :key, action: :press, key: :kup}) ==
-                 {%{}, {:focus, :prev}}
+        assert module.handle(%{}, @ev_kp_enter) == {%{}, {:focus, :next}}
+        assert module.handle(%{}, @ev_kp_kdown) == {%{}, {:focus, :next}}
+        assert module.handle(%{}, @ev_kp_kup) == {%{}, {:focus, :prev}}
 
       Select ->
-        assert module.handle(%{}, %{type: :key, action: :press, key: :enter}) ==
-                 {%{}, {:focus, :next}}
-
-        assert module.handle(%{}, %{type: :key, action: :press, key: :kright}) ==
-                 {%{}, {:focus, :next}}
-
-        assert module.handle(%{}, %{type: :key, action: :press, key: :kleft}) ==
-                 {%{}, {:focus, :prev}}
+        assert module.handle(%{}, @ev_kp_enter) == {%{}, {:focus, :next}}
+        assert module.handle(%{}, @ev_kp_kright) == {%{}, {:focus, :next}}
+        assert module.handle(%{}, @ev_kp_kleft) == {%{}, {:focus, :prev}}
 
       _ ->
         nil
@@ -206,6 +174,7 @@ defmodule ControlTest do
     input? = Keyword.get(opts, :input?, false)
     panel? = Keyword.get(opts, :panel?, false)
     button? = Keyword.get(opts, :button?, false)
+    unused(input?, panel?, button?)
 
     # update
     initial = module.init()
@@ -297,23 +266,12 @@ defmodule ControlTest do
         assert module.update(initial, theme: :theme) == %{initial | theme: :theme}
         assert module.update(initial, password: true) == %{initial | password: true}
         assert module.update(initial, text: "text") == %{initial | text: "text", cursor: 4}
-
-        assert module.update(initial, text: "text", cursor: 1) == %{
-                 initial
-                 | text: "text",
-                   cursor: 4
-               }
-
-        assert module.update(initial, cursor: 1, text: "text") == %{
-                 initial
-                 | text: "text",
-                   cursor: 4
-               }
-
-        assert module.update(initial, on_change: on_change) == %{
-                 initial
-                 | on_change: on_change
-               }
+        expected = %{initial | text: "text", cursor: 4}
+        assert module.update(initial, text: "text", cursor: 1) == expected
+        expected = %{initial | text: "text", cursor: 4}
+        assert module.update(initial, cursor: 1, text: "text") == expected
+        expected = %{initial | on_change: on_change}
+        assert module.update(initial, on_change: on_change) == expected
 
       Label ->
         not_used = Theme.get(:default).not_used
@@ -343,22 +301,10 @@ defmodule ControlTest do
         assert module.update(initial, on_change: nil) == initial
         assert module.update(initial, theme: :theme) == %{initial | theme: :theme}
         assert module.update(initial, on_change: on_change) == %{initial | on_change: on_change}
-
-        assert module.update(initial, items: [0, 1]) == %{
-                 initial
-                 | items: [0, 1],
-                   map: %{0 => 0, 1 => 1},
-                   count: 2,
-                   selected: 0
-               }
-
-        assert module.update(initial, items: [0, 1], selected: 1) == %{
-                 initial
-                 | items: [0, 1],
-                   map: %{0 => 0, 1 => 1},
-                   count: 2,
-                   selected: 1
-               }
+        expected = %{initial | items: [0, 1], map: %{0 => 0, 1 => 1}, count: 2, selected: 0}
+        assert module.update(initial, items: [0, 1]) == expected
+        expected = %{initial | items: [0, 1], map: %{0 => 0, 1 => 1}, count: 2, selected: 1}
+        assert module.update(initial, items: [0, 1], selected: 1) == expected
 
       Select ->
         on_change = fn {index, item} -> {index, item} end
@@ -373,52 +319,60 @@ defmodule ControlTest do
         assert module.update(initial, on_change: nil) == initial
         assert module.update(initial, theme: :theme) == %{initial | theme: :theme}
         assert module.update(initial, on_change: on_change) == %{initial | on_change: on_change}
-
-        assert module.update(initial, items: [0, 1]) == %{
-                 initial
-                 | items: [0, 1],
-                   map: %{0 => 0, 1 => 1},
-                   count: 2,
-                   selected: -1
-               }
-
-        assert module.update(initial, size: {0, 1}, items: [0, 1]) == %{
-                 initial
-                 | size: {0, 1},
-                   items: [0, 1],
-                   map: %{0 => 0, 1 => 1},
-                   count: 2,
-                   selected: 0
-               }
-
+        expected = %{initial | items: [0, 1], map: %{0 => 0, 1 => 1}, count: 2, selected: -1}
+        assert module.update(initial, items: [0, 1]) == expected
+        changes = %{size: {0, 1}, items: [0, 1], map: %{0 => 0, 1 => 1}, count: 2, selected: 0}
+        expected = Map.merge(initial, changes)
+        assert module.update(initial, size: {0, 1}, items: [0, 1]) == expected
+        changes = %{size: {0, 1}, items: [0, 1], map: %{0 => 0, 1 => 1}, count: 2}
+        expected = Map.merge(initial, changes)
         # selected recalculated to -1 (out of range)
-        assert module.update(initial, size: {0, 1}, items: [0, 1], selected: 2) == %{
-                 initial
-                 | size: {0, 1},
-                   items: [0, 1],
-                   map: %{0 => 0, 1 => 1},
-                   count: 2
-               }
+        assert module.update(initial, size: {0, 1}, items: [0, 1], selected: 2) == expected
 
       _ ->
         nil
     end
   end
 
-  def triggers_checks(module, opts \\ []) do
+  def trigger_checks(module, opts \\ []) do
     input? = Keyword.get(opts, :input?, false)
     panel? = Keyword.get(opts, :panel?, false)
     button? = Keyword.get(opts, :button?, false)
+    unused(input?, panel?, button?)
 
-    # triggers
+    if input? do
+      case module do
+        Button ->
+          model = %{on_click: &Button.nop/0}
+          assert module.handle(model, @ev_kp_trigger) == {model, {:click, :nop}}
+          assert module.handle(model, @ev_mp_left) == {model, {:click, :nop}}
+          model = %{on_click: &Button.nop/0, shortcut: :shortcut}
+          assert module.handle(model, {:shortcut, :shortcut}) == {model, {:click, :nop}}
+
+        Checkbox ->
+          on_change = fn value -> value end
+          model1 = %{on_change: on_change, checked: false}
+          model2 = %{on_change: on_change, checked: true}
+          assert module.handle(model1, @ev_kp_space) == {model2, {:checked, true, true}}
+          assert module.handle(model1, @ev_mp_left) == {model2, {:checked, true, true}}
+          assert module.handle(model2, @ev_kp_trigger) == {model2, {:checked, true, true}}
+
+        _ ->
+          # FIXME bring them here
+          nil
+      end
+    end
   end
 
   def nops_checks(module, opts \\ []) do
     input? = Keyword.get(opts, :input?, false)
     panel? = Keyword.get(opts, :panel?, false)
     button? = Keyword.get(opts, :button?, false)
+    unused(input?, panel?, button?)
 
     # nop
     assert module.handle(%{}, :any) == {%{}, nil}
   end
+
+  defp unused(_input?, _panel?, _button?), do: :unused
 end

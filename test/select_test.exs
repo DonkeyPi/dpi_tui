@@ -3,7 +3,7 @@ defmodule SelectTest do
   use ControlTest
 
   test "basic select check" do
-    common_checks(Select, input?: true)
+    ControlTest.common_checks(Select, input?: true)
 
     initial = Select.init()
 
@@ -59,45 +59,45 @@ defmodule SelectTest do
     assert Select.update(initial, on_change: nil) == initial
 
     # navigation
-    assert Select.handle(%{}, %{type: :key, action: :press, key: :tab}) == {%{}, {:focus, :next}}
+    assert Select.handle(%{}, @ev_kp_fnext) == {%{}, {:focus, :next}}
 
-    assert Select.handle(%{}, %{type: :key, action: :press, key: :kright}) ==
+    assert Select.handle(%{}, @ev_kp_kright) ==
              {%{}, {:focus, :next}}
 
-    assert Select.handle(%{}, %{type: :key, action: :press, key: :tab, flag: @rtab}) ==
+    assert Select.handle(%{}, @ev_kp_fprev) ==
              {%{}, {:focus, :prev}}
 
-    assert Select.handle(%{}, %{type: :key, action: :press, key: :kleft}) ==
+    assert Select.handle(%{}, @ev_kp_kleft) ==
              {%{}, {:focus, :prev}}
 
-    assert Select.handle(%{}, %{type: :key, action: :press, key: :enter}) ==
+    assert Select.handle(%{}, @ev_kp_enter) ==
              {%{}, {:focus, :next}}
 
     # triggers
     sample = Select.init(items: [:item0, :item1, :item2], size: {10, 2}, on_change: on_change)
 
-    assert Select.handle(sample, %{type: :key, action: :press, key: :kdown}) ==
+    assert Select.handle(sample, @ev_kp_kdown) ==
              {%{sample | selected: 1}, {:item, 1, :item1, {1, :item1}}}
 
-    assert Select.handle(sample, %{type: :key, action: :press, key: :pdown}) ==
+    assert Select.handle(sample, @ev_kp_pdown) ==
              {%{sample | selected: 2, offset: 1}, {:item, 2, :item2, {2, :item2}}}
 
-    assert Select.handle(sample, %{type: :key, action: :press, key: :end}) ==
+    assert Select.handle(sample, @ev_kp_end) ==
              {%{sample | selected: 2, offset: 1}, {:item, 2, :item2, {2, :item2}}}
 
-    assert Select.handle(sample, %{type: :mouse, action: :scroll, dir: :down}) ==
+    assert Select.handle(sample, @ev_ms_down) ==
              {%{sample | selected: 1}, {:item, 1, :item1, {1, :item1}}}
 
-    assert Select.handle(%{sample | selected: 1}, %{type: :key, action: :press, key: :kup}) ==
+    assert Select.handle(%{sample | selected: 1}, @ev_kp_kup) ==
              {sample, {:item, 0, :item0, {0, :item0}}}
 
-    assert Select.handle(%{sample | selected: 2}, %{type: :key, action: :press, key: :pup}) ==
+    assert Select.handle(%{sample | selected: 2}, @ev_kp_pup) ==
              {sample, {:item, 0, :item0, {0, :item0}}}
 
-    assert Select.handle(%{sample | selected: 2}, %{type: :key, action: :press, key: :home}) ==
+    assert Select.handle(%{sample | selected: 2}, @ev_kp_home) ==
              {sample, {:item, 0, :item0, {0, :item0}}}
 
-    assert Select.handle(%{sample | selected: 1}, %{type: :mouse, action: :scroll, dir: :up}) ==
+    assert Select.handle(%{sample | selected: 1}, @ev_ms_up) ==
              {sample, {:item, 0, :item0, {0, :item0}}}
 
     assert Select.handle(sample, %{type: :mouse, action: :press, y: 1}) ==
@@ -107,28 +107,28 @@ defmodule SelectTest do
              {%{sample | selected: 2, offset: 1}, {:item, 2, :item2, {2, :item2}}}
 
     # retriggers
-    assert Select.handle(sample, %{type: :key, action: :press, key: :enter, flag: @renter}) ==
+    assert Select.handle(sample, @ev_kp_trigger) ==
              {sample, {:item, 0, :item0, {0, :item0}}}
 
     # nops
     assert Select.handle(%{}, nil) == {%{}, nil}
     assert Select.handle(initial, %{type: :mouse}) == {initial, nil}
     assert Select.handle(initial, %{type: :key}) == {initial, nil}
-    assert Select.handle(sample, %{type: :key, action: :press, key: :kup}) == {sample, nil}
-    assert Select.handle(sample, %{type: :key, action: :press, key: :pup}) == {sample, nil}
-    assert Select.handle(sample, %{type: :key, action: :press, key: :home}) == {sample, nil}
-    assert Select.handle(sample, %{type: :mouse, action: :scroll, dir: :up}) == {sample, nil}
+    assert Select.handle(sample, @ev_kp_kup) == {sample, nil}
+    assert Select.handle(sample, @ev_kp_pup) == {sample, nil}
+    assert Select.handle(sample, @ev_kp_home) == {sample, nil}
+    assert Select.handle(sample, @ev_ms_up) == {sample, nil}
 
-    assert Select.handle(%{sample | selected: 2}, %{type: :key, action: :press, key: :kdown}) ==
+    assert Select.handle(%{sample | selected: 2}, @ev_kp_kdown) ==
              {%{sample | selected: 2, offset: 1}, nil}
 
-    assert Select.handle(%{sample | selected: 2}, %{type: :key, action: :press, key: :pdown}) ==
+    assert Select.handle(%{sample | selected: 2}, @ev_kp_pdown) ==
              {%{sample | selected: 2, offset: 1}, nil}
 
-    assert Select.handle(%{sample | selected: 2}, %{type: :key, action: :press, key: :end}) ==
+    assert Select.handle(%{sample | selected: 2}, @ev_kp_end) ==
              {%{sample | selected: 2, offset: 1}, nil}
 
-    assert Select.handle(%{sample | selected: 2}, %{type: :mouse, action: :scroll, dir: :down}) ==
+    assert Select.handle(%{sample | selected: 2}, @ev_ms_down) ==
              {%{sample | selected: 2, offset: 1}, nil}
 
     assert Select.handle(sample, %{type: :mouse, action: :press, y: 0}) ==
@@ -140,10 +140,10 @@ defmodule SelectTest do
     # recalculate
 
     # offset (any key/mouse should correct it)
-    assert Select.handle(%{sample | selected: -1}, %{type: :key, action: :press, key: :kup}) ==
+    assert Select.handle(%{sample | selected: -1}, @ev_kp_kup) ==
              {sample, {:item, 0, :item0, {0, :item0}}}
 
-    assert Select.handle(%{sample | selected: -1}, %{type: :mouse, action: :scroll, dir: :up}) ==
+    assert Select.handle(%{sample | selected: -1}, @ev_ms_up) ==
              {sample, {:item, 0, :item0, {0, :item0}}}
 
     assert Select.update(%{sample | selected: -1}, selected: 0) == sample
