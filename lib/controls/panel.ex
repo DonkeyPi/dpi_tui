@@ -110,6 +110,8 @@ defmodule Ash.Tui.Panel do
   # Prevent next handler from receiving a mouse event with nil focus.
   def handle(%{focus: nil} = model, %{type: :mouse}), do: {model, nil}
 
+  # Looks for the child containing the (x, y) event point. The child
+  # becomes focused if not already then the event is handed to it.
   def handle(
         %{focus: focus, index: index, children: children} = model,
         %{type: :mouse, action: :press, key: :bleft, x: mx, y: my} = event
@@ -143,7 +145,8 @@ defmodule Ash.Tui.Panel do
     end)
   end
 
-  # shortcuts are broadcasted without focus pre-assigment
+  # Shortcuts are broadcasted without focus pre-assigment.
+  # The matching button wont get focused either.
   def handle(%{index: index, children: children} = model, {:shortcut, _} = event) do
     Enum.each(index, fn id ->
       momo = Map.get(children, id)
@@ -166,9 +169,8 @@ defmodule Ash.Tui.Panel do
     end
   end
 
-  # assumes no child other than the pointed
-  # by the focus key will be ever focused
-  # no attempt is made to unfocus every children
+  # Assumes no child other than the pointed by the focus key will
+  # be ever focused. No attempt is made to unfocus every children.
   defp recalculate(model, dir) do
     %{
       visible: visible,
@@ -180,8 +182,7 @@ defmodule Ash.Tui.Panel do
 
     expected = visible and enabled and focused and findex >= 0
 
-    # try to recover the current focus key
-    # returning nil if not recoverable
+    # Try to recover the current focus key returning nil if not recoverable
     {model, focus} =
       case focus do
         nil ->
@@ -219,7 +220,7 @@ defmodule Ash.Tui.Panel do
           end
       end
 
-    # try to initialize the focus key if nil
+    # Try to initialize the focus key if nil.
     case {expected, focus} do
       {true, nil} ->
         case focus_list(model, dir) do
@@ -243,8 +244,8 @@ defmodule Ash.Tui.Panel do
       {:focus, dir} ->
         {first, next} = focus_next(model, focus, dir)
 
-        # critical to remove and reapply focused even
-        # and specially when next equals current focus
+        # Critical to remove and reapply focused even
+        # and specially when next equals current focus.
         next =
           case {root, first, next} do
             {true, ^focus, nil} -> focus

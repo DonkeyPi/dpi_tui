@@ -23,3 +23,12 @@
 - Buttons with a matching shortcut get triggered.
 - Shortcuts are not exclusibly associated to a single button.
 - Multiple buttons can be triggered at once.
+
+## Roadmap
+
+- Shift tab not working
+- Theming rework
+- Pass size to markup
+- Canvas testing
+- Render testing
+- Cache modal model
