@@ -24,8 +24,7 @@ defmodule ControlTest do
     accessors_checks(module, opts)
     navigation_checks(module, opts)
     update_checks(module, opts)
-    trigger_checks(module, opts)
-    nops_checks(module, opts)
+    specials_checks(module, opts)
   end
 
   def accessors_checks(module, opts \\ []) do
@@ -265,13 +264,7 @@ defmodule ControlTest do
         assert module.update(initial, on_change: nil) == initial
         assert module.update(initial, theme: :theme) == %{initial | theme: :theme}
         assert module.update(initial, password: true) == %{initial | password: true}
-        assert module.update(initial, text: "text") == %{initial | text: "text", cursor: 4}
-        expected = %{initial | text: "text", cursor: 4}
-        assert module.update(initial, text: "text", cursor: 1) == expected
-        expected = %{initial | text: "text", cursor: 4}
-        assert module.update(initial, cursor: 1, text: "text") == expected
-        expected = %{initial | on_change: on_change}
-        assert module.update(initial, on_change: on_change) == expected
+        assert module.update(initial, on_change: on_change) == %{initial | on_change: on_change}
 
       Label ->
         not_used = Theme.get(:default).not_used
@@ -301,10 +294,6 @@ defmodule ControlTest do
         assert module.update(initial, on_change: nil) == initial
         assert module.update(initial, theme: :theme) == %{initial | theme: :theme}
         assert module.update(initial, on_change: on_change) == %{initial | on_change: on_change}
-        expected = %{initial | items: [0, 1], map: %{0 => 0, 1 => 1}, count: 2, selected: 0}
-        assert module.update(initial, items: [0, 1]) == expected
-        expected = %{initial | items: [0, 1], map: %{0 => 0, 1 => 1}, count: 2, selected: 1}
-        assert module.update(initial, items: [0, 1], selected: 1) == expected
 
       Select ->
         on_change = fn {index, item} -> {index, item} end
@@ -319,52 +308,13 @@ defmodule ControlTest do
         assert module.update(initial, on_change: nil) == initial
         assert module.update(initial, theme: :theme) == %{initial | theme: :theme}
         assert module.update(initial, on_change: on_change) == %{initial | on_change: on_change}
-        expected = %{initial | items: [0, 1], map: %{0 => 0, 1 => 1}, count: 2, selected: -1}
-        assert module.update(initial, items: [0, 1]) == expected
-        changes = %{size: {0, 1}, items: [0, 1], map: %{0 => 0, 1 => 1}, count: 2, selected: 0}
-        expected = Map.merge(initial, changes)
-        assert module.update(initial, size: {0, 1}, items: [0, 1]) == expected
-        changes = %{size: {0, 1}, items: [0, 1], map: %{0 => 0, 1 => 1}, count: 2}
-        expected = Map.merge(initial, changes)
-        # selected recalculated to -1 (out of range)
-        assert module.update(initial, size: {0, 1}, items: [0, 1], selected: 2) == expected
 
       _ ->
         nil
     end
   end
 
-  def trigger_checks(module, opts \\ []) do
-    input? = Keyword.get(opts, :input?, false)
-    panel? = Keyword.get(opts, :panel?, false)
-    button? = Keyword.get(opts, :button?, false)
-    unused(input?, panel?, button?)
-
-    if input? do
-      case module do
-        Button ->
-          model = %{on_click: &Button.nop/0}
-          assert module.handle(model, @ev_kp_trigger) == {model, {:click, :nop}}
-          assert module.handle(model, @ev_mp_left) == {model, {:click, :nop}}
-          model = %{on_click: &Button.nop/0, shortcut: :shortcut}
-          assert module.handle(model, {:shortcut, :shortcut}) == {model, {:click, :nop}}
-
-        Checkbox ->
-          on_change = fn value -> value end
-          model1 = %{on_change: on_change, checked: false}
-          model2 = %{on_change: on_change, checked: true}
-          assert module.handle(model1, @ev_kp_space) == {model2, {:checked, true, true}}
-          assert module.handle(model1, @ev_mp_left) == {model2, {:checked, true, true}}
-          assert module.handle(model2, @ev_kp_trigger) == {model2, {:checked, true, true}}
-
-        _ ->
-          # FIXME bring them here
-          nil
-      end
-    end
-  end
-
-  def nops_checks(module, opts \\ []) do
+  def specials_checks(module, opts \\ []) do
     input? = Keyword.get(opts, :input?, false)
     panel? = Keyword.get(opts, :panel?, false)
     button? = Keyword.get(opts, :button?, false)
@@ -372,6 +322,19 @@ defmodule ControlTest do
 
     # nop
     assert module.handle(%{}, :any) == {%{}, nil}
+
+    # refocus
+    if not panel? do
+      assert module.refocus(:state, :dir) == :state
+    end
+
+    # shortcuts
+    if button? do
+      model = %{on_click: &Button.nop/0, shortcut: :shortcut}
+      assert module.handle(model, {:shortcut, :shortcut}) == {model, {:click, :nop}}
+    else
+      assert module.handle(%{}, {:shortcut, :shortcut}) == {%{}, nil}
+    end
   end
 
   defp unused(_input?, _panel?, _button?), do: :unused

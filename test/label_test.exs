@@ -18,30 +18,5 @@ defmodule LabelTest do
              back: theme.back_readonly,
              fore: theme.fore_readonly
            }
-
-    # panel getter/setters
-    assert Label.bounds(%{origin: {1, 2}, size: {3, 4}}) == {1, 2, 3, 4}
-    assert Label.visible(%{visible: :visible}) == :visible
-    assert Label.focusable(%{}) == false
-    assert Label.focused(%{}) == false
-    assert Label.focused(%{}, false) == %{}
-    assert Label.focused(%{}, true) == %{}
-    assert Label.refocus(:state, :dir) == :state
-    assert Label.findex(%{findex: 0}) == -1
-    assert Label.shortcut(:state) == nil
-    assert Label.children(:state) == []
-    assert Label.children(:state, []) == :state
-    assert Label.modal(:state) == false
-
-    # update
-    assert Label.update(initial, origin: {1, 2}) == %{initial | origin: {1, 2}}
-    assert Label.update(initial, size: {2, 3}) == %{initial | size: {2, 3}}
-    assert Label.update(initial, visible: false) == %{initial | visible: false}
-    assert Label.update(initial, text: "text") == %{initial | text: "text"}
-    assert Label.update(initial, back: @red) == %{initial | back: @red}
-    assert Label.update(initial, fore: @red) == %{initial | fore: @red}
-
-    # nops
-    assert Label.handle(%{}, nil) == {%{}, nil}
   end
 end

@@ -23,144 +23,121 @@ defmodule RadioTest do
              on_change: &Radio.nop/1
            }
 
-    # getters/setters
-    assert Radio.bounds(%{origin: {1, 2}, size: {3, 4}}) == {1, 2, 3, 4}
-    assert Radio.visible(%{visible: :visible}) == :visible
-    assert Radio.focusable(%{initial | enabled: false}) == false
-    assert Radio.focusable(%{initial | visible: false}) == false
-    assert Radio.focusable(%{initial | on_change: nil}) == false
-    assert Radio.focusable(%{initial | findex: -1}) == false
-    assert Radio.focused(%{focused: false}) == false
-    assert Radio.focused(%{focused: true}) == true
-    assert Radio.focused(initial, true) == %{initial | focused: true}
-    assert Radio.refocus(:state, :dir) == :state
-    assert Radio.findex(%{findex: 0}) == 0
-    assert Radio.shortcut(:state) == nil
-    assert Radio.children(:state) == []
-    assert Radio.children(:state, []) == :state
-    assert Radio.modal(:state) == false
+    on_change = fn value -> value end
 
-    # update
-    on_change = fn {index, item} -> {index, item} end
-    assert Radio.update(initial, focused: :any) == initial
-    assert Radio.update(initial, origin: {1, 2}) == %{initial | origin: {1, 2}}
-    assert Radio.update(initial, size: {2, 3}) == %{initial | size: {2, 3}}
-    assert Radio.update(initial, visible: false) == %{initial | visible: false}
-    assert Radio.update(initial, enabled: false) == %{initial | enabled: false}
-    assert Radio.update(initial, findex: 1) == %{initial | findex: 1}
-    assert Radio.update(initial, theme: :theme) == %{initial | theme: :theme}
-    assert Radio.update(initial, selected: 0) == initial
-    assert Radio.update(initial, count: -1) == initial
-    assert Radio.update(initial, map: :map) == initial
-    assert Radio.update(initial, on_change: on_change) == %{initial | on_change: on_change}
-    assert Radio.update(initial, on_change: nil) == initial
+    # updates
 
     # update items
-    assert Radio.update(initial, items: [:item0, :item1]) == %{
+    assert Radio.update(initial, items: [0, 1]) == %{
              initial
-             | items: [:item0, :item1],
+             | items: [0, 1],
                selected: 0,
                count: 2,
-               map: %{0 => :item0, 1 => :item1}
+               map: %{0 => 0, 1 => 1}
            }
 
     # update items + selected
-    assert Radio.update(initial, items: [:item0, :item1], selected: 1) == %{
+    assert Radio.update(initial, items: [0, 1], selected: 1) == %{
              initial
-             | items: [:item0, :item1],
+             | items: [0, 1],
                selected: 1,
                count: 2,
-               map: %{0 => :item0, 1 => :item1}
+               map: %{0 => 0, 1 => 1}
            }
 
     # update selected + items
-    assert Radio.update(initial, selected: 1, items: [:item0, :item1]) == %{
+    assert Radio.update(initial, selected: 1, items: [0, 1]) == %{
              initial
-             | items: [:item0, :item1],
+             | items: [0, 1],
                selected: 1,
                count: 2,
-               map: %{0 => :item0, 1 => :item1}
+               map: %{0 => 0, 1 => 1}
            }
 
-    # recalc
-    assert Radio.update(%{initial | selected: 1}, items: [:item0, :item1]) == %{
+    # reset selected
+    assert Radio.update(%{initial | selected: 1}, items: [0, 1]) == %{
              initial
-             | items: [:item0, :item1],
+             | items: [0, 1],
                selected: 0,
                count: 2,
-               map: %{0 => :item0, 1 => :item1}
+               map: %{0 => 0, 1 => 1}
            }
 
-    # navigation
-    assert Radio.handle(%{}, @ev_kp_fnext) == {%{}, {:focus, :next}}
-    assert Radio.handle(%{}, @ev_kp_kdown) == {%{}, {:focus, :next}}
-
-    assert Radio.handle(%{}, @ev_kp_fprev) ==
-             {%{}, {:focus, :prev}}
-
-    assert Radio.handle(%{}, @ev_kp_kup) == {%{}, {:focus, :prev}}
-    assert Radio.handle(%{}, @ev_kp_enter) == {%{}, {:focus, :next}}
-
     # triggers
-    sample = Radio.init(items: [:item0, :item1, :item2], size: {10, 1}, on_change: on_change)
 
-    assert Radio.handle(sample, @ev_kp_kright) ==
-             {%{sample | selected: 1}, {:item, 1, :item1, {1, :item1}}}
+    model = Radio.init(items: [0, 1, 2], size: {7, 1}, on_change: on_change)
 
-    assert Radio.handle(sample, @ev_kp_end) ==
-             {%{sample | selected: 2}, {:item, 2, :item2, {2, :item2}}}
+    # right key move selection to the right
+    assert Radio.handle(model, @ev_kp_kright) ==
+             {%{model | selected: 1}, {:item, 1, 1, {1, 1}}}
 
-    assert Radio.handle(sample, @ev_ms_down) ==
-             {%{sample | selected: 1}, {:item, 1, :item1, {1, :item1}}}
+    # mouse scroll down moves selection to the right
+    assert Radio.handle(model, @ev_ms_down) ==
+             {%{model | selected: 1}, {:item, 1, 1, {1, 1}}}
 
-    assert Radio.handle(%{sample | selected: 1}, @ev_kp_kleft) ==
-             {sample, {:item, 0, :item0, {0, :item0}}}
+    # end key moves selection to the end
+    assert Radio.handle(model, @ev_kp_end) ==
+             {%{model | selected: 2}, {:item, 2, 2, {2, 2}}}
 
-    assert Radio.handle(%{sample | selected: 2}, @ev_kp_home) ==
-             {sample, {:item, 0, :item0, {0, :item0}}}
+    # left key moves selection to the left
+    assert Radio.handle(%{model | selected: 1}, @ev_kp_kleft) ==
+             {model, {:item, 0, 0, {0, 0}}}
 
-    assert Radio.handle(%{sample | selected: 1}, @ev_ms_up) ==
-             {sample, {:item, 0, :item0, {0, :item0}}}
+    # home key moves selection to the start
+    assert Radio.handle(%{model | selected: 2}, @ev_kp_home) ==
+             {model, {:item, 0, 0, {0, 0}}}
 
-    assert Radio.handle(sample, %{type: :mouse, action: :press, x: 7}) ==
-             {%{sample | selected: 1}, {:item, 1, :item1, {1, :item1}}}
+    # mouse scroll up moves selection to the left
+    assert Radio.handle(%{model | selected: 1}, @ev_ms_up) ==
+             {model, {:item, 0, 0, {0, 0}}}
 
-    assert Radio.handle(%{sample | selected: 2}, %{type: :mouse, action: :press, x: 3}) ==
-             {%{sample | selected: 0}, {:item, 0, :item0, {0, :item0}}}
+    # mouse click sets selection to clicked item
+    assert Radio.handle(model, ev_mp_left(2, 0)) ==
+             {%{model | selected: 1}, {:item, 1, 1, {1, 1}}}
+
+    # mouse click sets selection to clicked item
+    assert Radio.handle(%{model | selected: 2}, ev_mp_left(0, 0)) ==
+             {%{model | selected: 0}, {:item, 0, 0, {0, 0}}}
 
     # retriggers
-    assert Radio.handle(sample, @ev_kp_trigger) ==
-             {sample, {:item, 0, :item0, {0, :item0}}}
+    assert Radio.handle(model, @ev_kp_trigger) == {model, {:item, 0, 0, {0, 0}}}
 
     # nops
-    assert Radio.handle(%{}, nil) == {%{}, nil}
-    assert Radio.handle(initial, %{type: :mouse}) == {initial, nil}
-    assert Radio.handle(initial, %{type: :key}) == {initial, nil}
-    assert Radio.handle(sample, @ev_kp_kleft) == {sample, nil}
-    assert Radio.handle(sample, @ev_kp_home) == {sample, nil}
-    assert Radio.handle(sample, @ev_ms_up) == {sample, nil}
 
-    assert Radio.handle(%{sample | selected: 2}, @ev_kp_kright) ==
-             {%{sample | selected: 2}, nil}
+    # left key wont go beyond start
+    assert Radio.handle(model, @ev_kp_kleft) == {model, nil}
 
-    assert Radio.handle(%{sample | selected: 2}, @ev_kp_end) ==
-             {%{sample | selected: 2}, nil}
+    # home key wont go beyond start
+    assert Radio.handle(model, @ev_kp_home) == {model, nil}
 
-    assert Radio.handle(%{sample | selected: 2}, @ev_ms_down) ==
-             {%{sample | selected: 2}, nil}
+    # mouse scroll up wont go beyond start
+    assert Radio.handle(model, @ev_ms_up) == {model, nil}
 
-    assert Radio.handle(%{sample | selected: 2}, %{type: :mouse, action: :press, x: 5}) ==
-             {%{sample | selected: 2}, nil}
+    # right key wont go beyond end
+    assert Radio.handle(%{model | selected: 2}, @ev_kp_kright) == {%{model | selected: 2}, nil}
+
+    # end key wont go beyond end
+    assert Radio.handle(%{model | selected: 2}, @ev_kp_end) == {%{model | selected: 2}, nil}
+
+    # mouse scroll down wont go beyond end
+    assert Radio.handle(%{model | selected: 2}, @ev_ms_down) == {%{model | selected: 2}, nil}
+
+    # click on space separator is ignored
+    assert Radio.handle(%{model | selected: 2}, ev_mp_left(1, 0)) == {%{model | selected: 2}, nil}
+
+    # click on unused space is ignored
+    assert Radio.handle(%{model | selected: 2}, ev_mp_left(5, 0)) ==
+             {%{model | selected: 2}, nil}
 
     # recalculate
 
     # offset (any key/mouse should correct it)
-    assert Radio.handle(%{sample | selected: -1}, @ev_kp_kleft) ==
-             {sample, {:item, 0, :item0, {0, :item0}}}
+    assert Radio.handle(%{model | selected: -1}, @ev_kp_kleft) ==
+             {model, {:item, 0, 0, {0, 0}}}
 
-    assert Radio.handle(%{sample | selected: -1}, @ev_ms_up) ==
-             {sample, {:item, 0, :item0, {0, :item0}}}
+    assert Radio.handle(%{model | selected: -1}, @ev_ms_up) ==
+             {model, {:item, 0, 0, {0, 0}}}
 
-    assert Radio.update(%{sample | selected: -1}, selected: 0) == sample
+    assert Radio.update(%{model | selected: -1}, selected: 0) == model
   end
 end

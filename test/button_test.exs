@@ -20,5 +20,10 @@ defmodule ButtonTest do
              shortcut: nil,
              on_click: &Button.nop/0
            }
+
+    # triggers
+    model = %{on_click: &Button.nop/0}
+    assert Button.handle(model, @ev_kp_trigger) == {model, {:click, :nop}}
+    assert Button.handle(model, @ev_mp_left) == {model, {:click, :nop}}
   end
 end

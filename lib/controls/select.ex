@@ -102,13 +102,13 @@ defmodule Ash.Tui.Select do
     trigger(model, next, selected)
   end
 
-  def handle(model, %{type: :key, action: :press, key: :pdown}) do
+  def handle(model, @ev_kp_pdown) do
     %{count: count, selected: selected, size: {_, rows}} = model
     next = min(selected + rows, count - 1)
     trigger(model, next, selected)
   end
 
-  def handle(model, %{type: :key, action: :press, key: :pup}) do
+  def handle(model, @ev_kp_pup) do
     %{selected: selected, size: {_, rows}} = model
     next = max(0, selected - rows)
     trigger(model, next, selected)

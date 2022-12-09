@@ -22,112 +22,70 @@ defmodule InputTest do
              on_change: &Input.nop/1
            }
 
-    # getters/setters
-    assert Input.bounds(%{origin: {1, 2}, size: {3, 4}}) == {1, 2, 3, 4}
-    assert Input.visible(%{visible: :visible}) == :visible
-    assert Input.focusable(%{initial | enabled: false}) == false
-    assert Input.focusable(%{initial | visible: false}) == false
-    assert Input.focusable(%{initial | on_change: nil}) == false
-    assert Input.focusable(%{initial | findex: -1}) == false
-    assert Input.focused(%{focused: false}) == false
-    assert Input.focused(%{focused: true}) == true
-    assert Input.focused(initial, true) == %{initial | focused: true}
-    assert Input.refocus(:state, :dir) == :state
-    assert Input.findex(%{findex: 0}) == 0
-    assert Input.shortcut(:state) == nil
-    assert Input.children(:state) == []
-    assert Input.children(:state, []) == :state
-    assert Input.modal(:state) == false
-
-    # update
     on_change = fn value -> value end
-    assert Input.update(initial, focused: :any) == initial
-    assert Input.update(initial, origin: {1, 2}) == %{initial | origin: {1, 2}}
-    assert Input.update(initial, size: {2, 3}) == %{initial | size: {2, 3}}
-    assert Input.update(initial, visible: false) == %{initial | visible: false}
-    assert Input.update(initial, enabled: false) == %{initial | enabled: false}
-    assert Input.update(initial, findex: 1) == %{initial | findex: 1}
-    assert Input.update(initial, theme: :theme) == %{initial | theme: :theme}
-    assert Input.update(initial, password: true) == %{initial | password: true}
-    assert Input.update(initial, text: "text") == %{initial | text: "text", cursor: 4}
-    assert Input.update(initial, text: "text", cursor: 1) == %{initial | text: "text", cursor: 4}
-    assert Input.update(initial, cursor: 1, text: "text") == %{initial | text: "text", cursor: 4}
-    assert Input.update(initial, cursor: -1) == initial
-    assert Input.update(initial, cursor: 1) == initial
-    assert Input.update(initial, on_change: on_change) == %{initial | on_change: on_change}
-    assert Input.update(initial, on_change: nil) == initial
 
-    # navigation
-    assert Input.handle(%{}, @ev_kp_fnext) == {%{}, {:focus, :next}}
-    assert Input.handle(%{}, @ev_kp_kdown) == {%{}, {:focus, :next}}
+    # updates
 
-    assert Input.handle(%{}, @ev_kp_fprev) ==
-             {%{}, {:focus, :prev}}
+    # cursor is recalculated on text update
+    expected = %{initial | text: "text", cursor: 4}
 
-    assert Input.handle(%{}, @ev_kp_kup) == {%{}, {:focus, :prev}}
-    assert Input.handle(%{}, @ev_kp_enter) == {%{}, {:focus, :next}}
+    assert Input.update(initial, text: "text") == expected
+    assert Input.update(initial, text: "text", cursor: 1) == expected
+    assert Input.update(initial, cursor: 1, text: "text") == expected
 
-    # triggers
-    sample = Input.init(size: {10, 1}, on_change: on_change)
+    # triggers from text input
+    model = Input.init(size: {10, 1}, on_change: on_change)
 
-    assert Input.handle(sample, %{type: :key, action: :press, key: 'a'}) ==
-             {%{sample | text: "a", cursor: 1}, {:text, "a", "a"}}
+    # insert first char
+    assert Input.handle(model, ev_kp_data('a')) ==
+             {%{model | text: "a", cursor: 1}, {:text, "a", "a"}}
 
-    assert Input.handle(%{sample | text: "a", cursor: 1}, %{type: :key, action: :press, key: 'b'}) ==
-             {%{sample | text: "ab", cursor: 2}, {:text, "ab", "ab"}}
+    # insert at the end
+    assert Input.handle(%{model | text: "a", cursor: 1}, ev_kp_data('b')) ==
+             {%{model | text: "ab", cursor: 2}, {:text, "ab", "ab"}}
 
-    assert Input.handle(%{sample | text: "a", cursor: 0}, %{type: :key, action: :press, key: 'b'}) ==
-             {%{sample | text: "ba", cursor: 1}, {:text, "ba", "ba"}}
+    # insert at the beginning
+    assert Input.handle(%{model | text: "a", cursor: 0}, ev_kp_data('b')) ==
+             {%{model | text: "ba", cursor: 1}, {:text, "ba", "ba"}}
 
-    assert Input.handle(%{sample | text: "ab", cursor: 1}, %{type: :key, action: :press, key: 'c'}) ==
-             {%{sample | text: "acb", cursor: 2}, {:text, "acb", "acb"}}
+    # insert in the middle
+    assert Input.handle(%{model | text: "ab", cursor: 1}, ev_kp_data('c')) ==
+             {%{model | text: "acb", cursor: 2}, {:text, "acb", "acb"}}
 
-    assert Input.handle(%{sample | text: "abc", cursor: 1}, %{
-             type: :key,
-             action: :press,
-             key: :delete
-           }) ==
-             {%{sample | text: "ac", cursor: 1}, {:text, "ac", "ac"}}
+    # delete second with delete
+    assert Input.handle(%{model | text: "abc", cursor: 1}, @ev_kp_delete) ==
+             {%{model | text: "ac", cursor: 1}, {:text, "ac", "ac"}}
 
-    assert Input.handle(%{sample | text: "abc", cursor: 1}, %{
-             type: :key,
-             action: :press,
-             key: :backspace
-           }) ==
-             {%{sample | text: "bc", cursor: 0}, {:text, "bc", "bc"}}
+    # delete first with backspace
+    assert Input.handle(%{model | text: "abc", cursor: 1}, @ev_kp_backspace) ==
+             {%{model | text: "bc", cursor: 0}, {:text, "bc", "bc"}}
 
-    # retriggers
-    assert Input.handle(%{sample | text: "abc", cursor: 1}, @ev_kp_trigger) ==
-             {%{sample | text: "abc", cursor: 1}, {:text, "abc", "abc"}}
+    # retrigger
+    assert Input.handle(%{model | text: "abc", cursor: 1}, @ev_kp_trigger) ==
+             {%{model | text: "abc", cursor: 1}, {:text, "abc", "abc"}}
 
     # mouse
-    assert Input.handle(%{sample | text: "abc"}, %{type: :mouse, action: :press, x: 2}) ==
-             {%{sample | text: "abc", cursor: 2}, nil}
 
-    assert Input.handle(%{sample | text: "abc"}, %{type: :mouse, action: :press, x: 4}) ==
-             {%{sample | text: "abc", cursor: 3}, nil}
+    # move cursor to beginning on click
+    assert Input.handle(%{model | text: "abc", cursor: 2}, ev_mp_left(0, 0)) ==
+             {%{model | text: "abc", cursor: 0}, nil}
+
+    # move cursor to middle on click
+    assert Input.handle(%{model | text: "abc"}, ev_mp_left(2, 0)) ==
+             {%{model | text: "abc", cursor: 2}, nil}
+
+    # move cursor to end on click
+    assert Input.handle(%{model | text: "abc"}, ev_mp_left(4, 0)) ==
+             {%{model | text: "abc", cursor: 3}, nil}
 
     # nops
-    assert Input.handle(%{}, :any) == {%{}, nil}
-    assert Input.handle(initial, @ev_kp_kleft) == {initial, nil}
-    assert Input.handle(initial, @ev_kp_kright) == {initial, nil}
-    assert Input.handle(initial, @ev_kp_delete) == {initial, nil}
-    assert Input.handle(initial, @ev_kp_backspace) == {initial, nil}
-    assert Input.handle(initial, @ev_kp_home) == {initial, nil}
-    assert Input.handle(initial, @ev_kp_end) == {initial, nil}
-    assert Input.handle(initial, %{type: :key, action: :press, key: 'a'}) == {initial, nil}
 
-    assert Input.handle(%{initial | size: {10, 1}, text: "a"}, %{
-             type: :key,
-             action: :press,
-             key: :backspace
-           }) ==
+    # ignore backspace when cursor at beginning
+    assert Input.handle(%{initial | size: {10, 1}, text: "a"}, @ev_kp_backspace) ==
              {%{initial | size: {10, 1}, text: "a"}, nil}
 
-    assert Input.handle(%{initial | size: {10, 1}, text: "a", cursor: 1}, %{
-             type: :key,
-             key: :delete
-           }) ==
+    # ignore delete when cursor at end
+    assert Input.handle(%{initial | size: {10, 1}, text: "a", cursor: 1}, @ev_kp_delete) ==
              {%{initial | size: {10, 1}, text: "a", cursor: 1}, nil}
   end
 end

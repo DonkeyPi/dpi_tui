@@ -8,6 +8,8 @@ defmodule Ash.Tui.Radio do
   alias Ash.Tui.Canvas
   alias Ash.Tui.Theme
 
+  # Size if not autocalculated from items because render and mouse
+  # events are auto clipped making the issues evident for the user.
   def init(opts \\ []) do
     opts = Enum.into(opts, %{})
     origin = Map.get(opts, :origin, {0, 0})

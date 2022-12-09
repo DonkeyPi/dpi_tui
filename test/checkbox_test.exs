@@ -21,13 +21,12 @@ defmodule CheckboxTest do
              on_change: &Checkbox.nop/1
            }
 
-    on_change = fn value -> value end
-
     # triggers
+    on_change = fn value -> value end
     model1 = %{on_change: on_change, checked: false}
     model2 = %{on_change: on_change, checked: true}
-    assert Checkbox.handle(model1, @ev_kp_space) == {model2, {:checked, true, true}}
     assert Checkbox.handle(model1, @ev_mp_left) == {model2, {:checked, true, true}}
+    assert Checkbox.handle(model1, @ev_kp_space) == {model2, {:checked, true, true}}
     assert Checkbox.handle(model2, @ev_kp_trigger) == {model2, {:checked, true, true}}
   end
 end
