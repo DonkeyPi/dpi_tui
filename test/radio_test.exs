@@ -24,6 +24,7 @@ defmodule RadioTest do
            }
 
     on_change = fn value -> value end
+    model = Radio.init(items: [0, 1, 2], size: {7, 1}, on_change: on_change)
 
     # updates
 
@@ -65,9 +66,7 @@ defmodule RadioTest do
 
     # triggers
 
-    model = Radio.init(items: [0, 1, 2], size: {7, 1}, on_change: on_change)
-
-    # right key move selection to the right
+    # right key moves selection to the right
     assert Radio.handle(model, @ev_kp_kright) ==
              {%{model | selected: 1}, {:item, 1, 1, {1, 1}}}
 
@@ -122,6 +121,9 @@ defmodule RadioTest do
     # mouse scroll down wont go beyond end
     assert Radio.handle(%{model | selected: 2}, @ev_ms_down) == {%{model | selected: 2}, nil}
 
+    # click on selected item is ignored
+    assert Radio.handle(%{model | selected: 2}, ev_mp_left(4, 0)) == {%{model | selected: 2}, nil}
+
     # click on space separator is ignored
     assert Radio.handle(%{model | selected: 2}, ev_mp_left(1, 0)) == {%{model | selected: 2}, nil}
 
@@ -131,13 +133,15 @@ defmodule RadioTest do
 
     # recalculate
 
-    # offset (any key/mouse should correct it)
+    # offset reset to 0 (any key should correct it)
     assert Radio.handle(%{model | selected: -1}, @ev_kp_kleft) ==
              {model, {:item, 0, 0, {0, 0}}}
 
+    # offset reset to 0 (any/mouse should correct it)
     assert Radio.handle(%{model | selected: -1}, @ev_ms_up) ==
              {model, {:item, 0, 0, {0, 0}}}
 
+    # selected explicitly updated to 0
     assert Radio.update(%{model | selected: -1}, selected: 0) == model
   end
 end
