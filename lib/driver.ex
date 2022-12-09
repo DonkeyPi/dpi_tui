@@ -1,6 +1,6 @@
 defmodule Ash.Tui.Driver do
   @behaviour Ash.React.Driver
-  alias Ash.Tui.Screen
+  alias Ash.Tui.Term
   alias Ash.Tui.Canvas
   alias Ash.Tui.Control
 
@@ -8,15 +8,15 @@ defmodule Ash.Tui.Driver do
   defp put(state), do: Process.put(__MODULE__, state)
 
   def start(opts) do
-    {screen, opts} = Keyword.pop!(opts, :screen)
-    screen = Screen.start(screen, opts)
-    opts = Screen.opts(screen)
+    {term, opts} = Keyword.pop!(opts, :term)
+    term = Term.start(term, opts)
+    opts = Term.opts(term)
     cols = Keyword.fetch!(opts, :cols)
     rows = Keyword.fetch!(opts, :rows)
 
     state = %{
       canvas: Canvas.new(cols, rows),
-      screen: screen,
+      term: term,
       module: nil,
       model: nil,
       cols: cols,
@@ -29,7 +29,7 @@ defmodule Ash.Tui.Driver do
     :ok
   end
 
-  def opts(), do: Screen.opts(get().screen)
+  def opts(), do: Term.opts(get().term)
 
   # On root node it captures module, model, and id
   # and appends extra props [root: true].
@@ -77,7 +77,7 @@ defmodule Ash.Tui.Driver do
 
   def render(_id, {module, model}) do
     state = get()
-    %{screen: screen, cols: cols, rows: rows} = state
+    %{term: term, cols: cols, rows: rows} = state
 
     canvas1 = Canvas.new(cols, rows)
     canvas2 = Canvas.new(cols, rows)
@@ -86,10 +86,10 @@ defmodule Ash.Tui.Driver do
     # FIXME pass canvas1 to optimize with diff
     data =
       encode(canvas1, canvas2, fn command, param ->
-        Screen.encode(screen, command, param)
+        Term.encode(term, command, param)
       end)
 
-    :ok = Screen.write(screen, "#{data}")
+    :ok = Term.write(term, "#{data}")
     put(%{state | canvas: canvas2})
     :ok
   end

@@ -1,14 +1,14 @@
-defmodule Ash.Tui.Screen do
-  # Starts the screen driver.
+defmodule Ash.Tui.Term do
+  # Starts the term driver.
   @callback start(opts :: keyword()) :: state :: any()
 
   # Extracts the initialized option from opaque state.
   @callback opts(state :: any()) :: opts :: keyword()
 
-  # Encodes command in the screen/term language/escape-sequences
+  # Encodes command in the term languages
   @callback encode(command :: atom(), param :: any()) :: data :: binary()
 
-  # Writes encoded data to the screen
+  # Writes encoded data to the term
   @callback write(state :: any(), chardata :: iodata()) :: :ok
 
   def start(module, opts), do: {module, module.start(opts)}
