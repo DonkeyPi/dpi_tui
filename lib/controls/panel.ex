@@ -38,7 +38,7 @@ defmodule Ash.Tui.Panel do
   def shortcut(_), do: nil
   def modal(%{root: root}), do: root
 
-  # ignore modals
+  # Modals are ignored by focus calculator.
   def focusable(%{root: true}), do: false
   def focusable(%{enabled: false}), do: false
   def focusable(%{visible: false}), do: false
@@ -79,7 +79,10 @@ defmodule Ash.Tui.Panel do
     check(model)
   end
 
-  def handle(%{origin: {x, y}} = model, {:modal, [], %{type: :mouse, x: mx, y: my} = event}) do
+  def handle(
+        %{origin: {x, y}} = model,
+        {:modal, [], %{type: :mouse, action: :press, key: :bleft, x: mx, y: my} = event}
+      ) do
     handle(model, %{event | x: mx - x, y: my - y})
   end
 
@@ -92,6 +95,7 @@ defmodule Ash.Tui.Panel do
     {model, event}
   end
 
+  # Prevent next handler from receiving a key event with nil focus.
   def handle(%{focus: nil} = model, %{type: :key}), do: {model, nil}
 
   def handle(%{focus: focus} = model, %{type: :key} = event) do
@@ -100,13 +104,15 @@ defmodule Ash.Tui.Panel do
     child_event(model, momo, event)
   end
 
-  # controls get focused before receiving a mouse event
-  # unless the root panel has no focusable children at all
+  # Controls get focused before receiving a mouse event
+  # unless the root panel has no focusable children at all.
+
+  # Prevent next handler from receiving a mouse event with nil focus.
   def handle(%{focus: nil} = model, %{type: :mouse}), do: {model, nil}
 
   def handle(
         %{focus: focus, index: index, children: children} = model,
-        %{type: :mouse, x: mx, y: my} = event
+        %{type: :mouse, action: :press, key: :bleft, x: mx, y: my} = event
       ) do
     Enum.find_value(index, {model, nil}, fn id ->
       momo = Map.get(children, id)
@@ -327,6 +333,7 @@ defmodule Ash.Tui.Panel do
   defp momo_focusable({module, model}), do: module.focusable(model)
   defp momo_focused({module, model}), do: module.focused(model)
 
+  # Modal or hidden panels are not rendered.
   defp momo_render({module, model}, canvas) do
     visible = module.visible(model)
     modal = module.modal(model)

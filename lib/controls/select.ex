@@ -87,7 +87,9 @@ defmodule Ash.Tui.Select do
     check(model)
   end
 
+  # Prevent next handlers from receiving a key event with no items.
   def handle(%{items: []} = model, %{type: :key}), do: {model, nil}
+  # Prevent next handlers from receiving a mouse event with no items.
   def handle(%{items: []} = model, %{type: :mouse}), do: {model, nil}
 
   def handle(model, @ev_kp_kdown) do
@@ -124,32 +126,21 @@ defmodule Ash.Tui.Select do
     trigger(model, 0, selected)
   end
 
-  def handle(model, @ev_ms_up) do
-    handle(model, @ev_kp_kup)
-  end
-
-  def handle(model, @ev_ms_down) do
-    handle(model, @ev_kp_kdown)
-  end
-
-  def handle(model, %{type: :mouse, action: :press, y: my}) do
+  def handle(model, %{type: :mouse, action: :press, key: :bleft, y: my}) do
     %{count: count, selected: selected, offset: offset} = model
     next = my + offset
     next = if next >= count, do: selected, else: next
     trigger(model, next, selected)
   end
 
-  def handle(model, @ev_kp_fprev),
-    do: {model, {:focus, :prev}}
-
+  def handle(model, @ev_ms_up), do: handle(model, @ev_kp_kup)
+  def handle(model, @ev_ms_down), do: handle(model, @ev_kp_kdown)
+  def handle(model, @ev_kp_fprev), do: {model, {:focus, :prev}}
   def handle(model, @ev_kp_fnext), do: {model, {:focus, :next}}
   def handle(model, @ev_kp_kright), do: {model, {:focus, :next}}
   def handle(model, @ev_kp_kleft), do: {model, {:focus, :prev}}
-
-  def handle(model, @ev_kp_trigger),
-    do: {model, trigger(model)}
-
   def handle(model, @ev_kp_enter), do: {model, {:focus, :next}}
+  def handle(model, @ev_kp_trigger), do: {model, trigger(model)}
   def handle(model, _event), do: {model, nil}
 
   def render(model, canvas) do

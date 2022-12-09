@@ -86,7 +86,9 @@ defmodule Ash.Tui.Radio do
     check(model)
   end
 
+  # Prevent next handlers from receiving a key event with no items.
   def handle(%{items: []} = model, %{type: :key}), do: {model, nil}
+  # Prevent next handlers from receiving a mouse event with no items.
   def handle(%{items: []} = model, %{type: :mouse}), do: {model, nil}
 
   def handle(model, @ev_kp_kright) do
@@ -111,7 +113,7 @@ defmodule Ash.Tui.Radio do
     trigger(model, 0, selected)
   end
 
-  def handle(model, %{type: :mouse, action: :press, x: mx}) do
+  def handle(model, %{type: :mouse, action: :press, key: :bleft, x: mx}) do
     %{count: count, map: map, selected: selected} = model
 
     list = for i <- 0..(count - 1), do: {i, String.length("#{map[i]}")}
