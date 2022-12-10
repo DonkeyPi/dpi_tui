@@ -4,38 +4,31 @@ defmodule Ash.Tui.Driver do
   alias Ash.Tui.Canvas
   alias Ash.Tui.Control
 
-  defp get(), do: Process.get(__MODULE__)
-  defp put(state), do: Process.put(__MODULE__, state)
+  defp get(key), do: Process.get({__MODULE__, key})
+  defp put(key, data), do: Process.put({__MODULE__, key}, data)
 
   def start(opts) do
     {term, opts} = Keyword.pop!(opts, :term)
-    term = Term.start(term, opts)
-    opts = Term.opts(term)
+    :ok = Term.start(term, opts)
+    opts = Term.opts()
     cols = Keyword.fetch!(opts, :cols)
     rows = Keyword.fetch!(opts, :rows)
-
-    state = %{
-      canvas: Canvas.new(cols, rows),
-      term: term,
-      module: nil,
-      model: nil,
-      cols: cols,
-      rows: rows,
-      tree: %{},
-      id: nil
-    }
-
-    put(state)
+    put(:canvas, Canvas.new(cols, rows))
+    put(:module, nil)
+    put(:model, nil)
+    put(:cols, cols)
+    put(:rows, rows)
+    put(:tree, %{})
+    put(:id, nil)
     :ok
   end
 
-  def opts(), do: Term.opts(get().term)
+  def opts(), do: Term.opts()
 
   # On root node it captures module, model, and id
   # and appends extra props [root: true].
-  def update(ids, node) do
-    state = get()
-    {module, props, children} = node
+  def update(ids, {module, props, children}) do
+    tree = get(:tree)
 
     {root, id, props} =
       case ids do
@@ -44,7 +37,7 @@ defmodule Ash.Tui.Driver do
       end
 
     model =
-      case Map.get(state.tree, ids) do
+      case Map.get(tree, ids) do
         {^module, model} -> module.update(model, props)
         nil -> module.init(props)
       end
@@ -52,8 +45,9 @@ defmodule Ash.Tui.Driver do
     model = module.children(model, children)
 
     if root do
-      state = %{state | module: module, model: model, id: id}
-      put(state)
+      put(:module, module)
+      put(:model, model)
+      put(:id, id)
     end
 
     {module, model}
@@ -65,19 +59,22 @@ defmodule Ash.Tui.Driver do
   # Uses module, model, and id
   # Generates model tree with root [id]
   def handle({:event, event}) do
-    %{module: module, model: model, id: id} = get()
+    module = get(:module)
+    model = get(:model)
+    id = get(:id)
     # FIXME what is event for?
     # FIXME ensure event always returns nil
     {model, _event} = module.handle(model, event)
     # IO.inspect({:handle, _event})
     tree = Control.tree({module, model}, [id])
-    put(%{get() | model: model, tree: tree})
+    put(:model, model)
+    put(:tree, tree)
     :ok
   end
 
   def render(_id, {module, model}) do
-    state = get()
-    %{term: term, cols: cols, rows: rows} = state
+    cols = get(:cols)
+    rows = get(:rows)
 
     canvas1 = Canvas.new(cols, rows)
     canvas2 = Canvas.new(cols, rows)
@@ -86,11 +83,11 @@ defmodule Ash.Tui.Driver do
     # FIXME pass canvas1 to optimize with diff
     data =
       encode(canvas1, canvas2, fn command, param ->
-        Term.encode(term, command, param)
+        Term.encode(command, param)
       end)
 
-    :ok = Term.write(term, "#{data}")
-    put(%{state | canvas: canvas2})
+    :ok = Term.write("#{data}")
+    put(:canvas, canvas2)
     :ok
   end
 

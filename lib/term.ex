@@ -11,8 +11,17 @@ defmodule Ash.Tui.Term do
   # Writes encoded data to the term
   @callback write(state :: any(), chardata :: iodata()) :: :ok
 
-  def start(module, opts), do: {module, module.start(opts)}
-  def opts({module, state}), do: module.opts(state)
-  def encode({module, _}, command, param), do: module.encode(command, param)
-  def write({module, state}, chardata), do: module.write(state, chardata)
+  defp get(key), do: Process.get({__MODULE__, key})
+  defp put(key, data), do: Process.put({__MODULE__, key}, data)
+
+  def start(module, opts) do
+    put(:module, module)
+    state = module.start(opts)
+    put(:state, state)
+    :ok
+  end
+
+  def opts(), do: get(:state) |> get(:module).opts()
+  def encode(command, param), do: get(:module).encode(command, param)
+  def write(chardata), do: get(:state) |> get(:module).write(chardata)
 end
