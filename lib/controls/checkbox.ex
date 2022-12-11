@@ -6,7 +6,6 @@ defmodule Ash.Tui.Checkbox do
   alias Ash.Tui.Check
   alias Ash.Tui.Checkbox
   alias Ash.Tui.Canvas
-  alias Ash.Tui.Theme
 
   def init(opts \\ []) do
     opts = Enum.into(opts, %{})
@@ -16,7 +15,7 @@ defmodule Ash.Tui.Checkbox do
     visible = Map.get(opts, :visible, true)
     enabled = Map.get(opts, :enabled, true)
     findex = Map.get(opts, :findex, 0)
-    theme = Map.get(opts, :theme, :default)
+    class = Map.get(opts, :class, nil)
     checked = Map.get(opts, :checked, false)
     on_change = Map.get(opts, :on_change, &Checkbox.nop/1)
 
@@ -27,7 +26,7 @@ defmodule Ash.Tui.Checkbox do
       visible: visible,
       enabled: enabled,
       findex: findex,
-      theme: theme,
+      class: class,
       text: text,
       checked: checked,
       on_change: on_change
@@ -73,32 +72,15 @@ defmodule Ash.Tui.Checkbox do
   def handle(model, @ev_mp_left), do: trigger(model)
   def handle(model, _event), do: {model, nil}
 
-  def render(model, canvas) do
+  def render(model, canvas, theme) do
     %{
       text: text,
-      theme: theme,
       checked: checked,
-      focused: focused,
-      size: {cols, _},
-      enabled: enabled
+      size: {cols, _}
     } = model
 
-    theme = Theme.get(theme)
-
-    canvas =
-      case {enabled, focused} do
-        {false, _} ->
-          canvas = Canvas.color(canvas, :fore, theme.fore_disabled)
-          Canvas.color(canvas, :back, theme.back_disabled)
-
-        {true, true} ->
-          canvas = Canvas.color(canvas, :fore, theme.fore_focused)
-          Canvas.color(canvas, :back, theme.back_focused)
-
-        _ ->
-          canvas = Canvas.color(canvas, :fore, theme.fore_editable)
-          Canvas.color(canvas, :back, theme.back_editable)
-      end
+    canvas = Canvas.color(canvas, :fore, theme.({:fore, :default}))
+    canvas = Canvas.color(canvas, :back, theme.({:back, :default}))
 
     canvas = Canvas.move(canvas, 0, 0)
     canvas = Canvas.write(canvas, "[")
@@ -125,7 +107,6 @@ defmodule Ash.Tui.Checkbox do
     Check.assert_boolean(:visible, model.visible)
     Check.assert_boolean(:enabled, model.enabled)
     Check.assert_gte(:findex, model.findex, -1)
-    Check.assert_atom(:theme, model.theme)
     Check.assert_string(:text, model.text)
     Check.assert_boolean(:checked, model.checked)
     Check.assert_function(:on_change, model.on_change, 1)

@@ -3,30 +3,25 @@ defmodule Ash.Tui.Frame do
   alias Ash.Tui.Control
   alias Ash.Tui.Check
   alias Ash.Tui.Canvas
-  alias Ash.Tui.Theme
 
   def init(opts \\ []) do
     opts = Enum.into(opts, %{})
     origin = Map.get(opts, :origin, {0, 0})
     size = Map.get(opts, :size, {0, 0})
     visible = Map.get(opts, :visible, true)
-    theme = Map.get(opts, :theme, :default)
-    theme = Theme.get(theme)
+    class = Map.get(opts, :class, nil)
     bracket = Map.get(opts, :bracket, false)
     style = Map.get(opts, :style, :single)
     text = Map.get(opts, :text, "")
-    back = Map.get(opts, :back, theme.back_readonly)
-    fore = Map.get(opts, :fore, theme.fore_readonly)
 
     model = %{
       origin: origin,
       size: size,
       visible: visible,
+      class: class,
       bracket: bracket,
       style: style,
-      text: text,
-      back: back,
-      fore: fore
+      text: text
     }
 
     check(model)
@@ -52,19 +47,16 @@ defmodule Ash.Tui.Frame do
 
   def handle(model, _event), do: {model, nil}
 
-  def render(model, canvas) do
+  def render(model, canvas, theme) do
     %{
       bracket: bracket,
       style: style,
       size: {cols, rows},
-      text: text,
-      back: back,
-      fore: fore
+      text: text
     } = model
 
-    canvas = Canvas.clear(canvas, :colors)
-    canvas = Canvas.color(canvas, :back, back)
-    canvas = Canvas.color(canvas, :fore, fore)
+    canvas = Canvas.color(canvas, :fore, theme.({:fore, :default}))
+    canvas = Canvas.color(canvas, :back, theme.({:back, :default}))
     last = rows - 1
 
     canvas =

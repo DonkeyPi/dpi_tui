@@ -3,6 +3,7 @@ defmodule Ash.Tui.Panel do
   alias Ash.Tui.Control
   alias Ash.Tui.Check
   alias Ash.Tui.Canvas
+  alias Ash.Tui.Theme
 
   def init(opts \\ []) do
     opts = Enum.into(opts, %{})
@@ -11,6 +12,7 @@ defmodule Ash.Tui.Panel do
     visible = Map.get(opts, :visible, true)
     enabled = Map.get(opts, :enabled, true)
     findex = Map.get(opts, :findex, 0)
+    class = Map.get(opts, :class, nil)
     root = Map.get(opts, :root, false)
 
     model = %{
@@ -20,6 +22,7 @@ defmodule Ash.Tui.Panel do
       visible: visible,
       enabled: enabled,
       findex: findex,
+      class: class,
       root: root,
       index: [],
       children: %{},
@@ -161,11 +164,11 @@ defmodule Ash.Tui.Panel do
 
   def handle(model, _event), do: {model, nil}
 
-  def render(%{index: index, children: children}, canvas) do
+  def render(%{index: index, children: children}, canvas, _theme) do
     for id <- Enum.reverse(index), reduce: canvas do
       canvas ->
         momo = Map.get(children, id)
-        momo_render(momo, canvas)
+        momo_render(momo, canvas, id)
     end
   end
 
@@ -335,7 +338,7 @@ defmodule Ash.Tui.Panel do
   defp momo_focused({module, model}), do: module.focused(model)
 
   # Modal or hidden panels are not rendered.
-  defp momo_render({module, model}, canvas) do
+  defp momo_render({module, model}, canvas, id) do
     visible = module.visible(model)
     modal = module.modal(model)
 
@@ -347,9 +350,10 @@ defmodule Ash.Tui.Panel do
         canvas
 
       _ ->
+        theme = Theme.get(id, module, model)
         bounds = module.bounds(model)
         canvas = Canvas.push(canvas, bounds)
-        canvas = module.render(model, canvas)
+        canvas = module.render(model, canvas, theme)
         Canvas.pop(canvas)
     end
   end

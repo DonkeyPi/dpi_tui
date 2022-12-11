@@ -3,6 +3,7 @@ defmodule Ash.Tui.Driver do
   alias Ash.Tui.Term
   alias Ash.Tui.Canvas
   alias Ash.Tui.Control
+  alias Ash.Tui.Theme
 
   defp get(key), do: Process.get({__MODULE__, key})
   defp put(key, data), do: Process.put({__MODULE__, key}, data)
@@ -72,13 +73,15 @@ defmodule Ash.Tui.Driver do
     :ok
   end
 
-  def render(_id, {module, model}) do
+  def render(id, {module, model}) do
     cols = get(:cols)
     rows = get(:rows)
 
+    theme = Theme.get(id, module, model)
+
     canvas1 = Canvas.new(cols, rows)
     canvas2 = Canvas.new(cols, rows)
-    canvas2 = module.render(model, canvas2)
+    canvas2 = module.render(model, canvas2, theme)
 
     # FIXME pass canvas1 to optimize with diff
     data =

@@ -1,7 +1,7 @@
 defmodule Ash.Tui.Control do
   @callback init(opts :: map()) :: model :: map()
   @callback handle(model :: map(), event :: any()) :: {model :: map(), cmd :: any()}
-  @callback render(model :: map(), canvas :: map()) :: canvas :: map()
+  @callback render(model :: map(), canvas :: map(), theme :: function()) :: canvas :: map()
   @callback bounds(model :: map()) :: {integer(), integer(), integer(), integer()}
   @callback visible(model :: map()) :: true | false
   @callback update(model :: map(), Keyword.t()) :: any()

@@ -6,7 +6,6 @@ defmodule Ash.Tui.Radio do
   alias Ash.Tui.Check
   alias Ash.Tui.Radio
   alias Ash.Tui.Canvas
-  alias Ash.Tui.Theme
 
   # Size if not autocalculated from items because render and mouse
   # events are auto clipped making the issues evident for the user.
@@ -17,7 +16,7 @@ defmodule Ash.Tui.Radio do
     visible = Map.get(opts, :visible, true)
     enabled = Map.get(opts, :enabled, true)
     findex = Map.get(opts, :findex, 0)
-    theme = Map.get(opts, :theme, :default)
+    class = Map.get(opts, :class, nil)
     items = Map.get(opts, :items, [])
     selected = Map.get(opts, :selected, 0)
     on_change = Map.get(opts, :on_change, &Radio.nop/1)
@@ -31,7 +30,7 @@ defmodule Ash.Tui.Radio do
       visible: visible,
       enabled: enabled,
       findex: findex,
-      theme: theme,
+      class: class,
       items: items,
       selected: selected,
       count: count,
@@ -142,17 +141,12 @@ defmodule Ash.Tui.Radio do
   def handle(model, @ev_kp_enter), do: {model, {:focus, :next}}
   def handle(model, _event), do: {model, nil}
 
-  def render(model, canvas) do
+  def render(model, canvas, theme) do
     %{
       map: map,
-      focused: focused,
-      enabled: enabled,
-      theme: theme,
       count: count,
       selected: selected
     } = model
-
-    theme = Theme.get(theme)
 
     {canvas, _} =
       for i <- 0..(count - 1), reduce: {canvas, 0} do
@@ -163,28 +157,17 @@ defmodule Ash.Tui.Radio do
               _ -> " "
             end
 
-          canvas = Canvas.move(canvas, x, 0)
-          canvas = Canvas.clear(canvas, :colors)
-          canvas = Canvas.write(canvas, prefix)
-
           canvas =
-            case {enabled, focused, i == selected} do
-              {false, _, _} ->
-                canvas = Canvas.color(canvas, :fore, theme.fore_disabled)
-                Canvas.color(canvas, :back, theme.back_disabled)
-
-              {true, true, true} ->
-                canvas = Canvas.color(canvas, :fore, theme.fore_focused)
-                Canvas.color(canvas, :back, theme.back_focused)
-
-              {true, false, true} ->
-                canvas = Canvas.color(canvas, :fore, theme.fore_selected)
-                Canvas.color(canvas, :back, theme.back_selected)
-
-              _ ->
-                canvas = Canvas.color(canvas, :fore, theme.fore_editable)
-                Canvas.color(canvas, :back, theme.back_editable)
+            if i == selected do
+              canvas = Canvas.color(canvas, :fore, theme.({:fore, :selected}))
+              Canvas.color(canvas, :back, theme.({:back, :selected}))
+            else
+              canvas = Canvas.color(canvas, :fore, theme.({:fore, :default}))
+              Canvas.color(canvas, :back, theme.({:back, :default}))
             end
+
+          canvas = Canvas.move(canvas, x, 0)
+          canvas = Canvas.write(canvas, prefix)
 
           item = Map.get(map, i)
           item = "#{item}"
@@ -237,7 +220,6 @@ defmodule Ash.Tui.Radio do
     Check.assert_boolean(:visible, model.visible)
     Check.assert_boolean(:enabled, model.enabled)
     Check.assert_gte(:findex, model.findex, -1)
-    Check.assert_atom(:theme, model.theme)
     Check.assert_list(:items, model.items)
     Check.assert_gte(:selected, model.selected, -1)
     Check.assert_map(:map, model.map)

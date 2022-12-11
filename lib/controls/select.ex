@@ -6,7 +6,6 @@ defmodule Ash.Tui.Select do
   alias Ash.Tui.Check
   alias Ash.Tui.Select
   alias Ash.Tui.Canvas
-  alias Ash.Tui.Theme
 
   def init(opts \\ []) do
     opts = Enum.into(opts, %{})
@@ -15,7 +14,7 @@ defmodule Ash.Tui.Select do
     visible = Map.get(opts, :visible, true)
     enabled = Map.get(opts, :enabled, true)
     findex = Map.get(opts, :findex, 0)
-    theme = Map.get(opts, :theme, :default)
+    class = Map.get(opts, :class, nil)
     items = Map.get(opts, :items, [])
     selected = Map.get(opts, :selected, 0)
     offset = Map.get(opts, :offset, 0)
@@ -29,8 +28,8 @@ defmodule Ash.Tui.Select do
       size: size,
       visible: visible,
       enabled: enabled,
-      theme: theme,
       findex: findex,
+      class: class,
       items: items,
       selected: selected,
       count: count,
@@ -143,41 +142,28 @@ defmodule Ash.Tui.Select do
   def handle(model, @ev_kp_trigger), do: {model, trigger(model)}
   def handle(model, _event), do: {model, nil}
 
-  def render(model, canvas) do
+  def render(model, canvas, theme) do
     %{
       map: map,
-      theme: theme,
-      enabled: enabled,
       size: {cols, rows},
-      focused: focused,
       selected: selected,
       offset: offset
     } = model
 
-    theme = Theme.get(theme)
+    canvas = Canvas.color(canvas, :fore, theme.({:fore, :default}))
+    canvas = Canvas.color(canvas, :back, theme.({:back, :default}))
 
     for i <- 0..(rows - 1), reduce: canvas do
       canvas ->
         canvas = Canvas.move(canvas, 0, i)
-        canvas = Canvas.clear(canvas, :colors)
 
         canvas =
-          case {enabled, focused, i == selected - offset} do
-            {false, _, _} ->
-              canvas = Canvas.color(canvas, :fore, theme.fore_disabled)
-              Canvas.color(canvas, :back, theme.back_disabled)
-
-            {true, true, true} ->
-              canvas = Canvas.color(canvas, :fore, theme.fore_focused)
-              Canvas.color(canvas, :back, theme.back_focused)
-
-            {true, false, true} ->
-              canvas = Canvas.color(canvas, :fore, theme.fore_selected)
-              Canvas.color(canvas, :back, theme.back_selected)
-
-            _ ->
-              canvas = Canvas.color(canvas, :fore, theme.fore_editable)
-              Canvas.color(canvas, :back, theme.back_editable)
+          if i == selected do
+            canvas = Canvas.color(canvas, :fore, theme.({:fore, :selected}))
+            Canvas.color(canvas, :back, theme.({:back, :selected}))
+          else
+            canvas = Canvas.color(canvas, :fore, theme.({:fore, :default}))
+            Canvas.color(canvas, :back, theme.({:back, :default}))
           end
 
         item = Map.get(map, i + offset, "")
@@ -244,7 +230,6 @@ defmodule Ash.Tui.Select do
     Check.assert_boolean(:visible, model.visible)
     Check.assert_boolean(:enabled, model.enabled)
     Check.assert_gte(:findex, model.findex, -1)
-    Check.assert_atom(:theme, model.theme)
     Check.assert_list(:items, model.items)
     Check.assert_integer(:selected, model.selected)
     Check.assert_map(:map, model.map)

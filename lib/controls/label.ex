@@ -3,7 +3,6 @@ defmodule Ash.Tui.Label do
   alias Ash.Tui.Control
   alias Ash.Tui.Check
   alias Ash.Tui.Canvas
-  alias Ash.Tui.Theme
 
   def init(opts \\ []) do
     opts = Enum.into(opts, %{})
@@ -11,18 +10,14 @@ defmodule Ash.Tui.Label do
     origin = Map.get(opts, :origin, {0, 0})
     size = Map.get(opts, :size, {String.length(text), 1})
     visible = Map.get(opts, :visible, true)
-    theme = Map.get(opts, :theme, :default)
-    theme = Theme.get(theme)
-    back = Map.get(opts, :back, theme.back_readonly)
-    fore = Map.get(opts, :fore, theme.fore_readonly)
+    class = Map.get(opts, :class, nil)
 
     model = %{
       origin: origin,
       size: size,
       visible: visible,
-      text: text,
-      back: back,
-      fore: fore
+      class: class,
+      text: text
     }
 
     check(model)
@@ -48,16 +43,14 @@ defmodule Ash.Tui.Label do
 
   def handle(model, _event), do: {model, nil}
 
-  def render(model, canvas) do
+  def render(model, canvas, theme) do
     %{
       text: text,
-      size: {cols, rows},
-      back: back,
-      fore: fore
+      size: {cols, rows}
     } = model
 
-    canvas = Canvas.color(canvas, :back, back)
-    canvas = Canvas.color(canvas, :fore, fore)
+    canvas = Canvas.color(canvas, :fore, theme.({:fore, :default}))
+    canvas = Canvas.color(canvas, :back, theme.({:back, :default}))
 
     line = String.duplicate(" ", cols)
 
@@ -80,8 +73,6 @@ defmodule Ash.Tui.Label do
     Check.assert_point_2d(:size, model.size)
     Check.assert_boolean(:visible, model.visible)
     Check.assert_string(:text, model.text)
-    Check.assert_color(:back, model.back)
-    Check.assert_color(:fore, model.fore)
     model
   end
 end

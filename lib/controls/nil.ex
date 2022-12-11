@@ -15,5 +15,5 @@ defmodule Ash.Tui.Nil do
   def modal(_), do: false
   def update(_, _), do: nil
   def handle(_, _), do: {nil, nil}
-  def render(_, canvas), do: canvas
+  def render(_, canvas, _theme), do: canvas
 end

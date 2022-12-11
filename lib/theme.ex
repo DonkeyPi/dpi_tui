@@ -1,26 +1,45 @@
 defmodule Ash.Tui.Theme do
+  use Ash.Tui.Aliases
   use Ash.Tui.Colors
 
-  def get(:default) do
-    %{
-      back_readonly: @black,
-      fore_readonly: @black2,
-      back_editable: @black,
-      fore_editable: @white,
-      back_disabled: @black,
-      fore_disabled: @black2,
-      back_selected: @white,
-      fore_selected: @black,
-      back_focused: @blue,
-      fore_focused: @white,
-      back_notice: @blue,
-      fore_notice: @white,
-      back_error: @red,
-      fore_error: @white,
-      # for testing
-      not_used: @red
-    }
+  # Mandatory props
+  # id      - Node id.
+  # type    - Node type: Button, Label, ...
+  # class   - Arbitrary qualifier.
+  # enabled - Enable flag.
+  # focused - Focus flag.
+  # hovered - Hover flag.
+  # invalid - Nil or invalid reason.
+  @callback color(name :: any, style :: map()) :: color :: any()
+
+  def set(theme), do: Process.put(__MODULE__, theme)
+
+  def get(id, module, model) do
+    theme = Process.get(__MODULE__, __MODULE__)
+    # FIXME allow per node theme override
+    # theme = Map.get(model, :theme, theme)
+    style = %{type: module, id: id}
+    style = getp(style, model, :enabled, true)
+    style = getp(style, model, :focused, false)
+    style = getp(style, model, :class, nil)
+    # FIXME add id path
+    # FIXME implement extra styles
+    # style = getp(style, model, :hovered, nil)
+    # style = getp(style, model, :invalid, nil)
+
+    cond do
+      is_function(theme, 2) -> fn name -> theme.(name, style) end
+      is_atom(theme) -> fn name -> theme.color(name, style) end
+    end
   end
 
-  def get(module), do: module.theme()
+  defp getp(dest, src, name, def) do
+    value = Map.get(src, name, def)
+    Map.put(dest, name, value)
+  end
+
+  def color({:fore, _}, %{type: Button}), do: @red
+  def color({:back, _}, %{type: Button}), do: @blue
+  def color({:fore, _}, _), do: @white
+  def color({:back, _}, _), do: @black
 end

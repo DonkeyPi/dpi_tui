@@ -6,7 +6,6 @@ defmodule Ash.Tui.Input do
   alias Ash.Tui.Check
   alias Ash.Tui.Input
   alias Ash.Tui.Canvas
-  alias Ash.Tui.Theme
 
   def init(opts \\ []) do
     opts = Enum.into(opts, %{})
@@ -16,7 +15,7 @@ defmodule Ash.Tui.Input do
     visible = Map.get(opts, :visible, true)
     enabled = Map.get(opts, :enabled, true)
     findex = Map.get(opts, :findex, 0)
-    theme = Map.get(opts, :theme, :default)
+    class = Map.get(opts, :class, nil)
     password = Map.get(opts, :password, false)
     cursor = Map.get(opts, :cursor, String.length(text))
     on_change = Map.get(opts, :on_change, &Input.nop/1)
@@ -28,7 +27,7 @@ defmodule Ash.Tui.Input do
       visible: visible,
       enabled: enabled,
       findex: findex,
-      theme: theme,
+      class: class,
       password: password,
       text: text,
       cursor: cursor,
@@ -165,36 +164,21 @@ defmodule Ash.Tui.Input do
 
   def handle(model, _event), do: {model, nil}
 
-  def render(model, canvas) do
+  def render(model, canvas, theme) do
     %{
-      focused: focused,
-      theme: theme,
       cursor: cursor,
-      enabled: enabled,
       password: password,
       size: {cols, _},
-      text: text
+      text: text,
+      focused: focused,
+      enabled: enabled
     } = model
 
-    theme = Theme.get(theme)
-    canvas = Canvas.clear(canvas, :colors)
+    canvas = Canvas.color(canvas, :fore, theme.({:fore, :default}))
+    canvas = Canvas.color(canvas, :back, theme.({:back, :default}))
+
     empty = String.length(text) == 0
     dotted = empty and !focused and enabled
-
-    canvas =
-      case {enabled, focused} do
-        {false, _} ->
-          canvas = Canvas.color(canvas, :fore, theme.fore_disabled)
-          Canvas.color(canvas, :back, theme.back_disabled)
-
-        {true, true} ->
-          canvas = Canvas.color(canvas, :fore, theme.fore_focused)
-          Canvas.color(canvas, :back, theme.back_focused)
-
-        _ ->
-          canvas = Canvas.color(canvas, :fore, theme.fore_editable)
-          Canvas.color(canvas, :back, theme.back_editable)
-      end
 
     text =
       case {password, dotted} do
@@ -228,7 +212,6 @@ defmodule Ash.Tui.Input do
     Check.assert_boolean(:visible, model.visible)
     Check.assert_boolean(:enabled, model.enabled)
     Check.assert_gte(:findex, model.findex, -1)
-    Check.assert_atom(:theme, model.theme)
     Check.assert_boolean(:password, model.password)
     Check.assert_string(:text, model.text)
     Check.assert_gte(:cursor, model.cursor, 0)
