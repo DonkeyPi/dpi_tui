@@ -50,6 +50,7 @@ defmodule TestImports do
   def button(props), do: init(Button, props)
   def checkbox(props), do: init(Checkbox, props)
   def frame(props), do: init(Frame, props)
+  def label(props), do: init(Label, props)
 
   def render(map, cols, rows) do
     Theme.set(TestTheme)
@@ -114,6 +115,10 @@ defmodule TestImports do
 
   def text(map, text) do
     update(map, :text, text)
+  end
+
+  def align(map, align) do
+    update(map, :align, align)
   end
 
   def handle(map, event, result \\ nil) do

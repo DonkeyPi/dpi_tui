@@ -32,11 +32,11 @@ defmodule FrameTest do
     |> render(4, 4)
     |> assert("┌┐", 1, 1, @tcf_normal, @tcb_normal)
     |> assert("└┘", 1, 2, @tcf_normal, @tcb_normal)
-    |> size({3, 3})
-    |> render(5, 5)
-    |> assert("┌T┐", 1, 1, @tcf_normal, @tcb_normal)
-    |> assert("│ │", 1, 2, @tcf_normal, @tcb_normal)
-    |> assert("└─┘", 1, 3, @tcf_normal, @tcb_normal)
+    |> size({5, 3})
+    |> render(7, 5)
+    |> assert("┌Tit┐", 1, 1, @tcf_normal, @tcb_normal)
+    |> assert("│   │", 1, 2, @tcf_normal, @tcb_normal)
+    |> assert("└───┘", 1, 3, @tcf_normal, @tcb_normal)
 
     # double border
     frame(origin: {1, 1}, size: {3, 3}, border: :double)

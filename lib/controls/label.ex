@@ -11,13 +11,15 @@ defmodule Ash.Tui.Label do
     size = Map.get(opts, :size, {String.length(text), 1})
     visible = Map.get(opts, :visible, true)
     class = Map.get(opts, :class, nil)
+    align = Map.get(opts, :align, :left)
 
     model = %{
       origin: origin,
       size: size,
       visible: visible,
       class: class,
-      text: text
+      text: text,
+      align: align
     }
 
     check(model)
@@ -46,6 +48,7 @@ defmodule Ash.Tui.Label do
   def render(model, canvas, theme) do
     %{
       text: text,
+      align: align,
       size: {cols, rows}
     } = model
 
@@ -63,7 +66,26 @@ defmodule Ash.Tui.Label do
 
     # center vertically
     offy = div(rows - 1, 2)
-    text = String.pad_trailing(text, rows)
+
+    text =
+      case align do
+        :left ->
+          String.slice(text, 0, cols) |> String.pad_trailing(cols)
+
+        :right ->
+          String.slice(text, 0, cols) |> String.pad_leading(cols)
+
+        :center ->
+          empty = max(0, cols - String.length(text))
+          offx = div(empty, 2)
+
+          [
+            String.duplicate(" ", offx),
+            text |> String.slice(0, cols),
+            String.duplicate(" ", max(0, empty - offx))
+          ]
+      end
+
     canvas = Canvas.move(canvas, 0, offy)
     Canvas.write(canvas, text)
   end
@@ -73,6 +95,7 @@ defmodule Ash.Tui.Label do
     Check.assert_point_2d(:size, model.size)
     Check.assert_boolean(:visible, model.visible)
     Check.assert_string(:text, model.text)
+    Check.assert_in_list(:align, model.align, [:left, :center, :right])
     model
   end
 end

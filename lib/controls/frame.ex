@@ -7,8 +7,8 @@ defmodule Ash.Tui.Frame do
   def init(opts \\ []) do
     opts = Enum.into(opts, %{})
     origin = Map.get(opts, :origin, {0, 0})
-    {w, h} = Map.get(opts, :size, {0, 0})
-    size = {max(2, w), max(2, h)}
+    {cols, rows} = Map.get(opts, :size, {0, 0})
+    size = {max(2, cols), max(2, rows)}
     visible = Map.get(opts, :visible, true)
     class = Map.get(opts, :class, nil)
     border = Map.get(opts, :border, :single)
@@ -119,9 +119,6 @@ defmodule Ash.Tui.Frame do
           :horizontal -> "═"
           :vertical -> "║"
         end
-
-      _ ->
-        " "
     end
   end
 end
