@@ -79,8 +79,8 @@ defmodule Ash.Tui.Checkbox do
       size: {cols, _}
     } = model
 
-    canvas = Canvas.color(canvas, :fore, theme.({:fore, :default}))
-    canvas = Canvas.color(canvas, :back, theme.({:back, :default}))
+    canvas = Canvas.color(canvas, :fore, theme.({:fore, :normal}))
+    canvas = Canvas.color(canvas, :back, theme.({:back, :normal}))
 
     canvas = Canvas.move(canvas, 0, 0)
     canvas = Canvas.write(canvas, "[")

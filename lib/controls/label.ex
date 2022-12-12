@@ -49,8 +49,8 @@ defmodule Ash.Tui.Label do
       size: {cols, rows}
     } = model
 
-    canvas = Canvas.color(canvas, :fore, theme.({:fore, :default}))
-    canvas = Canvas.color(canvas, :back, theme.({:back, :default}))
+    canvas = Canvas.color(canvas, :fore, theme.({:fore, :normal}))
+    canvas = Canvas.color(canvas, :back, theme.({:back, :normal}))
 
     line = String.duplicate(" ", cols)
 

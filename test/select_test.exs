@@ -15,7 +15,7 @@ defmodule SelectTest do
              visible: true,
              enabled: true,
              findex: 0,
-             theme: :default,
+             class: nil,
              items: [],
              selected: -1,
              count: 0,

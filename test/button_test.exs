@@ -15,7 +15,7 @@ defmodule ButtonTest do
              visible: true,
              enabled: true,
              findex: 0,
-             theme: :default,
+             class: nil,
              text: "",
              shortcut: nil,
              on_click: &Button.nop/0

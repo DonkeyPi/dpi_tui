@@ -3,13 +3,17 @@ defmodule Ash.Tui do
 
   defmacro __using__(_opts) do
     quote do
+      use Ash.Tui.Colors
       import Ash.Tui.Macros
       import Ash.Tui
-      use Ash.Tui.Colors
     end
   end
 
   def set_theme(theme) do
     Theme.set(theme)
+  end
+
+  def get_style(prop, selector) do
+    Theme.get_style(prop, selector)
   end
 end

@@ -150,21 +150,18 @@ defmodule Ash.Tui.Select do
       offset: offset
     } = model
 
-    canvas = Canvas.color(canvas, :fore, theme.({:fore, :default}))
-    canvas = Canvas.color(canvas, :back, theme.({:back, :default}))
-
     for i <- 0..(rows - 1), reduce: canvas do
       canvas ->
-        canvas = Canvas.move(canvas, 0, i)
-
         canvas =
           if i == selected do
             canvas = Canvas.color(canvas, :fore, theme.({:fore, :selected}))
             Canvas.color(canvas, :back, theme.({:back, :selected}))
           else
-            canvas = Canvas.color(canvas, :fore, theme.({:fore, :default}))
-            Canvas.color(canvas, :back, theme.({:back, :default}))
+            canvas = Canvas.color(canvas, :fore, theme.({:fore, :normal}))
+            Canvas.color(canvas, :back, theme.({:back, :normal}))
           end
+
+        canvas = Canvas.move(canvas, 0, i)
 
         item = Map.get(map, i + offset, "")
         item = "#{item}"

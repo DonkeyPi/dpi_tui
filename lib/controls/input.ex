@@ -174,8 +174,8 @@ defmodule Ash.Tui.Input do
       enabled: enabled
     } = model
 
-    canvas = Canvas.color(canvas, :fore, theme.({:fore, :default}))
-    canvas = Canvas.color(canvas, :back, theme.({:back, :default}))
+    canvas = Canvas.color(canvas, :fore, theme.({:fore, :normal}))
+    canvas = Canvas.color(canvas, :back, theme.({:back, :normal}))
 
     empty = String.length(text) == 0
     dotted = empty and !focused and enabled

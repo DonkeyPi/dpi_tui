@@ -5,8 +5,6 @@ defmodule FrameTest do
   test "basic frame check" do
     ControlTest.common_checks(Frame)
 
-    theme = Theme.get(:default)
-
     initial = Frame.init()
 
     # defaults
@@ -14,11 +12,10 @@ defmodule FrameTest do
              origin: {0, 0},
              size: {0, 0},
              visible: true,
+             class: nil,
              bracket: false,
              style: :single,
-             text: "",
-             back: theme.back_readonly,
-             fore: theme.fore_readonly
+             text: ""
            }
   end
 end

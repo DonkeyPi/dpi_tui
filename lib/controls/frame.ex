@@ -55,8 +55,8 @@ defmodule Ash.Tui.Frame do
       text: text
     } = model
 
-    canvas = Canvas.color(canvas, :fore, theme.({:fore, :default}))
-    canvas = Canvas.color(canvas, :back, theme.({:back, :default}))
+    canvas = Canvas.color(canvas, :fore, theme.({:fore, :normal}))
+    canvas = Canvas.color(canvas, :back, theme.({:back, :normal}))
     last = rows - 1
 
     canvas =
@@ -107,8 +107,6 @@ defmodule Ash.Tui.Frame do
     Check.assert_boolean(:bracket, model.bracket)
     Check.assert_in_list(:style, model.style, [:single, :double])
     Check.assert_string(:text, model.text)
-    Check.assert_color(:back, model.back)
-    Check.assert_color(:fore, model.fore)
     model
   end
 

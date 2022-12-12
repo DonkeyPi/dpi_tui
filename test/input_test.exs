@@ -15,7 +15,7 @@ defmodule InputTest do
              visible: true,
              enabled: true,
              findex: 0,
-             theme: :default,
+             class: nil,
              password: false,
              text: "",
              cursor: 0,

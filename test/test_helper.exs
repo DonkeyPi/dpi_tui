@@ -203,6 +203,10 @@ defmodule ControlTest do
       assert module.update(initial, findex: -1) == %{initial | findex: -1}
     end
 
+    # class update
+    assert module.update(initial, class: nil) == initial
+    assert module.update(initial, class: :class) == %{initial | class: :class}
+
     # size update
     assert module.update(initial, size: {0, 2}) == %{initial | size: {0, 2}}
 
@@ -222,58 +226,42 @@ defmodule ControlTest do
     case module do
       Button ->
         on_click = fn -> :click end
-        assert module.update(initial, theme: :default) == initial
         assert module.update(initial, text: "") == initial
         assert module.update(initial, shortcut: nil) == initial
         assert module.update(initial, on_click: nil) == initial
-        assert module.update(initial, theme: :theme) == %{initial | theme: :theme}
         assert module.update(initial, text: "text") == %{initial | text: "text"}
         assert module.update(initial, shortcut: :esc) == %{initial | shortcut: :esc}
         assert module.update(initial, on_click: on_click) == %{initial | on_click: on_click}
 
       Checkbox ->
         on_change = fn checked -> checked end
-        assert module.update(initial, theme: :default) == initial
         assert module.update(initial, text: "") == initial
         assert module.update(initial, checked: false) == initial
         assert module.update(initial, on_change: nil) == initial
-        assert module.update(initial, theme: :theme) == %{initial | theme: :theme}
         assert module.update(initial, text: "text") == %{initial | text: "text"}
         assert module.update(initial, checked: true) == %{initial | checked: true}
         assert module.update(initial, on_change: on_change) == %{initial | on_change: on_change}
 
       Frame ->
-        not_used = Theme.get(:default).not_used
         assert module.update(initial, bracket: false) == initial
         assert module.update(initial, style: :single) == initial
         assert module.update(initial, text: "") == initial
-        assert module.update(initial, back: Theme.get(:default).back_readonly) == initial
-        assert module.update(initial, fore: Theme.get(:default).fore_readonly) == initial
         assert module.update(initial, bracket: true) == %{initial | bracket: true}
         assert module.update(initial, style: :double) == %{initial | style: :double}
         assert module.update(initial, text: "text") == %{initial | text: "text"}
-        assert module.update(initial, back: not_used) == %{initial | back: not_used}
-        assert module.update(initial, fore: not_used) == %{initial | fore: not_used}
 
       Input ->
         on_change = fn value -> value end
         assert module.update(initial, cursor: :dropped) == initial
-        assert module.update(initial, theme: :default) == initial
         assert module.update(initial, password: false) == initial
         assert module.update(initial, text: "") == initial
         assert module.update(initial, on_change: nil) == initial
-        assert module.update(initial, theme: :theme) == %{initial | theme: :theme}
         assert module.update(initial, password: true) == %{initial | password: true}
         assert module.update(initial, on_change: on_change) == %{initial | on_change: on_change}
 
       Label ->
-        not_used = Theme.get(:default).not_used
         assert module.update(initial, text: "") == initial
-        assert module.update(initial, back: Theme.get(:default).back_readonly) == initial
-        assert module.update(initial, fore: Theme.get(:default).fore_readonly) == initial
         assert module.update(initial, text: "text") == %{initial | text: "text"}
-        assert module.update(initial, back: not_used) == %{initial | back: not_used}
-        assert module.update(initial, fore: not_used) == %{initial | fore: not_used}
 
       Panel ->
         assert module.update(initial, root: :dropped) == initial
@@ -285,14 +273,12 @@ defmodule ControlTest do
         on_change = fn {index, item} -> {index, item} end
         assert module.update(initial, count: :dropped) == initial
         assert module.update(initial, map: :dropped) == initial
-        assert module.update(initial, theme: :default) == initial
         assert module.update(initial, items: []) == initial
         # any selected value will be recalculated to initial -1
         assert module.update(initial, selected: -1) == initial
         assert module.update(initial, selected: 0) == initial
         assert module.update(initial, selected: 1) == initial
         assert module.update(initial, on_change: nil) == initial
-        assert module.update(initial, theme: :theme) == %{initial | theme: :theme}
         assert module.update(initial, on_change: on_change) == %{initial | on_change: on_change}
 
       Select ->
@@ -306,7 +292,6 @@ defmodule ControlTest do
         assert module.update(initial, selected: 1) == initial
         assert module.update(initial, items: []) == initial
         assert module.update(initial, on_change: nil) == initial
-        assert module.update(initial, theme: :theme) == %{initial | theme: :theme}
         assert module.update(initial, on_change: on_change) == %{initial | on_change: on_change}
 
       _ ->

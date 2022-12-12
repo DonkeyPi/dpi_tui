@@ -15,7 +15,7 @@ defmodule CheckboxTest do
              visible: true,
              enabled: true,
              findex: 0,
-             theme: :default,
+             class: nil,
              text: "",
              checked: false,
              on_change: &Checkbox.nop/1

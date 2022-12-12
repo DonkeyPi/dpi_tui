@@ -5,23 +5,25 @@ defmodule Ash.Tui.Control do
   @callback bounds(model :: map()) :: {integer(), integer(), integer(), integer()}
   @callback visible(model :: map()) :: true | false
   @callback update(model :: map(), Keyword.t()) :: any()
-  # bypassed by non input controls like nil, label, and frame
+  # Bypassed by non input controls like nil, label, and frame.
   @callback focusable(model :: map()) :: true | false
   @callback focused(model :: map(), true | false) :: model :: map()
   @callback focused(model :: map()) :: true | false
   @callback findex(model :: map()) :: integer()
-  # only used by button, ignored by all other controls
+  # Only used by button, ignored by all other controls.
   @callback shortcut(model :: map()) :: any()
-  # only used by panel, ignored by all other controls
+  # Only used by panel, ignored by all other controls.
   @callback children(model :: map()) :: Keyword.t()
   @callback children(model :: map(), Keyword.t()) :: any()
   @callback refocus(model :: map(), dir :: any()) :: model :: map()
   @callback modal(model :: map()) :: true | false
-  # The init | update mechanism is enough to support enabled control
-  # @callback enabled(model :: map()) :: true | false
+  # No need to add getters/setter for enabled, class, theme, etc.
+  # The init | update are the only entry poing needed.
 
+  # Useful to return a momo.
   def init(module, opts \\ []), do: {module, module.init(opts)}
 
+  # Prevent insertion of unknown properties.
   def merge(map, props) do
     for {key, value} <- props, reduce: map do
       map ->
@@ -30,6 +32,7 @@ defmodule Ash.Tui.Control do
     end
   end
 
+  # Set default value if currently nil.
   def coalesce(map, key, value) do
     case {Map.has_key?(map, key), Map.get(map, key)} do
       {true, nil} -> Map.put(map, key, value)
@@ -37,6 +40,7 @@ defmodule Ash.Tui.Control do
     end
   end
 
+  # Build a model tree to detect node preexistence.
   def tree({module, model}, ids, map \\ %{}) do
     map =
       for {id, momo} <- module.children(model), reduce: map do

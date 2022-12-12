@@ -151,29 +151,22 @@ defmodule Ash.Tui.Radio do
     {canvas, _} =
       for i <- 0..(count - 1), reduce: {canvas, 0} do
         {canvas, x} ->
-          prefix =
-            case i do
-              0 -> ""
-              _ -> " "
-            end
-
           canvas =
             if i == selected do
               canvas = Canvas.color(canvas, :fore, theme.({:fore, :selected}))
               Canvas.color(canvas, :back, theme.({:back, :selected}))
             else
-              canvas = Canvas.color(canvas, :fore, theme.({:fore, :default}))
-              Canvas.color(canvas, :back, theme.({:back, :default}))
+              canvas = Canvas.color(canvas, :fore, theme.({:fore, :normal}))
+              Canvas.color(canvas, :back, theme.({:back, :normal}))
             end
 
           canvas = Canvas.move(canvas, x, 0)
-          canvas = Canvas.write(canvas, prefix)
 
           item = Map.get(map, i)
           item = "#{item}"
           canvas = Canvas.write(canvas, item)
-          len = String.length(prefix) + String.length(item)
-          {canvas, x + len}
+          len = String.length(item)
+          {canvas, x + len + 1}
       end
 
     canvas
