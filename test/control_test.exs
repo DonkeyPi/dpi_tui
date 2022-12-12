@@ -180,7 +180,13 @@ defmodule ControlTest do
         assert module.handle(%{}, @ev_kp_kright) == {%{}, {:focus, :next}}
         assert module.handle(%{}, @ev_kp_kleft) == {%{}, {:focus, :prev}}
 
-      _ ->
+      Label ->
+        nil
+
+      Frame ->
+        nil
+
+      Panel ->
         nil
     end
   end
@@ -235,7 +241,6 @@ defmodule ControlTest do
       Panel -> assert module.update(initial, size: {0, 0}) == initial
       Radio -> assert module.update(initial, size: {0, 0}) == initial
       Select -> assert module.update(initial, size: {0, 0}) == initial
-      _ -> nil
     end
 
     # control specific updates
@@ -274,7 +279,9 @@ defmodule ControlTest do
         assert module.update(initial, on_change: on_change) == %{initial | on_change: on_change}
 
       Label ->
+        assert module.update(initial, align: :left) == initial
         assert module.update(initial, text: "") == initial
+        assert module.update(initial, align: :center) == %{initial | align: :center}
         assert module.update(initial, text: "text") == %{initial | text: "text"}
 
       Panel ->
@@ -307,9 +314,6 @@ defmodule ControlTest do
         assert module.update(initial, items: []) == initial
         assert module.update(initial, on_change: nil) == initial
         assert module.update(initial, on_change: on_change) == %{initial | on_change: on_change}
-
-      _ ->
-        nil
     end
   end
 

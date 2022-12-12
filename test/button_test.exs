@@ -27,43 +27,52 @@ defmodule ButtonTest do
     assert Button.handle(model, @ev_mp_left) == {model, {:click, :nop}}
 
     # colors properly applied for each state
-    button(origin: {1, 1}, text: "T")
-    |> render(5, 3)
-    |> assert("[T]", 1, 1, @tcf_normal, @tcb_normal)
+    button(text: "T")
+    |> render()
+    |> assert("[T]", 0, @tcf_normal, @tcb_normal)
     |> focused(true)
-    |> render(5, 3)
-    |> assert("[T]", 1, 1, @tcf_focused, @tcb_focused)
+    |> render()
+    |> assert("[T]", 0, @tcf_focused, @tcb_focused)
     |> enabled(false)
-    |> render(5, 3)
-    |> assert("[T]", 1, 1, @tcf_disabled, @tcb_disabled)
+    |> render()
+    |> assert("[T]", 0, @tcf_disabled, @tcb_disabled)
 
     # text is horizontally centered
-    button(origin: {1, 1}, text: "T", size: {5, 1})
-    |> render(7, 3)
-    |> assert("[ T ]", 1, 1, @tcf_normal, @tcb_normal)
+    button(text: "T", size: {5, 1})
+    |> render()
+    |> assert("[ T ]", 0, @tcf_normal, @tcb_normal)
 
     # text is vertically centered
-    button(origin: {1, 1}, text: "T", size: {3, 3})
-    |> render(5, 5)
-    |> assert("   ", 1, 1, @tcf_normal, @tcb_normal)
-    |> assert("[T]", 1, 2, @tcf_normal, @tcb_normal)
-    |> assert("   ", 1, 3, @tcf_normal, @tcb_normal)
+    button(text: "T", size: {3, 3})
+    |> render()
+    |> assert("   ", 0, @tcf_normal, @tcb_normal)
+    |> assert("[T]", 1, @tcf_normal, @tcb_normal)
+    |> assert("   ", 2, @tcf_normal, @tcb_normal)
 
-    button(origin: {1, 1}, text: "T", size: {3, 2})
-    |> render(5, 4)
-    |> assert("[T]", 1, 1, @tcf_normal, @tcb_normal)
-    |> assert("   ", 1, 2, @tcf_normal, @tcb_normal)
+    button(text: "T", size: {3, 2})
+    |> render()
+    |> assert("[T]", 0, @tcf_normal, @tcb_normal)
+    |> assert("   ", 1, @tcf_normal, @tcb_normal)
 
     # text is fully centered
-    button(origin: {1, 1}, text: "T", size: {5, 3})
-    |> render(7, 5)
-    |> assert("     ", 1, 1, @tcf_normal, @tcb_normal)
-    |> assert("[ T ]", 1, 2, @tcf_normal, @tcb_normal)
-    |> assert("     ", 1, 3, @tcf_normal, @tcb_normal)
+    button(text: "T", size: {5, 3})
+    |> render()
+    |> assert("     ", 0, @tcf_normal, @tcb_normal)
+    |> assert("[ T ]", 1, @tcf_normal, @tcb_normal)
+    |> assert("     ", 2, @tcf_normal, @tcb_normal)
 
     # excess text
-    button(origin: {1, 1}, text: "Title", size: {5, 1})
-    |> render(7, 3)
-    |> assert("[Tit]", 1, 1, @tcf_normal, @tcb_normal)
+    button(text: "Title", size: {5, 1})
+    |> render()
+    |> assert("[Tit]", 0, @tcf_normal, @tcb_normal)
+
+    # unicode
+    button(text: "Tĩtlĕ")
+    |> render()
+    |> assert("[Tĩtlĕ]", 0, @tcf_normal, @tcb_normal)
+
+    button(text: "Tĩtlĕ", size: {5, 1})
+    |> render()
+    |> assert("[Tĩt]", 0, @tcf_normal, @tcb_normal)
   end
 end

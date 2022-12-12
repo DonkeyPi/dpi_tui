@@ -150,8 +150,9 @@ defmodule Ash.Tui.Input do
 
       _ ->
         {prefix, suffix} = String.split_at(text, cursor)
+        len = String.length("#{data}")
         text = "#{prefix}#{data}#{suffix}"
-        model = %{model | text: text, cursor: cursor + 1}
+        model = %{model | text: text, cursor: cursor + len}
         {model, trigger(model)}
     end
   end
@@ -168,7 +169,7 @@ defmodule Ash.Tui.Input do
     %{
       cursor: cursor,
       password: password,
-      size: {cols, _},
+      size: {cols, rows},
       text: text,
       focused: focused,
       enabled: enabled
@@ -177,13 +178,18 @@ defmodule Ash.Tui.Input do
     canvas = Canvas.color(canvas, :fore, theme.({:fore, :normal}))
     canvas = Canvas.color(canvas, :back, theme.({:back, :normal}))
 
-    empty = String.length(text) == 0
-    dotted = empty and !focused and enabled
+    line = String.duplicate(" ", cols)
+
+    canvas =
+      for r <- 0..(rows - 1), reduce: canvas do
+        canvas ->
+          canvas = Canvas.move(canvas, 0, r)
+          Canvas.write(canvas, line)
+      end
 
     text =
-      case {password, dotted} do
-        {_, true} -> String.duplicate("_", cols)
-        {true, _} -> String.duplicate("*", String.length(text))
+      case password do
+        true -> String.duplicate("*", String.length(text))
         _ -> text
       end
 

@@ -47,10 +47,11 @@ defmodule TestImports do
     %{module: module, model: model}
   end
 
-  def button(props), do: init(Button, props)
-  def checkbox(props), do: init(Checkbox, props)
-  def frame(props), do: init(Frame, props)
-  def label(props), do: init(Label, props)
+  def button(props \\ []), do: init(Button, props)
+  def checkbox(props \\ []), do: init(Checkbox, props)
+  def frame(props \\ []), do: init(Frame, props)
+  def label(props \\ []), do: init(Label, props)
+  def input(props \\ []), do: init(Input, props)
 
   def render(map, cols, rows) do
     Theme.set(TestTheme)
@@ -65,10 +66,16 @@ defmodule TestImports do
     Map.put(map, :canvas, canvas)
   end
 
-  def assert(map, text, x, y, fg, bg) do
+  def render(map) do
+    {ox, oy, cols, rows} = map.module.bounds(map.model)
+    render(map, cols + 2 * ox, rows + 2 * oy)
+  end
+
+  def assert(map, text, y, fg, bg) do
     text1 = String.to_charlist(text)
     len = length(text1)
     data = map.canvas.data
+    x = 0
 
     cells =
       for i <- x..(x + len - 1) do
@@ -88,6 +95,38 @@ defmodule TestImports do
     assert text1 == text2
     assert fg1 == fg2
     assert bg1 == bg2
+
+    map
+  end
+
+  def assert(map, text, y, cx) do
+    text1 = String.to_charlist(text)
+    len = length(text1)
+    data = map.canvas.data
+    x = 0
+
+    cells =
+      for i <- x..(x + len - 1) do
+        case Map.get(data, {i, y}) do
+          nil -> {nil, nil, nil}
+          cell -> cell
+        end
+      end
+
+    text2 = for {c, _, _} <- cells, do: c
+
+    assert text1 == text2
+
+    case cx do
+      false ->
+        {enabled, _, _} = map.canvas.cursor
+        assert false == enabled
+
+      cx ->
+        {enabled, px, py} = map.canvas.cursor
+        assert {true, cx, y} == {enabled, px, py}
+    end
+
     map
   end
 
@@ -101,25 +140,18 @@ defmodule TestImports do
     Map.put(map, :model, model)
   end
 
-  def enabled(map, enabled) do
-    update(map, :enabled, enabled)
+  defp put(map, prop, value) do
+    model = Map.put(map.model, prop, value)
+    Map.put(map, :model, model)
   end
 
-  def checked(map, checked) do
-    update(map, :checked, checked)
-  end
-
-  def size(map, size) do
-    update(map, :size, size)
-  end
-
-  def text(map, text) do
-    update(map, :text, text)
-  end
-
-  def align(map, align) do
-    update(map, :align, align)
-  end
+  def enabled(map, enabled), do: update(map, :enabled, enabled)
+  def checked(map, checked), do: update(map, :checked, checked)
+  def size(map, size), do: update(map, :size, size)
+  def text(map, text), do: update(map, :text, text)
+  def align(map, align), do: update(map, :align, align)
+  def password(map, password), do: update(map, :password, password)
+  def cursor(map, cursor), do: put(map, :cursor, cursor)
 
   def handle(map, event, result \\ nil) do
     {model, ^result} = map.module.handle(map.model, event)

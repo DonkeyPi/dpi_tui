@@ -64,4 +64,9 @@ defmodule Ash.Tui.Check do
     if !is_integer(value), do: raise("#{name} not integer: #{inspect(value)}")
     if value < limit, do: raise("#{name} not >= #{limit}: #{inspect(value)}")
   end
+
+  def assert_equal(name, value, expected) do
+    if !is_integer(value), do: raise("#{name} not integer: #{inspect(value)}")
+    if value != expected, do: raise("#{name} not == #{expected}: #{inspect(value)}")
+  end
 end

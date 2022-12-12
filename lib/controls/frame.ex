@@ -7,12 +7,11 @@ defmodule Ash.Tui.Frame do
   def init(opts \\ []) do
     opts = Enum.into(opts, %{})
     origin = Map.get(opts, :origin, {0, 0})
-    {cols, rows} = Map.get(opts, :size, {0, 0})
-    size = {max(2, cols), max(2, rows)}
+    text = Map.get(opts, :text, "")
+    size = Map.get(opts, :size, {String.length(text) + 2, 2})
     visible = Map.get(opts, :visible, true)
     class = Map.get(opts, :class, nil)
     border = Map.get(opts, :border, :single)
-    text = Map.get(opts, :text, "")
 
     model = %{
       origin: origin,
