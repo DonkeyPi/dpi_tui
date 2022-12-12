@@ -2,6 +2,7 @@ defmodule InputTest do
   use ExUnit.Case
   use ControlTest
 
+  # Input complex state consists of text and cursor properties.
   test "basic input check" do
     ControlTest.common_checks(Input, input?: true)
 

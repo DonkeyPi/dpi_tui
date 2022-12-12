@@ -2,6 +2,7 @@ defmodule ButtonTest do
   use ExUnit.Case
   use ControlTest
 
+  # Buttons are simple controls in that they have no complex editable state.
   test "basic button check" do
     ControlTest.common_checks(Button, input?: true, button?: true)
 

@@ -2,6 +2,7 @@ defmodule CheckboxTest do
   use ExUnit.Case
   use ControlTest
 
+  # Checkboxs are simple controls in that they have no complex editable state.
   test "basic checkbox check" do
     ControlTest.common_checks(Checkbox, input?: true)
 

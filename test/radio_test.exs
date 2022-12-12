@@ -2,6 +2,8 @@ defmodule RadioTest do
   use ExUnit.Case
   use ControlTest
 
+  # Radio complex state consists of items and selected properties
+  # with internal extra properties: count, and map.
   test "basic radio check" do
     ControlTest.common_checks(Radio, input?: true)
 
@@ -24,6 +26,9 @@ defmodule RadioTest do
            }
 
     on_change = fn value -> value end
+
+    # 0 1 2
+    # 01234
     model = Radio.init(items: [0, 1, 2], size: {7, 1}, on_change: on_change)
 
     # updates

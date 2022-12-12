@@ -2,6 +2,8 @@ defmodule SelectTest do
   use ExUnit.Case
   use ControlTest
 
+  # Select complex state consists of items and selected properties
+  # with internal extra properties: count, map and offset.
   test "basic select check" do
     ControlTest.common_checks(Select, input?: true)
 

@@ -2,6 +2,7 @@ defmodule FrameTest do
   use ExUnit.Case
   use ControlTest
 
+  # Frames are simple controls in that they have no complex editable state.
   test "basic frame check" do
     ControlTest.common_checks(Frame)
 

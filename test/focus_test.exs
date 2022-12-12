@@ -2,6 +2,44 @@ defmodule FocusTest do
   use ExUnit.Case
   use ControlTest
 
+  # Focus is a path (root > panel > panel > panel > control)
+  # of focused panels from root to the active control.
+  # Any other control outside the path must have focused = false.
+  # Focusable controls must be visible, enabled, indexed, and actionable.
+  # Panels try at any time to synchronize their focused state.
+  # - Non focused root panels try to focus a focusable child.
+  # - Focused panels try to recover from child focus loss.
+  #
+  # FIXME identify all cases
+  # FIXME implement all cases
+  #
+  # Focus transfer cases
+  #
+  # - Navigate next to sibling
+  # - Navigate prev to sibling (wrap around)
+  #   - Panel
+  #     - Control (1)
+  #     - Control (2)
+  #
+  # - Navigate prev to sibling
+  # - Navigate next to sibling (wrap around)
+  #   - Panel
+  #     - Control (2)
+  #     - Control (1)
+  #
+  # - Navigate next to upper-1
+  #   - Panel
+  #     - Control
+  #     - Control (1)
+  #   - Control (2)
+  #
+  # - Navigate prev to upper-1
+  #   - Control (2)
+  #   - Panel
+  #     - Control (1)
+  #     - Control
+  #
+
   test "basic single level focus check" do
     root = Panel.init(root: true)
 
