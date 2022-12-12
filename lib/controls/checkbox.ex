@@ -76,15 +76,24 @@ defmodule Ash.Tui.Checkbox do
     %{
       text: text,
       checked: checked,
-      size: {cols, _}
+      size: {cols, rows}
     } = model
 
     canvas = Canvas.color(canvas, :fore, theme.({:fore, :normal}))
     canvas = Canvas.color(canvas, :back, theme.({:back, :normal}))
 
+    line = String.duplicate(" ", cols)
+
+    canvas =
+      for r <- 0..(rows - 1), reduce: canvas do
+        canvas ->
+          canvas = Canvas.move(canvas, 0, r)
+          Canvas.write(canvas, line)
+      end
+
     canvas = Canvas.move(canvas, 0, 0)
     canvas = Canvas.write(canvas, "[")
-    canvas = Canvas.write(canvas, if(checked, do: "x", else: " "))
+    canvas = Canvas.write(canvas, if(checked, do: "X", else: " "))
     canvas = Canvas.write(canvas, "]")
     text = String.pad_trailing(text, cols - 3)
     Canvas.write(canvas, text)

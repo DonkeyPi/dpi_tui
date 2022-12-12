@@ -3,8 +3,10 @@ ExUnit.start()
 defmodule TestMacros do
   defmacro __using__(_) do
     quote do
-      use TestColors
+      use Ash.Tui.Aliases
+      use Ash.Tui.Events
       import TestImports
+      use TestColors
     end
   end
 end
@@ -12,12 +14,12 @@ end
 defmodule TestColors do
   defmacro __using__(_) do
     quote do
-      @bf_normal 1
-      @bb_normal 2
-      @bf_focused 3
-      @bb_focused 4
-      @bf_disabled 5
-      @bb_disabled 6
+      @tcf_normal 0x01
+      @tcb_normal 0x02
+      @tcf_focused 0x03
+      @tcb_focused 0x04
+      @tcf_disabled 0x05
+      @tcb_disabled 0x06
     end
   end
 end
@@ -26,12 +28,12 @@ defmodule TestTheme do
   use Ash.Tui.Aliases
   use TestColors
 
-  def get_style({:fore, _}, %{type: Button, enabled: false}), do: @bf_disabled
-  def get_style({:back, _}, %{type: Button, enabled: false}), do: @bb_disabled
-  def get_style({:fore, _}, %{type: Button, focused: true}), do: @bf_focused
-  def get_style({:back, _}, %{type: Button, focused: true}), do: @bb_focused
-  def get_style({:fore, _}, %{type: Button}), do: @bf_normal
-  def get_style({:back, _}, %{type: Button}), do: @bb_normal
+  def get_style({:fore, _}, %{enabled: false}), do: @tcf_disabled
+  def get_style({:back, _}, %{enabled: false}), do: @tcb_disabled
+  def get_style({:fore, _}, %{focused: true}), do: @tcf_focused
+  def get_style({:back, _}, %{focused: true}), do: @tcb_focused
+  def get_style({:fore, _}, %{}), do: @tcf_normal
+  def get_style({:back, _}, %{}), do: @tcb_normal
 end
 
 defmodule TestImports do
@@ -45,9 +47,8 @@ defmodule TestImports do
     %{module: module, model: model}
   end
 
-  def button(props) do
-    init(Button, props)
-  end
+  def button(props), do: init(Button, props)
+  def checkbox(props), do: init(Checkbox, props)
 
   def render(map, cols, rows) do
     Theme.set(TestTheme)
@@ -95,6 +96,16 @@ defmodule TestImports do
 
   def enabled(map, enabled) do
     model = map.module.update(map.model, enabled: enabled)
+    Map.put(map, :model, model)
+  end
+
+  def checked(map, checked) do
+    model = map.module.update(map.model, checked: checked)
+    Map.put(map, :model, model)
+  end
+
+  def handle(map, event, result \\ nil) do
+    {model, ^result} = map.module.handle(map.model, event)
     Map.put(map, :model, model)
   end
 end
