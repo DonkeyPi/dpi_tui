@@ -229,7 +229,7 @@ defmodule ControlTest do
     case module do
       Button -> assert module.update(initial, size: {2, 1}) == initial
       Checkbox -> assert module.update(initial, size: {3, 1}) == initial
-      Frame -> assert module.update(initial, size: {0, 0}) == initial
+      Frame -> assert module.update(initial, size: {2, 2}) == initial
       Input -> assert module.update(initial, size: {0, 1}) == initial
       Label -> assert module.update(initial, size: {0, 1}) == initial
       Panel -> assert module.update(initial, size: {0, 0}) == initial
@@ -259,11 +259,9 @@ defmodule ControlTest do
         assert module.update(initial, on_change: on_change) == %{initial | on_change: on_change}
 
       Frame ->
-        assert module.update(initial, bracket: false) == initial
-        assert module.update(initial, style: :single) == initial
+        assert module.update(initial, border: :single) == initial
         assert module.update(initial, text: "") == initial
-        assert module.update(initial, bracket: true) == %{initial | bracket: true}
-        assert module.update(initial, style: :double) == %{initial | style: :double}
+        assert module.update(initial, border: :double) == %{initial | border: :double}
         assert module.update(initial, text: "text") == %{initial | text: "text"}
 
       Input ->

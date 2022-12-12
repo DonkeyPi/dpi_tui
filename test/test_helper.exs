@@ -49,6 +49,7 @@ defmodule TestImports do
 
   def button(props), do: init(Button, props)
   def checkbox(props), do: init(Checkbox, props)
+  def frame(props), do: init(Frame, props)
 
   def render(map, cols, rows) do
     Theme.set(TestTheme)
@@ -94,14 +95,25 @@ defmodule TestImports do
     Map.put(map, :model, model)
   end
 
-  def enabled(map, enabled) do
-    model = map.module.update(map.model, enabled: enabled)
+  defp update(map, prop, value) do
+    model = map.module.update(map.model, [{prop, value}])
     Map.put(map, :model, model)
   end
 
+  def enabled(map, enabled) do
+    update(map, :enabled, enabled)
+  end
+
   def checked(map, checked) do
-    model = map.module.update(map.model, checked: checked)
-    Map.put(map, :model, model)
+    update(map, :checked, checked)
+  end
+
+  def size(map, size) do
+    update(map, :size, size)
+  end
+
+  def text(map, text) do
+    update(map, :text, text)
   end
 
   def handle(map, event, result \\ nil) do

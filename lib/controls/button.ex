@@ -93,14 +93,19 @@ defmodule Ash.Tui.Button do
 
     # center vertically and horizontally
     offy = div(rows - 1, 2)
+    empty = max(0, cols - 2 - String.length(text))
+    offx = div(empty, 2)
+
+    line = [
+      "[",
+      String.duplicate(" ", offx),
+      text |> String.slice(0, max(0, cols - 2)),
+      String.duplicate(" ", max(0, empty - offx)),
+      "]"
+    ]
 
     canvas = Canvas.move(canvas, 0, offy)
-    canvas = Canvas.write(canvas, "[")
-    canvas = Canvas.move(canvas, cols - 1, offy)
-    canvas = Canvas.write(canvas, "]")
-    offset = div(cols - String.length(text), 2)
-    canvas = Canvas.move(canvas, offset, offy)
-    Canvas.write(canvas, text)
+    Canvas.write(canvas, line)
   end
 
   defp trigger(%{on_click: on_click} = model) do

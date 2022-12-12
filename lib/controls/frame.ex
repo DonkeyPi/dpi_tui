@@ -7,11 +7,11 @@ defmodule Ash.Tui.Frame do
   def init(opts \\ []) do
     opts = Enum.into(opts, %{})
     origin = Map.get(opts, :origin, {0, 0})
-    size = Map.get(opts, :size, {0, 0})
+    {w, h} = Map.get(opts, :size, {0, 0})
+    size = {max(2, w), max(2, h)}
     visible = Map.get(opts, :visible, true)
     class = Map.get(opts, :class, nil)
-    bracket = Map.get(opts, :bracket, false)
-    style = Map.get(opts, :style, :single)
+    border = Map.get(opts, :border, :single)
     text = Map.get(opts, :text, "")
 
     model = %{
@@ -19,8 +19,7 @@ defmodule Ash.Tui.Frame do
       size: size,
       visible: visible,
       class: class,
-      bracket: bracket,
-      style: style,
+      border: border,
       text: text
     }
 
@@ -49,70 +48,58 @@ defmodule Ash.Tui.Frame do
 
   def render(model, canvas, theme) do
     %{
-      bracket: bracket,
-      style: style,
+      border: border,
       size: {cols, rows},
       text: text
     } = model
 
     canvas = Canvas.color(canvas, :fore, theme.({:fore, :normal}))
     canvas = Canvas.color(canvas, :back, theme.({:back, :normal}))
-    last = rows - 1
+
+    top = [
+      border_char(border, :top_left),
+      text |> String.slice(0, max(0, cols - 2)),
+      String.duplicate(border_char(border, :horizontal), max(0, cols - 2 - String.length(text))),
+      border_char(border, :top_right)
+    ]
+
+    middle = [
+      border_char(border, :vertical),
+      String.duplicate(" ", cols - 2),
+      border_char(border, :vertical)
+    ]
+
+    bottom = [
+      border_char(border, :bottom_left),
+      String.duplicate(border_char(border, :horizontal), cols - 2),
+      border_char(border, :bottom_right)
+    ]
 
     canvas =
-      for r <- 0..last, reduce: canvas do
+      for r <- 1..(rows - 2), reduce: canvas do
         canvas ->
           canvas = Canvas.move(canvas, 0, r)
-          horizontal = border_char(style, :horizontal)
-          vertical = border_char(style, :vertical)
-
-          border =
-            case r do
-              0 ->
-                [
-                  border_char(style, :top_left),
-                  String.duplicate(horizontal, cols - 2),
-                  border_char(style, :top_right)
-                ]
-
-              ^last ->
-                [
-                  border_char(style, :bottom_left),
-                  String.duplicate(horizontal, cols - 2),
-                  border_char(style, :bottom_right)
-                ]
-
-              _ ->
-                [vertical, String.duplicate(" ", cols - 2), vertical]
-            end
-
-          Canvas.write(canvas, border)
+          Canvas.write(canvas, middle)
       end
 
-    canvas = Canvas.move(canvas, 1, 0)
-
-    text =
-      case bracket do
-        true -> "[#{text}]"
-        false -> " #{text} "
-      end
-
-    Canvas.write(canvas, text)
+    canvas = Canvas.move(canvas, 0, 0)
+    canvas = Canvas.write(canvas, top)
+    canvas = Canvas.move(canvas, 0, rows - 1)
+    Canvas.write(canvas, bottom)
   end
 
   defp check(model) do
     Check.assert_point_2d(:origin, model.origin)
     Check.assert_point_2d(:size, model.size)
     Check.assert_boolean(:visible, model.visible)
-    Check.assert_boolean(:bracket, model.bracket)
-    Check.assert_in_list(:style, model.style, [:single, :double])
+    Check.assert_in_list(:border, model.border, [:single, :double])
     Check.assert_string(:text, model.text)
     model
   end
 
   # https://en.wikipedia.org/wiki/Box-drawing_character
-  defp border_char(style, elem) do
-    case style do
+  defp border_char(border, elem) do
+    case border do
       :single ->
         case elem do
           :top_left -> "┌"

@@ -28,7 +28,7 @@ defmodule CheckboxTest do
     assert Checkbox.handle(model2, @ev_kp_trigger) == {model2, {:checked, true, {:nop, true}}}
 
     # colors properly applied for each state
-    checkbox(text: "T", origin: {1, 1})
+    checkbox(origin: {1, 1}, text: "T")
     |> render(6, 3)
     |> assert("[ ]T", 1, 1, @tcf_normal, @tcb_normal)
     |> focused(true)
@@ -39,13 +39,18 @@ defmodule CheckboxTest do
     |> assert("[ ]T", 1, 1, @tcf_disabled, @tcb_disabled)
 
     # top left aligment
-    checkbox(text: "T", origin: {1, 1}, size: {5, 2})
+    checkbox(origin: {1, 1}, text: "T", size: {5, 2})
     |> render(7, 4)
     |> assert("[ ]T ", 1, 1, @tcf_normal, @tcb_normal)
     |> assert("     ", 1, 2, @tcf_normal, @tcb_normal)
 
+    # excess text
+    checkbox(origin: {1, 1}, text: "Title", size: {6, 1})
+    |> render(8, 3)
+    |> assert("[ ]Tit", 1, 1, @tcf_normal, @tcb_normal)
+
     # checked state and triggers
-    checkbox(text: "T", origin: {1, 1})
+    checkbox(origin: {1, 1}, text: "T")
     |> handle(@ev_kp_trigger, {:checked, false, {:nop, false}})
     |> render(6, 3)
     |> assert("[ ]T", 1, 1, @tcf_normal, @tcb_normal)

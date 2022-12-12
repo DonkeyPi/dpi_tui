@@ -91,12 +91,15 @@ defmodule Ash.Tui.Checkbox do
           Canvas.write(canvas, line)
       end
 
+    line = [
+      "[",
+      if(checked, do: "X", else: " "),
+      "]",
+      text |> String.slice(0, max(0, cols - 3))
+    ]
+
     canvas = Canvas.move(canvas, 0, 0)
-    canvas = Canvas.write(canvas, "[")
-    canvas = Canvas.write(canvas, if(checked, do: "X", else: " "))
-    canvas = Canvas.write(canvas, "]")
-    text = String.pad_trailing(text, cols - 3)
-    Canvas.write(canvas, text)
+    Canvas.write(canvas, line)
   end
 
   defp retrigger(%{on_change: on_change, checked: checked} = model) do
