@@ -3,7 +3,7 @@ defmodule CheckboxTest do
   use Ash.Tui.Aliases
   use Ash.Tui.Events
 
-  # Checkboxs are simple controls in that they have no complex editable state.
+  # Checkboxs have no complex editable state.
   test "basic checkbox check" do
     initial = Checkbox.init()
 

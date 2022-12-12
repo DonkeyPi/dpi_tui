@@ -3,7 +3,7 @@ defmodule FrameTest do
   use Ash.Tui.Aliases
   use Ash.Tui.Events
 
-  # Frames are simple controls in that they have no complex editable state.
+  # Frames have no complex editable state.
   test "basic frame check" do
     initial = Frame.init()
 

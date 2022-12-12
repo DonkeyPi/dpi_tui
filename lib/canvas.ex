@@ -10,6 +10,7 @@ defmodule Ash.Tui.Canvas do
       data: %{},
       cols: cols,
       rows: rows,
+      # cell: @cell,
       cursor: {false, 0, 0},
       fore: @white,
       back: @black,

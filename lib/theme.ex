@@ -45,8 +45,8 @@ defmodule Ash.Tui.Theme do
     Map.put(dest, name, value)
   end
 
-  def calc_style({:fore, _}, %{disabled: true}), do: @black2
-  def calc_style({:back, _}, %{disabled: true}), do: @black
+  def calc_style({:fore, _}, %{enabled: false}), do: @black2
+  def calc_style({:back, _}, %{enabled: false}), do: @black
   def calc_style({:fore, _}, %{type: Button, focused: true}), do: @white
   def calc_style({:back, _}, %{type: Button, focused: true}), do: @blue
   def calc_style({:fore, :selected}, %{type: Select}), do: @white
