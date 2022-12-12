@@ -1,11 +1,10 @@
 defmodule CheckboxTest do
   use ExUnit.Case
-  use ControlTest
+  use Ash.Tui.Aliases
+  use Ash.Tui.Events
 
   # Checkboxs are simple controls in that they have no complex editable state.
   test "basic checkbox check" do
-    ControlTest.common_checks(Checkbox, input?: true)
-
     initial = Checkbox.init()
 
     # defaults
@@ -23,11 +22,10 @@ defmodule CheckboxTest do
            }
 
     # triggers
-    on_change = fn value -> value end
-    model1 = %{on_change: on_change, checked: false}
-    model2 = %{on_change: on_change, checked: true}
-    assert Checkbox.handle(model1, @ev_mp_left) == {model2, {:checked, true, true}}
-    assert Checkbox.handle(model1, @ev_kp_space) == {model2, {:checked, true, true}}
-    assert Checkbox.handle(model2, @ev_kp_trigger) == {model2, {:checked, true, true}}
+    model1 = %{on_change: &Checkbox.nop/1, checked: false}
+    model2 = %{on_change: &Checkbox.nop/1, checked: true}
+    assert Checkbox.handle(model1, @ev_mp_left) == {model2, {:checked, true, {:nop, true}}}
+    assert Checkbox.handle(model1, @ev_kp_space) == {model2, {:checked, true, {:nop, true}}}
+    assert Checkbox.handle(model2, @ev_kp_trigger) == {model2, {:checked, true, {:nop, true}}}
   end
 end

@@ -1,11 +1,10 @@
 defmodule LabelTest do
   use ExUnit.Case
-  use ControlTest
+  use Ash.Tui.Aliases
+  use Ash.Tui.Events
 
   # Labels are simple controls in that they have no complex editable state.
   test "basic label check" do
-    ControlTest.common_checks(Label)
-
     initial = Label.init()
 
     # defaults

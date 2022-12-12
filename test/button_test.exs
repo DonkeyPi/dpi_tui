@@ -1,11 +1,10 @@
 defmodule ButtonTest do
   use ExUnit.Case
-  use ControlTest
+  use Ash.Tui.Aliases
+  use Ash.Tui.Events
 
   # Buttons are simple controls in that they have no complex editable state.
   test "basic button check" do
-    ControlTest.common_checks(Button, input?: true, button?: true)
-
     initial = Button.init()
 
     # defaults

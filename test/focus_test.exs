@@ -1,6 +1,7 @@
 defmodule FocusTest do
   use ExUnit.Case
-  use ControlTest
+  use Ash.Tui.Aliases
+  use Ash.Tui.Events
 
   # Focus is a path (root > panel > panel > panel > control)
   # of focused panels from root to the active control.

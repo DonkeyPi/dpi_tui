@@ -1,12 +1,11 @@
 defmodule RadioTest do
   use ExUnit.Case
-  use ControlTest
+  use Ash.Tui.Aliases
+  use Ash.Tui.Events
 
   # Radio complex state consists of items and selected properties
   # with internal extra properties: count, and map.
   test "basic radio check" do
-    ControlTest.common_checks(Radio, input?: true)
-
     initial = Radio.init()
 
     # defaults

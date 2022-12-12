@@ -1,11 +1,10 @@
 defmodule FrameTest do
   use ExUnit.Case
-  use ControlTest
+  use Ash.Tui.Aliases
+  use Ash.Tui.Events
 
   # Frames are simple controls in that they have no complex editable state.
   test "basic frame check" do
-    ControlTest.common_checks(Frame)
-
     initial = Frame.init()
 
     # defaults

@@ -1,11 +1,10 @@
 defmodule InputTest do
   use ExUnit.Case
-  use ControlTest
+  use Ash.Tui.Aliases
+  use Ash.Tui.Events
 
   # Input complex state consists of text and cursor properties.
   test "basic input check" do
-    ControlTest.common_checks(Input, input?: true)
-
     initial = Input.init()
 
     # defaults

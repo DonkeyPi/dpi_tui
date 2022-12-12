@@ -1,10 +1,9 @@
 defmodule PanelTest do
   use ExUnit.Case
-  use ControlTest
+  use Ash.Tui.Aliases
+  use Ash.Tui.Events
 
   test "basic panel check" do
-    ControlTest.common_checks(Panel, panel?: true)
-
     initial = Panel.init()
 
     # defaults

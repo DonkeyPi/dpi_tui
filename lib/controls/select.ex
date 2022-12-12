@@ -134,6 +134,8 @@ defmodule Ash.Tui.Select do
 
   def handle(model, @ev_ms_up), do: handle(model, @ev_kp_kup)
   def handle(model, @ev_ms_down), do: handle(model, @ev_kp_kdown)
+  def handle(model, @ev_ms_pup), do: handle(model, @ev_kp_pup)
+  def handle(model, @ev_ms_pdown), do: handle(model, @ev_kp_pdown)
   def handle(model, @ev_kp_fprev), do: {model, {:focus, :prev}}
   def handle(model, @ev_kp_fnext), do: {model, {:focus, :next}}
   def handle(model, @ev_kp_kright), do: {model, {:focus, :next}}
