@@ -131,7 +131,7 @@ defmodule Ash.Tui.Select do
     trigger(model, 0, selected)
   end
 
-  def handle(model, %{type: :mouse, action: :press, key: :bleft, y: my}) do
+  def handle(model, %{type: :mouse, action: :press, key: :bleft, y: my, flag: :none}) do
     %{count: count, selected: selected, offset: offset} = model
     next = my + offset
     next = if next >= count, do: selected, else: next
@@ -147,6 +147,7 @@ defmodule Ash.Tui.Select do
   def handle(model, @ev_kp_kright), do: {model, {:focus, :next}}
   def handle(model, @ev_kp_kleft), do: {model, {:focus, :prev}}
   def handle(model, @ev_kp_enter), do: {model, {:focus, :next}}
+  def handle(model, @ev_kp_space), do: {model, trigger(model)}
   def handle(model, @ev_kp_trigger), do: {model, trigger(model)}
   def handle(model, _event), do: {model, nil}
 

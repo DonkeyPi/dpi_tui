@@ -1,7 +1,6 @@
 defmodule RadioTest do
   use ExUnit.Case
-  use Ash.Tui.Aliases
-  use Ash.Tui.Events
+  use TestMacros
 
   # Radio complex state consists of items and selected properties
   # with internal extra properties: count, and map.
@@ -12,7 +11,7 @@ defmodule RadioTest do
     assert initial == %{
              focused: false,
              origin: {0, 0},
-             size: {0, 0},
+             size: {0, 1},
              visible: true,
              enabled: true,
              findex: 0,
@@ -105,6 +104,8 @@ defmodule RadioTest do
     # retriggers
     assert Radio.handle(model, @ev_kp_trigger) == {model, {:item, 0, 0, {0, 0}}}
 
+    assert Radio.handle(model, @ev_kp_space) == {model, {:item, 0, 0, {0, 0}}}
+
     # nops
 
     # left key wont go beyond start
@@ -147,5 +148,121 @@ defmodule RadioTest do
 
     # selected explicitly updated to 0
     assert Radio.update(%{model | selected: -1}, selected: 0) == model
+
+    # colors properly applied for each state
+    radio(items: [0, 1])
+    |> render()
+    |> assert("0", 0, @tc_selected)
+    |> assert(" 1", 1, @tc_normal)
+    |> focused(true)
+    |> render()
+    |> assert("0", 0, @tc_selected)
+    |> assert(" 1", 1, @tc_focused)
+    |> enabled(false)
+    |> render()
+    |> assert("0", 0, @tc_selected)
+    |> assert(" 1", 1, @tc_disabled)
+
+    # excess space
+    radio(items: [0], size: {2, 2})
+    |> render()
+    |> assert("0", 0, @tc_selected)
+    |> assert(" ", 1, @tc_normal)
+    |> assert("  ", 0, 1, @tc_normal)
+
+    # navigation keyboard
+    radio(items: [0, 1, 2])
+    |> render()
+    |> assert("0", 0, @tc_selected)
+    |> assert(" 1", 1, @tc_normal)
+    |> assert(" 2", 3, @tc_normal)
+    |> handle(@ev_kp_kright, {:item, 1, 1, {:nop, {1, 1}}})
+    |> render()
+    |> assert("0 ", 0, @tc_normal)
+    |> assert("1", 2, @tc_selected)
+    |> assert(" 2", 3, @tc_normal)
+    |> handle(@ev_kp_kright, {:item, 2, 2, {:nop, {2, 2}}})
+    |> render()
+    |> assert("0 ", 0, @tc_normal)
+    |> assert("1 ", 2, @tc_normal)
+    |> assert("2", 4, @tc_selected)
+    |> handle(@ev_kp_kright, nil)
+    |> render()
+    |> assert("0 ", 0, @tc_normal)
+    |> assert("1 ", 2, @tc_normal)
+    |> assert("2", 4, @tc_selected)
+    |> handle(@ev_kp_kleft, {:item, 1, 1, {:nop, {1, 1}}})
+    |> render()
+    |> assert("0 ", 0, @tc_normal)
+    |> assert("1", 2, @tc_selected)
+    |> assert(" 2", 3, @tc_normal)
+    |> handle(@ev_kp_kleft, {:item, 0, 0, {:nop, {0, 0}}})
+    |> render()
+    |> assert("0", 0, @tc_selected)
+    |> assert(" 1", 1, @tc_normal)
+    |> assert(" 2", 3, @tc_normal)
+    |> handle(@ev_kp_kleft, nil)
+    |> render()
+    |> assert("0", 0, @tc_selected)
+    |> assert(" 1", 1, @tc_normal)
+    |> assert(" 2", 3, @tc_normal)
+    |> handle(@ev_kp_end, {:item, 2, 2, {:nop, {2, 2}}})
+    |> render()
+    |> assert("0 ", 0, @tc_normal)
+    |> assert("1 ", 2, @tc_normal)
+    |> assert("2", 4, @tc_selected)
+    |> handle(@ev_kp_home, {:item, 0, 0, {:nop, {0, 0}}})
+    |> render()
+    |> assert("0", 0, @tc_selected)
+    |> assert(" 1", 1, @tc_normal)
+    |> assert(" 2", 3, @tc_normal)
+
+    # navigation mouse
+    radio(items: [0, 1, 2])
+    |> render()
+    |> assert("0", 0, @tc_selected)
+    |> assert(" 1", 1, @tc_normal)
+    |> assert(" 2", 3, @tc_normal)
+    |> handle(@ev_ms_down, {:item, 1, 1, {:nop, {1, 1}}})
+    |> render()
+    |> assert("0 ", 0, @tc_normal)
+    |> assert("1", 2, @tc_selected)
+    |> assert(" 2", 3, @tc_normal)
+    |> handle(@ev_ms_down, {:item, 2, 2, {:nop, {2, 2}}})
+    |> render()
+    |> assert("0 ", 0, @tc_normal)
+    |> assert("1 ", 2, @tc_normal)
+    |> assert("2", 4, @tc_selected)
+    |> handle(@ev_ms_down, nil)
+    |> render()
+    |> assert("0 ", 0, @tc_normal)
+    |> assert("1 ", 2, @tc_normal)
+    |> assert("2", 4, @tc_selected)
+    |> handle(@ev_ms_up, {:item, 1, 1, {:nop, {1, 1}}})
+    |> render()
+    |> assert("0 ", 0, @tc_normal)
+    |> assert("1", 2, @tc_selected)
+    |> assert(" 2", 3, @tc_normal)
+    |> handle(@ev_ms_up, {:item, 0, 0, {:nop, {0, 0}}})
+    |> render()
+    |> assert("0", 0, @tc_selected)
+    |> assert(" 1", 1, @tc_normal)
+    |> assert(" 2", 3, @tc_normal)
+    |> handle(@ev_ms_up, nil)
+    |> render()
+    |> assert("0", 0, @tc_selected)
+    |> assert(" 1", 1, @tc_normal)
+    |> assert(" 2", 3, @tc_normal)
+
+    # triggers
+    radio(items: [0], size: {1, 1})
+    |> render()
+    |> assert("0", 0, @tc_selected)
+    |> handle(@ev_kp_trigger, {:item, 0, 0, {:nop, {0, 0}}})
+    |> render()
+    |> assert("0", 0, @tc_selected)
+    |> handle(@ev_kp_space, {:item, 0, 0, {:nop, {0, 0}}})
+    |> render()
+    |> assert("0", 0, @tc_selected)
   end
 end

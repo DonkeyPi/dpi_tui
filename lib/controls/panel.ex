@@ -84,7 +84,7 @@ defmodule Ash.Tui.Panel do
 
   def handle(
         %{origin: {x, y}} = model,
-        {:modal, [], %{type: :mouse, action: :press, key: :bleft, x: mx, y: my} = event}
+        {:modal, [], %{type: :mouse, x: mx, y: my} = event}
       ) do
     handle(model, %{event | x: mx - x, y: my - y})
   end
@@ -117,7 +117,7 @@ defmodule Ash.Tui.Panel do
   # becomes focused if not already then the event is handed to it.
   def handle(
         %{focus: focus, index: index, children: children} = model,
-        %{type: :mouse, action: :press, key: :bleft, x: mx, y: my} = event
+        %{type: :mouse, x: mx, y: my} = event
       ) do
     Enum.find_value(index, {model, nil}, fn id ->
       momo = Map.get(children, id)

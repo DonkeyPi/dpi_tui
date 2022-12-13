@@ -239,7 +239,7 @@ defmodule ControlTest do
       Input -> assert module.update(initial, size: {0, 1}) == initial
       Label -> assert module.update(initial, size: {0, 1}) == initial
       Panel -> assert module.update(initial, size: {0, 0}) == initial
-      Radio -> assert module.update(initial, size: {0, 0}) == initial
+      Radio -> assert module.update(initial, size: {0, 1}) == initial
       Select -> assert module.update(initial, size: {0, 0}) == initial
     end
 

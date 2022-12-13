@@ -140,7 +140,7 @@ defmodule Ash.Tui.Input do
     end
   end
 
-  def handle(model, %{type: :key, action: :press, key: data}) when is_list(data) do
+  def handle(model, %{type: :key, action: :press, key: data, flag: :none}) when is_list(data) do
     %{cursor: cursor, text: text, size: {cols, _}} = model
     count = String.length(text)
 
@@ -164,7 +164,13 @@ defmodule Ash.Tui.Input do
     end
   end
 
-  def handle(%{text: text} = model, %{type: :mouse, action: :press, key: :bleft, x: mx}) do
+  def handle(%{text: text} = model, %{
+        type: :mouse,
+        action: :press,
+        key: :bleft,
+        x: mx,
+        flag: :none
+      }) do
     cursor = min(mx, String.length(text))
     model = %{model | cursor: cursor}
     {model, nil}

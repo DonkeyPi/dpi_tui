@@ -28,8 +28,10 @@ defmodule Ash.Tui.Events do
       @ev_ms_pup %{type: :mouse, action: :scroll, dir: :up, flag: :control}
       @ev_ms_pdown %{type: :mouse, action: :scroll, dir: :down, flag: :control}
 
-      def ev_mp_left(x, y), do: %{type: :mouse, action: :press, key: :bleft, x: x, y: y}
-      def ev_kp_data(data), do: %{type: :key, action: :press, key: data}
+      def ev_mp_left(x, y),
+        do: %{type: :mouse, action: :press, key: :bleft, x: x, y: y, flag: :none}
+
+      def ev_kp_data(data), do: %{type: :key, action: :press, key: data, flag: :none}
     end
   end
 end

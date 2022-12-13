@@ -1,5 +1,16 @@
 # AppShell Tui
 
+## Controls
+
+- Label, single line
+- Frame, no children
+- Button
+- Checkbox
+- Input, single line, length limited by size, no scrolling.
+- Radio, String.Chars items only, no scrolling
+- Select, String.Chars items only 
+- Panel
+
 ## Modals
 
 - Modals capture events when visible.
@@ -23,12 +34,3 @@
 - Buttons with a matching shortcut get triggered.
 - Shortcuts are not exclusibly associated to a single button.
 - Multiple buttons can be triggered at once.
-
-## Roadmap
-
-- Shift tab not working
-- Theming rework
-- Pass size to markup
-- Canvas testing
-- Render testing
-- Cache modal model

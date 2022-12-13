@@ -127,6 +127,8 @@ defmodule SelectTest do
 
     assert Select.handle(model, @ev_kp_trigger) == {model, {:item, 0, 0, {0, 0}}}
 
+    assert Select.handle(model, @ev_kp_space) == {model, {:item, 0, 0, {0, 0}}}
+
     # nops
 
     # up key wont go beyond start
@@ -203,7 +205,7 @@ defmodule SelectTest do
     |> render()
     |> assert("0 ", 0, @tc_selected)
 
-    # selection navigation
+    # selection navigation keyboard
     select(items: [0, 1, 2, 3, 4, 5], size: {1, 2})
     |> render()
     |> assert("0", 0, @tc_selected)
@@ -273,11 +275,84 @@ defmodule SelectTest do
     |> assert("0", 0, @tc_selected)
     |> assert("1", 1, @tc_normal)
 
+    # selection navigation mouse wheel
+    select(items: [0, 1, 2, 3, 4, 5], size: {1, 2})
+    |> render()
+    |> assert("0", 0, @tc_selected)
+    |> assert("1", 1, @tc_normal)
+    # navigate first chunk with arrows
+    |> handle(@ev_ms_down, {:item, 1, 1, {:nop, {1, 1}}})
+    |> render()
+    |> assert("0", 0, @tc_normal)
+    |> assert("1", 1, @tc_selected)
+    |> handle(@ev_ms_down, {:item, 2, 2, {:nop, {2, 2}}})
+    |> render()
+    |> assert("1", 0, @tc_normal)
+    |> assert("2", 1, @tc_selected)
+    # continue with page jumps
+    |> handle(@ev_ms_pdown, {:item, 4, 4, {:nop, {4, 4}}})
+    |> render()
+    |> assert("3", 0, @tc_normal)
+    |> assert("4", 1, @tc_selected)
+    |> handle(@ev_ms_pdown, {:item, 5, 5, {:nop, {5, 5}}})
+    |> render()
+    |> assert("4", 0, @tc_normal)
+    |> assert("5", 1, @tc_selected)
+    # renavigate last chunk with arrows
+    |> selected(4)
+    |> render()
+    |> assert("4", 0, @tc_selected)
+    |> assert("5", 1, @tc_normal)
+    |> handle(@ev_ms_down, {:item, 5, 5, {:nop, {5, 5}}})
+    |> render()
+    |> assert("4", 0, @tc_normal)
+    |> assert("5", 1, @tc_selected)
+    |> handle(@ev_ms_down, nil)
+    |> render()
+    |> assert("4", 0, @tc_normal)
+    |> assert("5", 1, @tc_selected)
+    # nagivate back first chunk with arrows
+    |> handle(@ev_ms_up, {:item, 4, 4, {:nop, {4, 4}}})
+    |> render()
+    |> assert("4", 0, @tc_selected)
+    |> assert("5", 1, @tc_normal)
+    |> handle(@ev_ms_up, {:item, 3, 3, {:nop, {3, 3}}})
+    |> render()
+    |> assert("3", 0, @tc_selected)
+    |> assert("4", 1, @tc_normal)
+    # continue with page jumps
+    |> handle(@ev_ms_pup, {:item, 1, 1, {:nop, {1, 1}}})
+    |> render()
+    |> assert("1", 0, @tc_selected)
+    |> assert("2", 1, @tc_normal)
+    |> handle(@ev_ms_pup, {:item, 0, 0, {:nop, {0, 0}}})
+    |> render()
+    |> assert("0", 0, @tc_selected)
+    |> assert("1", 1, @tc_normal)
+    # renavigate last chunk with arrows
+    # force offset = 1 with double select below
+    |> selected(2)
+    |> selected(1)
+    |> render()
+    |> assert("1", 0, @tc_selected)
+    |> assert("2", 1, @tc_normal)
+    |> handle(@ev_ms_up, {:item, 0, 0, {:nop, {0, 0}}})
+    |> render()
+    |> assert("0", 0, @tc_selected)
+    |> assert("1", 1, @tc_normal)
+    |> handle(@ev_ms_up, nil)
+    |> render()
+    |> assert("0", 0, @tc_selected)
+    |> assert("1", 1, @tc_normal)
+
     # triggers
     select(items: [0], size: {1, 1})
     |> render()
     |> assert("0", 0, @tc_selected)
     |> handle(@ev_kp_trigger, {:item, 0, 0, {:nop, {0, 0}}})
+    |> render()
+    |> assert("0", 0, @tc_selected)
+    |> handle(@ev_kp_space, {:item, 0, 0, {:nop, {0, 0}}})
     |> render()
     |> assert("0", 0, @tc_selected)
   end

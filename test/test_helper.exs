@@ -71,6 +71,7 @@ defmodule TestImports do
   def label(props \\ []), do: init(Label, props)
   def input(props \\ []), do: init(Input, props)
   def select(props \\ []), do: init(Select, props)
+  def radio(props \\ []), do: init(Radio, props)
 
   def render(map, cols, rows) do
     Theme.set(TestTheme)
@@ -100,15 +101,22 @@ defmodule TestImports do
 
   def assert(map, text, y, false), do: assert_cursor(map, text, y, false)
   def assert(map, text, y, cx) when is_integer(cx), do: assert_cursor(map, text, y, cx)
-  def assert(map, text, y, color) when is_atom(color), do: assert_color(map, text, y, color)
 
-  defp assert_color(map, text, y, color) when is_atom(color) do
+  def assert(map, text, xy, color) when is_atom(color) do
+    case map do
+      %{module: Radio} -> assert_color(map, text, xy, 0, color)
+      _ -> assert_color(map, text, 0, xy, color)
+    end
+  end
+
+  def assert(map, text, x, y, color) when is_atom(color), do: assert_color(map, text, x, y, color)
+
+  defp assert_color(map, text, x, y, color) when is_atom(color) do
     fg = get_color(:fore, color)
     bg = get_color(:back, color)
     text1 = String.to_charlist(text)
     len = length(text1)
     data = map.canvas.data
-    x = 0
 
     cells =
       for i <- x..(x + len - 1) do

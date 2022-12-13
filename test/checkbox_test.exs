@@ -49,7 +49,7 @@ defmodule CheckboxTest do
     |> render()
     |> assert("[ ]Tit", 0, @tc_normal)
 
-    # checked state and triggers
+    # triggers
     checkbox(text: "T")
     |> handle(@ev_kp_trigger, {:checked, false, {:nop, false}})
     |> render()

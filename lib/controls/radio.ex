@@ -12,12 +12,18 @@ defmodule Ash.Tui.Radio do
   def init(opts \\ []) do
     opts = Enum.into(opts, %{})
     origin = Map.get(opts, :origin, {0, 0})
-    size = Map.get(opts, :size, {0, 0})
+    items = Map.get(opts, :items, [])
+
+    cols =
+      for item <- items, reduce: 0 do
+        cols -> String.length("#{item}") + if cols > 0, do: cols + 1, else: cols
+      end
+
+    size = Map.get(opts, :size, {cols, 1})
     visible = Map.get(opts, :visible, true)
     enabled = Map.get(opts, :enabled, true)
     findex = Map.get(opts, :findex, 0)
     class = Map.get(opts, :class, nil)
-    items = Map.get(opts, :items, [])
     selected = Map.get(opts, :selected, 0)
     on_change = Map.get(opts, :on_change, &Radio.nop/1)
 
@@ -112,7 +118,7 @@ defmodule Ash.Tui.Radio do
     trigger(model, 0, selected)
   end
 
-  def handle(model, %{type: :mouse, action: :press, key: :bleft, x: mx}) do
+  def handle(model, %{type: :mouse, action: :press, key: :bleft, x: mx, flag: :none}) do
     %{count: count, map: map, selected: selected} = model
 
     list = for i <- 0..(count - 1), do: {i, String.length("#{map[i]}")}
@@ -137,6 +143,7 @@ defmodule Ash.Tui.Radio do
   def handle(model, @ev_kp_fnext), do: {model, {:focus, :next}}
   def handle(model, @ev_kp_kdown), do: {model, {:focus, :next}}
   def handle(model, @ev_kp_kup), do: {model, {:focus, :prev}}
+  def handle(model, @ev_kp_space), do: {model, trigger(model)}
   def handle(model, @ev_kp_trigger), do: {model, trigger(model)}
   def handle(model, @ev_kp_enter), do: {model, {:focus, :next}}
   def handle(model, _event), do: {model, nil}
@@ -145,8 +152,21 @@ defmodule Ash.Tui.Radio do
     %{
       map: map,
       count: count,
+      size: {cols, rows},
       selected: selected
     } = model
+
+    canvas = Canvas.color(canvas, :fore, theme.({:fore, :normal}))
+    canvas = Canvas.color(canvas, :back, theme.({:back, :normal}))
+
+    line = String.duplicate(" ", cols)
+
+    canvas =
+      for r <- 0..(rows - 1), reduce: canvas do
+        canvas ->
+          canvas = Canvas.move(canvas, 0, r)
+          Canvas.write(canvas, line)
+      end
 
     {canvas, _} =
       for i <- 0..(count - 1), reduce: {canvas, 0} do
