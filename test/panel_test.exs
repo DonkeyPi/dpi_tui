@@ -210,17 +210,41 @@ defmodule PanelTest do
 
     # Double focus, double cursor, or cursor override problem.
     # Moving focus to a different branch clears previous branch.
+
+    # (1) Control holding the focus gets non focusable
     panel0 = Panel.children(normal, c0: Control.init(Button))
     panel1 = Panel.children(normal, c0: Control.init(Button))
     panel = Panel.children(root, p0: {Panel, panel0}, p1: {Panel, panel1})
     inner = elem(panel.children.p0, 1)
+    assert inner.focused == true
     assert elem(inner.children.c0, 1).focused == true
+    inner = elem(panel.children.p1, 1)
+    assert elem(inner.children.c0, 1).focused == false
     button0 = %{elem(inner.children.c0, 1) | findex: -1}
     panel0 = Panel.children(normal, c0: {Button, button0})
     panel = Panel.children(root, p0: {Panel, panel0}, p1: {Panel, panel1})
+    inner = elem(panel.children.p0, 1)
+    assert inner.focused == false
+    assert elem(inner.children.c0, 1).focused == false
     inner = elem(panel.children.p1, 1)
     assert elem(inner.children.c0, 1).focused == true
+
+    # (2) Mouse click on a different branch.
+    panel0 = Panel.children(normal, c0: Control.init(Button))
+    panel1 = Panel.update(normal, size: {1, 1})
+    panel1 = Panel.children(panel1, c0: Control.init(Button, size: {1, 1}))
+    panel = Panel.update(root, size: {1, 1})
+    panel = Panel.children(panel, p0: {Panel, panel0}, p1: {Panel, panel1})
     inner = elem(panel.children.p0, 1)
+    assert inner.focused == true
+    assert elem(inner.children.c0, 1).focused == true
+    inner = elem(panel.children.p1, 1)
     assert elem(inner.children.c0, 1).focused == false
+    {panel, {:p1, {:c0, {:click, :nop}}}} = Panel.handle(panel, @ev_mp_left)
+    inner = elem(panel.children.p0, 1)
+    assert inner.focused == false
+    assert elem(inner.children.c0, 1).focused == false
+    inner = elem(panel.children.p1, 1)
+    assert elem(inner.children.c0, 1).focused == true
   end
 end

@@ -11,6 +11,13 @@
 - Select, String.Chars items only 
 - Panel
 
+## Focus
+
+- Children get focused updated on appending to parent.
+- Panels cache focusable state of children on tree building.
+- Refocus/recalculate recursively cleans the focus lossing branch.
+- There must not be two focused controls at any time.
+
 ## Modals
 
 - Modals capture events when visible.

@@ -184,6 +184,7 @@ defmodule Ash.Tui.Panel do
     end
   end
 
+  # This is recursive. Both in setting and removing focus.
   # Assumes no child other than the pointed by the focus key will
   # be ever focused. No attempt is made to unfocus every children.
   defp recalculate(model, dir) do
