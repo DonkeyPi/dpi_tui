@@ -210,7 +210,7 @@ defmodule Ash.Tui.Input do
     canvas = Canvas.move(canvas, 0, 0)
     canvas = Canvas.write(canvas, text)
 
-    # See: double cursor, or cursor override problem.
+    # See: double focus, double cursor, or cursor override problem.
     # Trust the focused state.
     # focusable(model) would be useful as third condition.
     case {focused, cursor < cols} do

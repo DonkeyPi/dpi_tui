@@ -17,6 +17,7 @@ defmodule PanelTest do
              root: false,
              index: [],
              children: %{},
+             focusables: %{},
              focus: nil
            }
 
@@ -207,13 +208,8 @@ defmodule PanelTest do
     panel = Panel.refocus(panel, :prev)
     assert panel.focus == :c1
 
-    # Double cursor, or cursor override problem.
-    # moving focus to a different branch clear previous branch
-    # FIXME branch is not being cleared but it should be enough
-    # to prevent more than one child focused on same node so
-    # that the focus path is unique despite some residuals
-    # here and there. This use case present itself when
-    # the focused control gets disabled, hidded, etc.
+    # Double focus, double cursor, or cursor override problem.
+    # Moving focus to a different branch clears previous branch.
     panel0 = Panel.children(normal, c0: Control.init(Button))
     panel1 = Panel.children(normal, c0: Control.init(Button))
     panel = Panel.children(root, p0: {Panel, panel0}, p1: {Panel, panel1})
@@ -224,8 +220,7 @@ defmodule PanelTest do
     panel = Panel.children(root, p0: {Panel, panel0}, p1: {Panel, panel1})
     inner = elem(panel.children.p1, 1)
     assert elem(inner.children.c0, 1).focused == true
-    # false expected below if branch cleared
     inner = elem(panel.children.p0, 1)
-    assert elem(inner.children.c0, 1).focused == true
+    assert elem(inner.children.c0, 1).focused == false
   end
 end

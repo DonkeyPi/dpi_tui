@@ -26,6 +26,7 @@ defmodule Ash.Tui.Panel do
       root: root,
       index: [],
       children: %{},
+      focusables: %{},
       focus: nil
     }
 
@@ -47,11 +48,8 @@ defmodule Ash.Tui.Panel do
   def focusable(%{visible: false}), do: false
   def focusable(%{findex: findex}) when findex < 0, do: false
 
-  def focusable(%{children: children, index: index}) do
-    Enum.find_value(index, false, fn id ->
-      momo = Map.get(children, id)
-      momo_focusable(momo)
-    end)
+  def focusable(%{focusables: focusables}) do
+    Enum.any?(focusables, fn {_, focusable} -> focusable end)
   end
 
   def children(%{index: index, children: children}) do
@@ -61,14 +59,26 @@ defmodule Ash.Tui.Panel do
   end
 
   def children(model, children) do
-    {index, children} =
-      for {id, child} <- children, reduce: {[], %{}} do
-        {index, map} ->
+    {index, children, focusables} =
+      for {id, child} <- children, reduce: {[], %{}, %{}} do
+        {index, children, focusables} ->
           if id == nil, do: raise("Invalid child id: #{id}")
-          if Map.has_key?(map, id), do: raise("Duplicated child id: #{id}")
-          {[id | index], Map.put(map, id, child)}
+          if Map.has_key?(children, id), do: raise("Duplicated child id: #{id}")
+          focused = momo_focused(child)
+          focusable = momo_focusable(child)
+
+          child =
+            case {focused, focusable} do
+              {true, false} -> momo_focused(child, false, :next)
+              _ -> child
+            end
+
+          children = Map.put(children, id, child)
+          focusables = Map.put(focusables, id, focusable)
+          {[id | index], children, focusables}
       end
 
+    model = Map.put(model, :focusables, focusables)
     model = Map.put(model, :children, children)
     model = Map.put(model, :index, index)
     recalculate(model, :next)

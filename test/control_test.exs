@@ -64,11 +64,12 @@ defmodule ControlTest do
       on_change: &nop/1,
       root: false,
       children: %{},
+      focusables: %{},
       index: []
     }
 
     # complement to make panel focusable
-    focusable = %{focusable | children: %{id: {Button, focusable}}, index: [:id]}
+    focusable = %{focusable | focusables: %{id: true}}
 
     # simple getters
     assert module.bounds(%{origin: {1, 2}, size: {3, 4}}) == {1, 2, 3, 4}
@@ -119,7 +120,7 @@ defmodule ControlTest do
 
     if panel? do
       assert module.focusable(%{focusable | root: true}) == false
-      assert module.focusable(%{focusable | index: []}) == false
+      assert module.focusable(%{focusable | focusables: %{}}) == false
     else
       if input? do
         assert module.focusable(%{focusable | on_click: nil}) == not button?
@@ -136,12 +137,13 @@ defmodule ControlTest do
       assert module.children(:state, []) == :state
     else
       initial = module.init()
-      children = [{0, initial}]
+      children = [{0, {module, initial}}]
 
       assert module.children(initial, children) == %{
                initial
                | index: [0],
-                 children: %{0 => initial}
+                 children: %{0 => {module, initial}},
+                 focusables: %{0 => false}
              }
     end
   end
