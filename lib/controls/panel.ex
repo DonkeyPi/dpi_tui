@@ -111,6 +111,8 @@ defmodule Ash.Tui.Panel do
   # unless the root panel has no focusable children at all.
 
   # Prevent next handler from receiving a mouse event with nil focus.
+  # This seems counter intuitive, but the root panel should always
+  # have a focused child or the mouse event has no destination.
   def handle(%{focus: nil} = model, %{type: :mouse}), do: {model, nil}
 
   # Looks for the child containing the (x, y) event point. The child

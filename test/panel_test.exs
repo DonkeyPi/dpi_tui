@@ -1,7 +1,6 @@
 defmodule PanelTest do
   use ExUnit.Case
-  use Ash.Tui.Aliases
-  use Ash.Tui.Events
+  use TestMacros
 
   test "basic panel check" do
     initial = Panel.init()
@@ -21,61 +20,41 @@ defmodule PanelTest do
              focus: nil
            }
 
-    # getters/setters
-    assert Panel.bounds(%{origin: {1, 2}, size: {3, 4}}) == {1, 2, 3, 4}
-    assert Panel.visible(%{visible: :visible}) == :visible
-    assert Panel.focusable(%{enabled: false}) == false
-    assert Panel.focusable(%{visible: false}) == false
-    assert Panel.focusable(%{findex: -1}) == false
-    assert Panel.focusable(Panel.init(root: true)) == false
-    assert Panel.focused(%{focused: false}) == false
-    assert Panel.focused(%{focused: true}) == true
-    assert Panel.focused(initial, true) == %{initial | focused: true}
-    assert Panel.refocus(initial, :any) == initial
-    assert Panel.findex(%{findex: 0}) == 0
-    assert Panel.shortcut(:state) == nil
-    assert Panel.children(initial) == []
-    assert Panel.children(initial, []) == initial
-    children = [{0, Panel.init()}, {1, Panel.init()}]
-    assert Panel.children(Panel.children(initial, children)) == children
-    assert Panel.modal(initial) == false
+    # top label overrides bottom label
+    l0 = Control.init(Label, text: "0")
+    l1 = Control.init(Label, text: "1")
 
-    # update
-    assert Panel.update(initial, focused: :any) == initial
-    assert Panel.update(initial, origin: {1, 2}) == %{initial | origin: {1, 2}}
-    assert Panel.update(initial, size: {2, 3}) == %{initial | size: {2, 3}}
-    assert Panel.update(initial, visible: false) == %{initial | visible: false}
-    assert Panel.update(initial, enabled: false) == %{initial | enabled: false}
-    assert Panel.update(initial, findex: -1) == %{initial | findex: -1}
-    assert Panel.update(initial, root: :any) == initial
-    assert Panel.update(initial, index: :any) == initial
-    assert Panel.update(initial, children: :any) == initial
-    assert Panel.update(initial, focus: :any) == initial
+    panel(size: {1, 1})
+    |> children(l0: l0, l1: l1)
+    |> render()
+    |> assert("1", 0, @tc_normal)
 
-    # nops
-    assert Panel.handle(initial, %{type: :key}) == {initial, nil}
-    assert Panel.handle(initial, %{type: :mouse}) == {initial, nil}
+    # hidded label wont render
+    l0 = Control.init(Label, text: "0")
+    l1 = Control.init(Label, text: "1", visible: false)
+
+    panel(size: {1, 1})
+    |> children(l0: l0, l1: l1)
+    |> render()
+    |> assert("0", 0, @tc_normal)
   end
 
   test "panel handle check" do
     root = Panel.init(root: true)
     normal = Panel.init(root: false)
 
-    panel = Panel.children(root, c0: Control.init(Label))
+    panel = Panel.children(root, c0: Control.init(Label, size: {1, 1}))
     {^panel, nil} = Panel.handle(panel, @ev_kp_fnext)
     {^panel, nil} = Panel.handle(panel, @ev_kp_trigger)
     {^panel, nil} = Panel.handle(panel, ev_mp_left(0, 0))
 
-    panel = Panel.children(root, c0: Control.init(Button))
-    {^panel, nil} = Panel.handle(panel, @ev_kp_fnext)
-
-    {^panel, {:c0, {:click, :nop}}} = Panel.handle(panel, @ev_kp_trigger)
-
     panel = Panel.children(root, c0: Control.init(Button, size: {1, 1}))
-
+    {^panel, nil} = Panel.handle(panel, @ev_kp_fnext)
+    {^panel, {:c0, {:click, :nop}}} = Panel.handle(panel, @ev_kp_trigger)
     {^panel, {:c0, {:click, :nop}}} = Panel.handle(panel, ev_mp_left(0, 0))
 
     # mouse changes focus with reversed order match search
+    # last in the stack mean at the top
     panel =
       Panel.children(root,
         c0: Control.init(Button, size: {1, 1}),
@@ -83,14 +62,12 @@ defmodule PanelTest do
       )
 
     assert panel.focus == :c0
-
     {panel, {:c1, {:click, :nop}}} = Panel.handle(panel, ev_mp_left(0, 0))
-
     assert panel.focus == :c1
     assert elem(panel.children.c0, 1).focused == false
     assert elem(panel.children.c1, 1).focused == true
 
-    # mouse ignores non focusables
+    # mouse ignores non focusables at the top
     panel =
       Panel.children(root,
         c0: Control.init(Button, size: {1, 1}),
@@ -103,17 +80,15 @@ defmodule PanelTest do
     panel = Panel.children(normal, c0: Control.init(Button))
     panel = Panel.children(root, p0: {Panel, panel})
     {^panel, nil} = Panel.handle(panel, @ev_kp_fnext)
-
     {^panel, {:p0, {:c0, {:click, :nop}}}} = Panel.handle(panel, @ev_kp_trigger)
 
     # mouse gets to nested focused control
     panel = Panel.update(normal, size: {1, 1})
     panel = Panel.children(panel, c0: Control.init(Button, size: {1, 1}))
     panel = Panel.children(root, p0: {Panel, panel})
-
     {^panel, {:p0, {:c0, {:click, :nop}}}} = Panel.handle(panel, ev_mp_left(0, 0))
 
-    # mouse focuses nested control
+    # mouse focuses nested top control
     panel = Panel.update(normal, size: {1, 1})
 
     panel =
@@ -123,12 +98,50 @@ defmodule PanelTest do
       )
 
     panel = Panel.children(root, p0: {Panel, panel})
-
+    inner = elem(panel.children.p0, 1)
+    assert elem(inner.children.c0, 1).focused == true
     {panel, {:p0, {:c1, {:click, :nop}}}} = Panel.handle(panel, ev_mp_left(0, 0))
+    inner = elem(panel.children.p0, 1)
+    assert elem(inner.children.c0, 1).focused == false
+    assert elem(inner.children.c1, 1).focused == true
 
-    panel = elem(panel.children.p0, 1)
-    assert elem(panel.children.c0, 1).focused == false
-    assert elem(panel.children.c1, 1).focused == true
+    # mouse get to second level next child converted to client coordinates
+    panel0 = Panel.update(normal, origin: {1, 1}, size: {2, 2})
+    panel0 = Panel.children(panel0, c0: Control.init(Button, origin: {1, 1}, size: {1, 1}))
+    panel = Panel.update(root, size: {3, 3})
+    panel = Panel.children(panel, p0: {Panel, panel0})
+    {_, nil} = Panel.handle(panel, ev_mp_left(0, 0))
+    {_, nil} = Panel.handle(panel, ev_mp_left(1, 1))
+    {_, {:p0, {:c0, {:click, :nop}}}} = Panel.handle(panel, ev_mp_left(2, 2))
+    {_, nil} = Panel.handle(panel, ev_mp_left(3, 3))
+
+    # input get to second level next child converted to client coordinates
+    panel0 = Panel.update(normal, origin: {1, 1}, size: {4, 2})
+    panel0 = Panel.children(panel0, c0: Control.init(Radio, origin: {1, 1}, items: [0, 1]))
+    panel = Panel.update(root, size: {5, 3})
+    panel = Panel.children(panel, p0: {Panel, panel0})
+    {panel, nil} = Panel.handle(panel, ev_mp_left(0, 0))
+    {panel, nil} = Panel.handle(panel, ev_mp_left(1, 1))
+    {panel, nil} = Panel.handle(panel, ev_mp_left(2, 2))
+    {panel, {:p0, {:c0, {:item, 1, 1, {:nop, {1, 1}}}}}} = Panel.handle(panel, ev_mp_left(4, 2))
+    {panel, {:p0, {:c0, {:item, 0, 0, {:nop, {0, 0}}}}}} = Panel.handle(panel, ev_mp_left(2, 2))
+    {_, nil} = Panel.handle(panel, ev_mp_left(3, 3))
+
+    # input get to second level next child converted to client coordinates
+    # click goes to control on unfocused branch
+    panel0 = Panel.children(normal, c0: Control.init(Button))
+    panel1 = Panel.update(normal, origin: {1, 1}, size: {4, 2})
+    panel1 = Panel.children(panel1, c0: Control.init(Radio, origin: {1, 1}, items: [0, 1]))
+    panel = Panel.update(root, size: {5, 3})
+    panel = Panel.children(panel, p0: {Panel, panel0}, p1: {Panel, panel1})
+    {panel, {:p0, {:c0, {:click, :nop}}}} = Panel.handle(panel, @ev_kp_trigger)
+    {panel, nil} = Panel.handle(panel, ev_mp_left(0, 0))
+    {panel, nil} = Panel.handle(panel, ev_mp_left(1, 1))
+    {panel, nil} = Panel.handle(panel, ev_mp_left(2, 2))
+    {panel, {:p1, {:c0, {:item, 1, 1, {:nop, {1, 1}}}}}} = Panel.handle(panel, ev_mp_left(4, 2))
+    {panel, {:p1, {:c0, {:item, 0, 0, {:nop, {0, 0}}}}}} = Panel.handle(panel, ev_mp_left(2, 2))
+    {panel, {:p1, {:c0, {:item, 0, 0, {:nop, {0, 0}}}}}} = Panel.handle(panel, @ev_kp_trigger)
+    {_, nil} = Panel.handle(panel, ev_mp_left(3, 3))
   end
 
   test "panel refocus check" do
@@ -138,46 +151,81 @@ defmodule PanelTest do
     disabled = Panel.init(root: true, enabled: false)
     findex = Panel.init(root: true, findex: -1)
 
+    # replacing a button by a label losses focus (same id)
     panel = Panel.children(root, c0: Control.init(Button))
     assert panel.focus == :c0
     panel = Panel.children(panel, c0: Control.init(Label))
     assert panel.focus == nil
 
+    # replacing a button by a label losses focus (different id)
     panel = Panel.children(root, c0: Control.init(Button))
     assert panel.focus == :c0
     panel = Panel.children(panel, c1: Control.init(Label))
     assert panel.focus == nil
 
+    # replacing a button by a non focusable button losses focus
+    panel = Panel.children(root, c0: Control.init(Button))
+    assert panel.focus == :c0
+    panel = Panel.children(panel, c0: Control.init(Button, findex: -1))
+    assert panel.focus == nil
+
+    # replacing a button by a button transfers focus
     panel = Panel.children(root, c0: Control.init(Button))
     assert panel.focus == :c0
     panel = Panel.children(panel, c1: Control.init(Button))
     assert panel.focus == :c1
 
+    # making a root panel visible gains focus
     panel = Panel.children(hidden, c0: Control.init(Button))
     assert panel.focus == nil
     panel = Panel.update(panel, visible: true)
     assert panel.focus == :c0
 
+    # enabling a root panel gains focus
     panel = Panel.children(disabled, c0: Control.init(Button))
     assert panel.focus == nil
     panel = Panel.update(panel, enabled: true)
     assert panel.focus == :c0
 
+    # setting a valid findex on a root panel gains focus
     panel = Panel.children(findex, c0: Control.init(Button))
     assert panel.focus == nil
     panel = Panel.update(panel, findex: 0)
     assert panel.focus == :c0
 
+    # refocus next goes to first child
     panel = Panel.children(normal, c0: Control.init(Button), c1: Control.init(Button))
     assert panel.focus == nil
     panel = Panel.focused(panel, true)
     panel = Panel.refocus(panel, :next)
     assert panel.focus == :c0
 
+    # refocus prev goes to last child
     panel = Panel.children(normal, c0: Control.init(Button), c1: Control.init(Button))
     assert panel.focus == nil
     panel = Panel.focused(panel, true)
     panel = Panel.refocus(panel, :prev)
     assert panel.focus == :c1
+
+    # Double cursor, or cursor override problem.
+    # moving focus to a different branch clear previous branch
+    # FIXME branch is not being cleared but it should be enough
+    # to prevent more than one child focused on same node so
+    # that the focus path is unique despite some residuals
+    # here and there. This use case present itself when
+    # the focused control gets disabled, hidded, etc.
+    panel0 = Panel.children(normal, c0: Control.init(Button))
+    panel1 = Panel.children(normal, c0: Control.init(Button))
+    panel = Panel.children(root, p0: {Panel, panel0}, p1: {Panel, panel1})
+    inner = elem(panel.children.p0, 1)
+    assert elem(inner.children.c0, 1).focused == true
+    button0 = %{elem(inner.children.c0, 1) | findex: -1}
+    panel0 = Panel.children(normal, c0: {Button, button0})
+    panel = Panel.children(root, p0: {Panel, panel0}, p1: {Panel, panel1})
+    inner = elem(panel.children.p1, 1)
+    assert elem(inner.children.c0, 1).focused == true
+    # false expected below if branch cleared
+    inner = elem(panel.children.p0, 1)
+    assert elem(inner.children.c0, 1).focused == true
   end
 end

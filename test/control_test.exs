@@ -130,11 +130,19 @@ defmodule ControlTest do
       end
     end
 
-    # children setter (except Panel)
-    # Panel returns a complex state
+    # children setter
     if not panel? do
       assert module.children(:state) == []
       assert module.children(:state, []) == :state
+    else
+      initial = module.init()
+      children = [{0, initial}]
+
+      assert module.children(initial, children) == %{
+               initial
+               | index: [0],
+                 children: %{0 => initial}
+             }
     end
   end
 

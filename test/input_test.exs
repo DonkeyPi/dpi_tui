@@ -124,12 +124,6 @@ defmodule InputTest do
     |> render()
     |> assert("T ", 0, false)
 
-    input(text: "T", size: {2, 1})
-    |> focused(true)
-    |> enabled(false)
-    |> render()
-    |> assert("T ", 0, false)
-
     # extra rows
     input(text: "T", size: {1, 2})
     |> render()

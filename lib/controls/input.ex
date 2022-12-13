@@ -169,6 +169,7 @@ defmodule Ash.Tui.Input do
         action: :press,
         key: :bleft,
         x: mx,
+        y: 0,
         flag: :none
       }) do
     cursor = min(mx, String.length(text))
@@ -183,9 +184,8 @@ defmodule Ash.Tui.Input do
       cursor: cursor,
       password: password,
       size: {cols, rows},
-      text: text,
       focused: focused,
-      enabled: enabled
+      text: text
     } = model
 
     canvas = Canvas.color(canvas, :fore, theme.({:fore, :normal}))
@@ -210,8 +210,11 @@ defmodule Ash.Tui.Input do
     canvas = Canvas.move(canvas, 0, 0)
     canvas = Canvas.write(canvas, text)
 
-    case {focused, enabled, cursor < cols} do
-      {true, true, true} ->
+    # See: double cursor, or cursor override problem.
+    # Trust the focused state.
+    # focusable(model) would be useful as third condition.
+    case {focused, cursor < cols} do
+      {true, true} ->
         Canvas.cursor(canvas, cursor, 0)
 
       _ ->

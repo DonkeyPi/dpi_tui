@@ -62,7 +62,7 @@ defmodule TestImports do
 
   defp init(module, props) do
     model = module.init(props)
-    %{module: module, model: model}
+    %{module: module, model: model, models: %{}}
   end
 
   def button(props \\ []), do: init(Button, props)
@@ -72,6 +72,7 @@ defmodule TestImports do
   def input(props \\ []), do: init(Input, props)
   def select(props \\ []), do: init(Select, props)
   def radio(props \\ []), do: init(Radio, props)
+  def panel(props \\ []), do: init(Panel, props)
 
   def render(map, cols, rows) do
     Theme.set(TestTheme)
@@ -194,6 +195,11 @@ defmodule TestImports do
   def password(map, password), do: update(map, :password, password)
   def selected(map, selected), do: update(map, :selected, selected)
   def cursor(map, cursor), do: put(map, :cursor, cursor)
+
+  def children(map, children) do
+    model = map.module.children(map.model, children)
+    Map.put(map, :model, model)
+  end
 
   def handle(map, event, result \\ nil) do
     {model, ^result} = map.module.handle(map.model, event)
