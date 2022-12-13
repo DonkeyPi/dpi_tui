@@ -90,24 +90,24 @@ defmodule InputTest do
     # colors properly applied for each state
     input(text: "T")
     |> render()
-    |> assert("T", 0, @tcf_normal, @tcb_normal)
+    |> assert("T", 0, @tc_normal)
     |> focused(true)
     |> render()
-    |> assert("T", 0, @tcf_focused, @tcb_focused)
+    |> assert("T", 0, @tc_focused)
     |> enabled(false)
     |> render()
-    |> assert("T", 0, @tcf_disabled, @tcb_disabled)
+    |> assert("T", 0, @tc_disabled)
 
     input(size: {2, 1})
     |> enabled(false)
     |> render()
-    |> assert("  ", 0, @tcf_disabled, @tcb_disabled)
+    |> assert("  ", 0, @tc_disabled)
 
     # password
     input(text: "T", size: {2, 1})
     |> password(true)
     |> render()
-    |> assert("* ", 0, @tcf_normal, @tcb_normal)
+    |> assert("* ", 0, @tc_normal)
 
     # basic cursor
     input(text: "T", size: {2, 1})
@@ -133,8 +133,8 @@ defmodule InputTest do
     # extra rows
     input(text: "T", size: {1, 2})
     |> render()
-    |> assert("T", 0, @tcf_normal, @tcb_normal)
-    |> assert(" ", 1, @tcf_normal, @tcb_normal)
+    |> assert("T", 0, @tc_normal)
+    |> assert(" ", 1, @tc_normal)
 
     # text insertion
     state =
@@ -193,5 +193,47 @@ defmodule InputTest do
     |> handle(ev_mp_left(4, 0), nil)
     |> render()
     |> assert("ṕíe  ", 0, 3)
+    |> handle(ev_mp_left(0, 0), nil)
+    |> render()
+    |> assert("ṕíe  ", 0, 0)
+
+    # Cols limits text length at insertion only.
+    # Initial and updated text can break the rule.
+    # Text can be reduced at any time.
+    # No scrolling implemented.
+    input(text: "abcd", size: {2, 1})
+    |> focused(true)
+    |> render()
+    |> assert("ab", 0, false)
+    |> handle(@ev_kp_end, nil)
+    |> render()
+    |> assert("ab", 0, false)
+    |> handle(@ev_kp_backspace, {:text, "abc", {:nop, "abc"}})
+    |> render()
+    |> assert("ab", 0, false)
+    |> handle(@ev_kp_home, nil)
+    |> render()
+    |> assert("ab", 0, 0)
+    |> handle(ev_kp_data('a'), nil)
+    |> render()
+    |> assert("ab", 0, 0)
+    |> handle(@ev_kp_delete, {:text, "bc", {:nop, "bc"}})
+    |> render()
+    |> assert("bc", 0, 0)
+    |> handle(ev_kp_data('a'), nil)
+    |> render()
+    |> assert("bc", 0, 0)
+    |> cursor(1)
+    |> handle(ev_kp_data('a'), nil)
+    |> render()
+    |> assert("bc", 0, 1)
+
+    # triggers
+    input(text: "T")
+    |> render()
+    |> assert("T", 0, @tc_normal)
+    |> handle(@ev_kp_trigger, {:text, "T", {:nop, "T"}})
+    |> render()
+    |> assert("T", 0, @tc_normal)
   end
 end

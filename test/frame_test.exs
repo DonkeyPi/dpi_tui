@@ -19,41 +19,41 @@ defmodule FrameTest do
     # default rendering
     frame()
     |> render()
-    |> assert("┌┐", 0, @tcf_normal, @tcb_normal)
-    |> assert("└┘", 1, @tcf_normal, @tcb_normal)
+    |> assert("┌┐", 0, @tc_normal)
+    |> assert("└┘", 1, @tc_normal)
     |> size({3, 3})
     |> render()
-    |> assert("┌─┐", 0, @tcf_normal, @tcb_normal)
-    |> assert("│ │", 1, @tcf_normal, @tcb_normal)
-    |> assert("└─┘", 2, @tcf_normal, @tcb_normal)
+    |> assert("┌─┐", 0, @tc_normal)
+    |> assert("│ │", 1, @tc_normal)
+    |> assert("└─┘", 2, @tc_normal)
 
     # excess text
     frame(text: "Title", size: {2, 2})
     |> render()
-    |> assert("┌┐", 0, @tcf_normal, @tcb_normal)
-    |> assert("└┘", 1, @tcf_normal, @tcb_normal)
+    |> assert("┌┐", 0, @tc_normal)
+    |> assert("└┘", 1, @tc_normal)
     |> size({5, 3})
     |> render()
-    |> assert("┌Tit┐", 0, @tcf_normal, @tcb_normal)
-    |> assert("│   │", 1, @tcf_normal, @tcb_normal)
-    |> assert("└───┘", 2, @tcf_normal, @tcb_normal)
+    |> assert("┌Tit┐", 0, @tc_normal)
+    |> assert("│   │", 1, @tc_normal)
+    |> assert("└───┘", 2, @tc_normal)
 
     # double border
     frame(size: {3, 3}, border: :double)
     |> render()
-    |> assert("╔═╗", 0, @tcf_normal, @tcb_normal)
-    |> assert("║ ║", 1, @tcf_normal, @tcb_normal)
-    |> assert("╚═╝", 2, @tcf_normal, @tcb_normal)
+    |> assert("╔═╗", 0, @tc_normal)
+    |> assert("║ ║", 1, @tc_normal)
+    |> assert("╚═╝", 2, @tc_normal)
 
     # unicode
     frame(text: "Tĩtlĕ")
     |> render()
-    |> assert("┌Tĩtlĕ┐", 0, @tcf_normal, @tcb_normal)
-    |> assert("└─────┘", 1, @tcf_normal, @tcb_normal)
+    |> assert("┌Tĩtlĕ┐", 0, @tc_normal)
+    |> assert("└─────┘", 1, @tc_normal)
 
     frame(text: "Tĩtlĕ", size: {5, 2})
     |> render()
-    |> assert("┌Tĩt┐", 0, @tcf_normal, @tcb_normal)
-    |> assert("└───┘", 1, @tcf_normal, @tcb_normal)
+    |> assert("┌Tĩt┐", 0, @tc_normal)
+    |> assert("└───┘", 1, @tc_normal)
   end
 end

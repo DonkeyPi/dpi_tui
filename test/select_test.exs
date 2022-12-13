@@ -1,7 +1,6 @@
 defmodule SelectTest do
   use ExUnit.Case
-  use Ash.Tui.Aliases
-  use Ash.Tui.Events
+  use TestMacros
 
   # Select complex state consists of items and selected properties
   # with internal extra properties: count, map and offset.
@@ -173,5 +172,113 @@ defmodule SelectTest do
     # selected/offset reset to 0 (any mouse should correct it)
     assert Select.handle(%{model | selected: -1}, @ev_ms_up) ==
              {model, {:item, 0, 0, {0, 0}}}
+
+    # colors properly applied for each state
+    select(items: [0, 1])
+    |> render()
+    |> assert("0", 0, @tc_selected)
+    |> assert("1", 1, @tc_normal)
+    |> focused(true)
+    |> render()
+    |> assert("0", 0, @tc_selected)
+    |> assert("1", 1, @tc_focused)
+    |> enabled(false)
+    |> render()
+    |> assert("0", 0, @tc_selected)
+    |> assert("1", 1, @tc_disabled)
+
+    # extra space
+    select(items: [0], size: {1, 2})
+    |> render()
+    |> assert("0", 0, @tc_selected)
+    |> assert(" ", 1, @tc_normal)
+
+    # excess text (checks nothing)
+    select(items: ["012"], size: {2, 1})
+    |> render()
+    |> assert("01", 0, @tc_selected)
+
+    # excess space
+    select(items: [0], size: {2, 1})
+    |> render()
+    |> assert("0 ", 0, @tc_selected)
+
+    # selection navigation
+    select(items: [0, 1, 2, 3, 4, 5], size: {1, 2})
+    |> render()
+    |> assert("0", 0, @tc_selected)
+    |> assert("1", 1, @tc_normal)
+    # navigate first chunk with arrows
+    |> handle(@ev_kp_kdown, {:item, 1, 1, {:nop, {1, 1}}})
+    |> render()
+    |> assert("0", 0, @tc_normal)
+    |> assert("1", 1, @tc_selected)
+    |> handle(@ev_kp_kdown, {:item, 2, 2, {:nop, {2, 2}}})
+    |> render()
+    |> assert("1", 0, @tc_normal)
+    |> assert("2", 1, @tc_selected)
+    # continue with page jumps
+    |> handle(@ev_kp_pdown, {:item, 4, 4, {:nop, {4, 4}}})
+    |> render()
+    |> assert("3", 0, @tc_normal)
+    |> assert("4", 1, @tc_selected)
+    |> handle(@ev_kp_pdown, {:item, 5, 5, {:nop, {5, 5}}})
+    |> render()
+    |> assert("4", 0, @tc_normal)
+    |> assert("5", 1, @tc_selected)
+    # renavigate last chunk with arrows
+    |> selected(4)
+    |> render()
+    |> assert("4", 0, @tc_selected)
+    |> assert("5", 1, @tc_normal)
+    |> handle(@ev_kp_kdown, {:item, 5, 5, {:nop, {5, 5}}})
+    |> render()
+    |> assert("4", 0, @tc_normal)
+    |> assert("5", 1, @tc_selected)
+    |> handle(@ev_kp_kdown, nil)
+    |> render()
+    |> assert("4", 0, @tc_normal)
+    |> assert("5", 1, @tc_selected)
+    # nagivate back first chunk with arrows
+    |> handle(@ev_kp_kup, {:item, 4, 4, {:nop, {4, 4}}})
+    |> render()
+    |> assert("4", 0, @tc_selected)
+    |> assert("5", 1, @tc_normal)
+    |> handle(@ev_kp_kup, {:item, 3, 3, {:nop, {3, 3}}})
+    |> render()
+    |> assert("3", 0, @tc_selected)
+    |> assert("4", 1, @tc_normal)
+    # continue with page jumps
+    |> handle(@ev_kp_pup, {:item, 1, 1, {:nop, {1, 1}}})
+    |> render()
+    |> assert("1", 0, @tc_selected)
+    |> assert("2", 1, @tc_normal)
+    |> handle(@ev_kp_pup, {:item, 0, 0, {:nop, {0, 0}}})
+    |> render()
+    |> assert("0", 0, @tc_selected)
+    |> assert("1", 1, @tc_normal)
+    # renavigate last chunk with arrows
+    # force offset = 1 with double select below
+    |> selected(2)
+    |> selected(1)
+    |> render()
+    |> assert("1", 0, @tc_selected)
+    |> assert("2", 1, @tc_normal)
+    |> handle(@ev_kp_kup, {:item, 0, 0, {:nop, {0, 0}}})
+    |> render()
+    |> assert("0", 0, @tc_selected)
+    |> assert("1", 1, @tc_normal)
+    |> handle(@ev_kp_kup, nil)
+    |> render()
+    |> assert("0", 0, @tc_selected)
+    |> assert("1", 1, @tc_normal)
+
+    # triggers
+    select(items: [0], size: {1, 1})
+    |> render()
+    |> assert("0", 0, @tc_selected)
+    |> handle(@ev_kp_trigger, {:item, 0, 0, {:nop, {0, 0}}})
+    |> render()
+    |> assert("0", 0, @tc_selected)
   end
 end

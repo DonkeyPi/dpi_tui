@@ -10,12 +10,18 @@ defmodule Ash.Tui.Select do
   def init(opts \\ []) do
     opts = Enum.into(opts, %{})
     origin = Map.get(opts, :origin, {0, 0})
-    size = Map.get(opts, :size, {0, 0})
+    items = Map.get(opts, :items, [])
+
+    {cols, rows} =
+      for item <- items, reduce: {0, 0} do
+        {cols, rows} -> {max(cols, String.length("#{item}")), rows + 1}
+      end
+
+    size = Map.get(opts, :size, {cols, rows})
     visible = Map.get(opts, :visible, true)
     enabled = Map.get(opts, :enabled, true)
     findex = Map.get(opts, :findex, 0)
     class = Map.get(opts, :class, nil)
-    items = Map.get(opts, :items, [])
     selected = Map.get(opts, :selected, 0)
     offset = Map.get(opts, :offset, 0)
     on_change = Map.get(opts, :on_change, &Select.nop/1)
@@ -154,8 +160,10 @@ defmodule Ash.Tui.Select do
 
     for i <- 0..(rows - 1), reduce: canvas do
       canvas ->
+        oi = i + offset
+
         canvas =
-          if i == selected do
+          if oi == selected do
             canvas = Canvas.color(canvas, :fore, theme.({:fore, :selected}))
             Canvas.color(canvas, :back, theme.({:back, :selected}))
           else
@@ -165,8 +173,9 @@ defmodule Ash.Tui.Select do
 
         canvas = Canvas.move(canvas, 0, i)
 
-        item = Map.get(map, i + offset, "")
+        item = Map.get(map, oi, "")
         item = "#{item}"
+        item = String.slice(item, 0, cols)
         item = String.pad_trailing(item, cols)
         Canvas.write(canvas, item)
     end

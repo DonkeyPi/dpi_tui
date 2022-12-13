@@ -20,6 +20,22 @@ defmodule TestColors do
       @tcb_focused 0x04
       @tcf_disabled 0x05
       @tcb_disabled 0x06
+      @tcf_selected 0x07
+      @tcb_selected 0x08
+
+      @tc_normal :normal
+      @tc_focused :focused
+      @tc_disabled :disabled
+      @tc_selected :selected
+
+      def get_color(:fore, :normal), do: @tcf_normal
+      def get_color(:back, :normal), do: @tcb_normal
+      def get_color(:fore, :focused), do: @tcf_focused
+      def get_color(:back, :focused), do: @tcb_focused
+      def get_color(:fore, :disabled), do: @tcf_disabled
+      def get_color(:back, :disabled), do: @tcb_disabled
+      def get_color(:fore, :selected), do: @tcf_selected
+      def get_color(:back, :selected), do: @tcb_selected
     end
   end
 end
@@ -28,6 +44,8 @@ defmodule TestTheme do
   use Ash.Tui.Aliases
   use TestColors
 
+  def get_style({:fore, :selected}, %{}), do: @tcf_selected
+  def get_style({:back, :selected}, %{}), do: @tcb_selected
   def get_style({:fore, _}, %{enabled: false}), do: @tcf_disabled
   def get_style({:back, _}, %{enabled: false}), do: @tcb_disabled
   def get_style({:fore, _}, %{focused: true}), do: @tcf_focused
@@ -52,6 +70,7 @@ defmodule TestImports do
   def frame(props \\ []), do: init(Frame, props)
   def label(props \\ []), do: init(Label, props)
   def input(props \\ []), do: init(Input, props)
+  def select(props \\ []), do: init(Select, props)
 
   def render(map, cols, rows) do
     Theme.set(TestTheme)
@@ -71,7 +90,21 @@ defmodule TestImports do
     render(map, cols + 2 * ox, rows + 2 * oy)
   end
 
-  def assert(map, text, y, fg, bg) do
+  defp dump_item(map, item) do
+    IO.inspect(Map.get(map, item))
+    map
+  end
+
+  def dump(map, :canvas), do: dump_item(map, :canvas)
+  def dump(map, :model), do: dump_item(map, :model)
+
+  def assert(map, text, y, false), do: assert_cursor(map, text, y, false)
+  def assert(map, text, y, cx) when is_integer(cx), do: assert_cursor(map, text, y, cx)
+  def assert(map, text, y, color) when is_atom(color), do: assert_color(map, text, y, color)
+
+  defp assert_color(map, text, y, color) when is_atom(color) do
+    fg = get_color(:fore, color)
+    bg = get_color(:back, color)
     text1 = String.to_charlist(text)
     len = length(text1)
     data = map.canvas.data
@@ -99,7 +132,7 @@ defmodule TestImports do
     map
   end
 
-  def assert(map, text, y, cx) do
+  defp assert_cursor(map, text, y, cx) do
     text1 = String.to_charlist(text)
     len = length(text1)
     data = map.canvas.data
@@ -151,6 +184,7 @@ defmodule TestImports do
   def text(map, text), do: update(map, :text, text)
   def align(map, align), do: update(map, :align, align)
   def password(map, password), do: update(map, :password, password)
+  def selected(map, selected), do: update(map, :selected, selected)
   def cursor(map, cursor), do: put(map, :cursor, cursor)
 
   def handle(map, event, result \\ nil) do

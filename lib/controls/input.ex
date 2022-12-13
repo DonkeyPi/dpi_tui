@@ -116,8 +116,8 @@ defmodule Ash.Tui.Input do
 
       _ ->
         {prefix, suffix} = String.split_at(text, cursor)
-        {prefix, _} = String.split_at(prefix, cursor - 1)
         cursor = cursor - 1
+        {prefix, _} = String.split_at(prefix, cursor)
         text = "#{prefix}#{suffix}"
         model = %{model | text: text, cursor: cursor}
         {model, trigger(model)}
@@ -152,8 +152,15 @@ defmodule Ash.Tui.Input do
         {prefix, suffix} = String.split_at(text, cursor)
         len = String.length("#{data}")
         text = "#{prefix}#{data}#{suffix}"
-        model = %{model | text: text, cursor: cursor + len}
-        {model, trigger(model)}
+
+        case String.length(text) > cols do
+          true ->
+            {model, nil}
+
+          _ ->
+            model = %{model | text: text, cursor: cursor + len}
+            {model, trigger(model)}
+        end
     end
   end
 

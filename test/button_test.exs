@@ -29,50 +29,62 @@ defmodule ButtonTest do
     # colors properly applied for each state
     button(text: "T")
     |> render()
-    |> assert("[T]", 0, @tcf_normal, @tcb_normal)
+    |> assert("[T]", 0, @tc_normal)
     |> focused(true)
     |> render()
-    |> assert("[T]", 0, @tcf_focused, @tcb_focused)
+    |> assert("[T]", 0, @tc_focused)
     |> enabled(false)
     |> render()
-    |> assert("[T]", 0, @tcf_disabled, @tcb_disabled)
+    |> assert("[T]", 0, @tc_disabled)
 
     # text is horizontally centered
     button(text: "T", size: {5, 1})
     |> render()
-    |> assert("[ T ]", 0, @tcf_normal, @tcb_normal)
+    |> assert("[ T ]", 0, @tc_normal)
 
     # text is vertically centered
     button(text: "T", size: {3, 3})
     |> render()
-    |> assert("   ", 0, @tcf_normal, @tcb_normal)
-    |> assert("[T]", 1, @tcf_normal, @tcb_normal)
-    |> assert("   ", 2, @tcf_normal, @tcb_normal)
+    |> assert("   ", 0, @tc_normal)
+    |> assert("[T]", 1, @tc_normal)
+    |> assert("   ", 2, @tc_normal)
 
     button(text: "T", size: {3, 2})
     |> render()
-    |> assert("[T]", 0, @tcf_normal, @tcb_normal)
-    |> assert("   ", 1, @tcf_normal, @tcb_normal)
+    |> assert("[T]", 0, @tc_normal)
+    |> assert("   ", 1, @tc_normal)
 
     # text is fully centered
     button(text: "T", size: {5, 3})
     |> render()
-    |> assert("     ", 0, @tcf_normal, @tcb_normal)
-    |> assert("[ T ]", 1, @tcf_normal, @tcb_normal)
-    |> assert("     ", 2, @tcf_normal, @tcb_normal)
+    |> assert("     ", 0, @tc_normal)
+    |> assert("[ T ]", 1, @tc_normal)
+    |> assert("     ", 2, @tc_normal)
 
     # excess text
     button(text: "Title", size: {5, 1})
     |> render()
-    |> assert("[Tit]", 0, @tcf_normal, @tcb_normal)
+    |> assert("[Tit]", 0, @tc_normal)
 
     # unicode
     button(text: "Tĩtlĕ")
     |> render()
-    |> assert("[Tĩtlĕ]", 0, @tcf_normal, @tcb_normal)
+    |> assert("[Tĩtlĕ]", 0, @tc_normal)
 
     button(text: "Tĩtlĕ", size: {5, 1})
     |> render()
-    |> assert("[Tĩt]", 0, @tcf_normal, @tcb_normal)
+    |> assert("[Tĩt]", 0, @tc_normal)
+
+    # triggers
+    button(text: "T")
+    |> handle(@ev_kp_trigger, {:click, :nop})
+    |> render()
+    |> assert("[T]", 0, @tc_normal)
+    |> handle(@ev_mp_left, {:click, :nop})
+    |> render()
+    |> assert("[T]", 0, @tc_normal)
+    |> handle(@ev_kp_space, {:click, :nop})
+    |> render()
+    |> assert("[T]", 0, @tc_normal)
   end
 end
