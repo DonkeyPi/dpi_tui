@@ -43,3 +43,14 @@
 - Shortcuts are not exclusibly associated to a single button.
 - Multiple buttons can be triggered at once.
 - Shortcuts are broadcasted without model inplace update.
+
+## Canvas
+
+- Canvas size is taken from size passed to term driver.
+- Root panels can have a non zero origin and be non fullscreen.
+- Modals can have a non zero origin and be non fullscreen as well.
+- The region no covered by the root panel gets the term back color.
+- Root panels can change bounds on the go.
+- The uncovered regions must be painted back to terms default.
+- Term has fixed defaults to white and black for fore and back colors.
+- Modals are not clipped by the root panel.

@@ -1,8 +1,6 @@
 defmodule Ash.ControlTest do
   use ExUnit.Case
-  use Ash.Tui.Aliases
-  use Ash.Tui.Colors
-  use Ash.Tui.Events
+  use TestMacros
 
   test "common button check" do
     common_checks(Button, input?: true, button?: true)

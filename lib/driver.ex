@@ -6,8 +6,21 @@ defmodule Ash.Tui.Driver do
   alias Ash.Tui.Control
   alias Ash.Tui.Theme
 
-  defp get(key), do: Process.get({__MODULE__, key})
-  defp put(key, data), do: Process.put({__MODULE__, key}, data)
+  defp get(key, value \\ nil), do: Process.get({__MODULE__, key}, value)
+  defp put(key, value), do: Process.put({__MODULE__, key}, value)
+
+  defp color(key, value, opts) do
+    <<
+      r::binary-size(2),
+      g::binary-size(2),
+      b::binary-size(2)
+    >> = Keyword.get(opts, key, value)
+
+    r = String.to_integer(r, 16)
+    g = String.to_integer(g, 16)
+    b = String.to_integer(b, 16)
+    {r, g, b}
+  end
 
   def start(opts) do
     {term, opts} = Keyword.pop!(opts, :term)
@@ -15,10 +28,12 @@ defmodule Ash.Tui.Driver do
     opts = Term.opts()
     cols = Keyword.fetch!(opts, :cols)
     rows = Keyword.fetch!(opts, :rows)
+    put(:back, color(:bgcolor, "000000", opts))
+    put(:fore, color(:fgcolor, "FFFFFF", opts))
     put(:canvas, Canvas.new(cols, rows))
-    put(:modal, nil)
     put(:module, nil)
     put(:model, nil)
+    put(:modal, nil)
     put(:cols, cols)
     put(:rows, rows)
     put(:tree, %{})
@@ -131,16 +146,19 @@ defmodule Ash.Tui.Driver do
 
     theme = Theme.get(id, module, model)
 
-    canvas1 = Canvas.new(cols, rows)
-    canvas2 = Canvas.new(cols, rows)
+    opts = [bg: get(:back), fg: get(:fore)]
+    canvas2 = Canvas.new(cols, rows, opts)
+    bounds = module.bounds(model)
+    canvas2 = Canvas.push(canvas2, bounds)
     canvas2 = module.render(model, canvas2, theme)
+    canvas2 = Canvas.pop(canvas2)
 
     canvas2 =
       case modal do
         nil ->
           canvas2
 
-        {id, module, model} ->
+        {[id | _], module, model} ->
           theme = Theme.get(id, module, model)
           bounds = module.bounds(model)
           canvas2 = Canvas.modal(canvas2)
@@ -149,47 +167,21 @@ defmodule Ash.Tui.Driver do
           Canvas.pop(canvas2)
       end
 
-    # FIXME pass canvas1 to optimize with diff
+    canvas1 = Canvas.new(cols, rows, opts)
+    canvas1 = get(:canvas, canvas1)
+
     data =
       encode(canvas1, canvas2, fn command, param ->
         Term.encode(command, param)
       end)
 
-    :ok = Term.write("c#{data}")
+    :ok = Term.write("#{data}")
     put(:canvas, canvas2)
     :ok
   end
 
   defp encode(canvas1, canvas2, encoder) do
-    {cursor1, _, _} = Canvas.get(canvas1, :cursor)
-    {cursor2, _, _} = Canvas.get(canvas2, :cursor)
     diff = Canvas.diff(canvas1, canvas2)
-    # do not hide cursor for empty or cursor only diffs
-    # hide cursor before write or move and then restore
-    diff =
-      case diff do
-        [] ->
-          diff
-
-        [{:c, _}] ->
-          diff
-
-        _ ->
-          case {cursor1, cursor2} do
-            {true, true} ->
-              diff = [{:c, true} | diff]
-              diff = :lists.reverse(diff)
-              [{:c, false} | diff]
-
-            {true, false} ->
-              diff = :lists.reverse(diff)
-              [{:c, false} | diff]
-
-            _ ->
-              :lists.reverse(diff)
-          end
-      end
-
     data = Canvas.encode(encoder, diff)
     IO.iodata_to_binary(data)
   end

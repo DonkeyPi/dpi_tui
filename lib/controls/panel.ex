@@ -190,7 +190,21 @@ defmodule Ash.Tui.Panel do
 
   def handle(model, _event), do: {model, nil}
 
-  def render(%{index: index, children: children}, canvas, _theme) do
+  def render(%{index: index, children: children} = model, canvas, theme) do
+    %{size: {cols, rows}} = model
+
+    canvas = Canvas.color(canvas, :fore, theme.({:fore, :normal}))
+    canvas = Canvas.color(canvas, :back, theme.({:back, :normal}))
+
+    line = String.duplicate(" ", cols)
+
+    canvas =
+      for r <- 0..(rows - 1), reduce: canvas do
+        canvas ->
+          canvas = Canvas.move(canvas, 0, r)
+          Canvas.write(canvas, line)
+      end
+
     for id <- index, reduce: canvas do
       canvas ->
         momo = Map.get(children, id)

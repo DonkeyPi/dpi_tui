@@ -14,14 +14,15 @@ end
 defmodule TestColors do
   defmacro __using__(_) do
     quote do
-      @tcf_normal 0x01
-      @tcb_normal 0x02
-      @tcf_focused 0x03
-      @tcb_focused 0x04
-      @tcf_disabled 0x05
-      @tcb_disabled 0x06
-      @tcf_selected 0x07
-      @tcb_selected 0x08
+      # > 16 to avoid collision with canvas defaults
+      @tcf_normal 0x11
+      @tcb_normal 0x12
+      @tcf_focused 0x13
+      @tcb_focused 0x14
+      @tcf_disabled 0x15
+      @tcb_disabled 0x16
+      @tcf_selected 0x17
+      @tcb_selected 0x18
 
       @tc_normal :normal
       @tc_focused :focused
@@ -70,6 +71,8 @@ defmodule TestImports do
     %{map | module: module, model: model}
   end
 
+  def get(map, key), do: map[key]
+
   def button(props \\ []), do: init(Button, props)
   def button(maps, props), do: add(maps, Button, props)
   def checkbox(props \\ []), do: init(Checkbox, props)
@@ -98,24 +101,6 @@ defmodule TestImports do
     %{map | module: module, model: model}
   end
 
-  def render(map, cols, rows) do
-    Theme.set(TestTheme)
-    bounds = map.module.bounds(map.model)
-    canvas = Canvas.new(cols, rows)
-    canvas = Canvas.push(canvas, bounds)
-    module = map.module
-    model = map.model
-    theme = Theme.get(:id, module, model)
-    canvas = module.render(model, canvas, theme)
-    canvas = Canvas.pop(canvas)
-    Map.put(map, :canvas, canvas)
-  end
-
-  def render(map) do
-    {ox, oy, cols, rows} = map.module.bounds(map.model)
-    render(map, cols + 2 * ox, rows + 2 * oy)
-  end
-
   defp dump_item(map, item) do
     IO.inspect(Map.get(map, item))
     map
@@ -136,17 +121,45 @@ defmodule TestImports do
   def dump(map, :model), do: dump_item(map, :model)
   def dump(map, id), do: dump_momo(map, id)
 
-  def assert(map, text, y, false), do: assert_cursor(map, text, y, false)
-  def assert(map, text, y, cx) when is_integer(cx), do: assert_cursor(map, text, y, cx)
+  def check(map, diff) when is_list(diff), do: assert_diff(map, diff)
+  def check(map, text, y, false), do: assert_cursor(map, text, y, false)
+  def check(map, text, y, cx) when is_integer(cx), do: assert_cursor(map, text, y, cx)
 
-  def assert(map, text, xy, color) when is_atom(color) do
+  def check(map, text, xy, color) when is_atom(color) do
     case map do
       %{module: Radio} -> assert_color(map, text, xy, 0, color)
       _ -> assert_color(map, text, 0, xy, color)
     end
   end
 
-  def assert(map, text, x, y, color) when is_atom(color), do: assert_color(map, text, x, y, color)
+  def check(map, text, x, y, color) when is_atom(color), do: assert_color(map, text, x, y, color)
+
+  defp assert_diff(map, diff) do
+    canvas2 = map.canvas
+    {cols, rows} = Canvas.get(canvas2, :size)
+    canvas1 = Canvas.new(cols, rows)
+    diff1 = Canvas.diff(canvas1, canvas2)
+    assert diff1 == diff
+    map
+  end
+
+  def render(map, cols, rows) do
+    Theme.set(TestTheme)
+    canvas = Canvas.new(cols, rows)
+    module = map.module
+    model = map.model
+    bounds = module.bounds(model)
+    canvas = Canvas.push(canvas, bounds)
+    theme = Theme.get(:id, module, model)
+    canvas = module.render(model, canvas, theme)
+    canvas = Canvas.pop(canvas)
+    Map.put(map, :canvas, canvas)
+  end
+
+  def render(map) do
+    {ox, oy, cols, rows} = map.module.bounds(map.model)
+    render(map, cols + 2 * ox, rows + 2 * oy)
+  end
 
   defp assert_color(map, text, x, y, color) when is_atom(color) do
     fg = get_color(:fore, color)

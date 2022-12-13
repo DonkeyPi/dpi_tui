@@ -1,29 +1,29 @@
 defmodule Ash.Tui.Canvas do
   use Ash.Tui.Colors
 
-  @cell {' ', @white, @black}
+  def new(cols, rows, opts \\ []) do
+    fg = Keyword.get(opts, :fg, @white)
+    bg = Keyword.get(opts, :bg, @black)
 
-  def new(cols, rows) do
     %{
       x: 0,
       y: 0,
       data: %{},
       cols: cols,
       rows: rows,
-      # cell: @cell,
+      cell: {' ', fg, bg},
       cursor: {false, 0, 0},
-      fore: @white,
-      back: @black,
+      fore: fg,
+      back: bg,
       clip: {0, 0, cols, rows},
       clips: []
     }
   end
 
-  def modal(canvas) do
-    %{cols: cols, rows: rows} = canvas
-    %{data: data} = canvas
-    canvas = new(cols, rows)
-    data = for {key, {d, _, _}} <- data, do: {key, {d, @black2, @black}}
+  def modal(canvas, opts \\ []) do
+    fg = Keyword.get(opts, :fg, @black2)
+    bg = Keyword.get(opts, :bg, @black)
+    data = for {key, {d, _, _}} <- canvas.data, do: {key, {d, fg, bg}}
     data = Enum.into(data, %{})
     %{canvas | data: data}
   end
@@ -52,13 +52,9 @@ defmodule Ash.Tui.Canvas do
     %{canvas | clip: clip}
   end
 
-  def get(%{cols: cols, rows: rows}, :size) do
-    {cols, rows}
-  end
-
-  def get(%{cursor: cursor}, :cursor) do
-    cursor
-  end
+  def get(%{cols: cols, rows: rows}, :size), do: {cols, rows}
+  def get(%{cell: cell}, :cell), do: cell
+  def get(%{cursor: cursor}, :cursor), do: cursor
 
   def clear(canvas, :colors) do
     %{canvas | fore: @white, back: @black}
@@ -94,98 +90,142 @@ defmodule Ash.Tui.Canvas do
     mx = cx + cw
     my = cy + ch
 
-    {data, x, y} =
-      chardata
-      |> IO.chardata_to_string()
-      |> String.to_charlist()
-      |> Enum.reduce_while({data, x, y}, fn c, {data, x, y} ->
-        case x < cx or y < cy or x >= mx or y >= my do
-          true ->
-            {:halt, {data, x, y}}
+    if y < cy or y >= my do
+      canvas
+    else
+      {data, x} =
+        chardata
+        |> IO.chardata_to_string()
+        |> String.to_charlist()
+        |> Enum.reduce_while({data, x}, fn c, {data, x} ->
+          case x < cx or x >= mx do
+            true ->
+              # don't write, but walk the path
+              {:cont, {data, x + 1}}
 
-          false ->
-            data = Map.put(data, {x, y}, {c, fg, bg})
-            {:cont, {data, x + 1, y}}
-        end
-      end)
+            _ ->
+              data = Map.put(data, {x, y}, {c, fg, bg})
+              {:cont, {data, x + 1}}
+          end
+        end)
 
-    %{canvas | data: data, x: x, y: y}
+      %{canvas | data: data, x: x}
+    end
   end
 
   def diff(canvas1, canvas2) do
     %{
+      x: x1,
+      y: y1,
+      cell: cell1,
       data: data1,
       rows: rows,
       cols: cols,
-      cursor: {cursor1, x1, y1},
       back: b1,
-      fore: f1
+      fore: f1,
+      cursor: {c1, cx1, cy1}
     } = canvas1
 
     %{
+      x: x2,
+      y: y2,
+      back: b2,
+      fore: f2,
+      cell: cell2,
       data: data2,
       rows: ^rows,
-      cols: ^cols
+      cols: ^cols,
+      cursor: {c2, cx2, cy2}
     } = canvas2
+
+    # when the cursor is enabled it becomes the new end point
+    {x1, y1} =
+      case c1 do
+        true -> {cx1, cy1}
+        false -> {x1, y1}
+      end
 
     {list, f, b, x, y} =
       for row <- 0..(rows - 1), col <- 0..(cols - 1), reduce: {[], f1, b1, x1, y1} do
-        {list, f0, b0, x, y} ->
-          cel1 = Map.get(data1, {col, row}, @cell)
-          cel2 = Map.get(data2, {col, row}, @cell)
+        {list, f, b, x, y} ->
+          cel1 = Map.get(data1, {col, row}, cell1)
+          cel2 = Map.get(data2, {col, row}, cell2)
 
           case cel2 == cel1 do
             true ->
-              {list, f0, b0, x, y}
+              {list, f, b, x, y}
 
             false ->
-              {c2, f2, b2} = cel2
+              {d2, f2, b2} = cel2
 
               list =
-                case {x, y} == {col, row} do
+                case x == col do
                   true ->
                     list
 
                   false ->
-                    [{:m, col, row} | list]
+                    [{:x, col} | list]
                 end
 
               list =
-                case b0 == b2 do
-                  true -> list
-                  false -> [{:b, b2} | list]
+                case y == row do
+                  true ->
+                    list
+
+                  false ->
+                    [{:y, row} | list]
                 end
 
               list =
-                case f0 == f2 do
+                case f == f2 do
                   true -> list
                   false -> [{:f, f2} | list]
                 end
 
-              # to update styles write c2 even if same to c1
               list =
-                case list do
-                  [{:d, d} | tail] -> [{:d, [c2 | d]} | tail]
-                  _ -> [{:d, [c2]} | list]
+                case b == b2 do
+                  true -> list
+                  false -> [{:b, b2} | list]
                 end
 
-              row = row + div(col + 1, cols)
-              col = rem(col + 1, cols)
-              {list, f2, b2, col, row}
+              # to update fore and back the char needs to
+              # be written even if it did not changed
+              list =
+                case list do
+                  [{:d, dd} | tail] -> [{:d, [d2 | dd]} | tail]
+                  _ -> [{:d, [d2]} | list]
+                end
+
+              # term does not wrap x around
+              {list, f2, b2, col + 1, row}
           end
       end
 
-    # restore canvas2 styles and cursor
-    %{
-      cursor: {cursor2, x2, y2},
-      back: b2,
-      fore: f2
-    } = canvas2
+    # when the cursor is enabled it becomes the new end point
+    {list, x2, y2} =
+      case {c1 == c2, c2} do
+        {true, true} -> {list, cx2, cy2}
+        {true, false} -> {list, x2, y2}
+        {false, true} -> {[{:c, c2} | list], cx2, cy2}
+        {false, false} -> {[{:c, c2} | list], x2, y2}
+      end
 
     list =
-      case b == b2 do
-        true -> list
-        false -> [{:b, b2} | list]
+      case x == x2 do
+        true ->
+          list
+
+        false ->
+          [{:x, x2} | list]
+      end
+
+    list =
+      case y == y2 do
+        true ->
+          list
+
+        false ->
+          [{:y, y2} | list]
       end
 
     list =
@@ -195,18 +235,20 @@ defmodule Ash.Tui.Canvas do
       end
 
     list =
-      case {x, y} == {x2, y2} do
+      case b == b2 do
         true -> list
-        false -> [{:m, x2, y2} | list]
+        false -> [{:b, b2} | list]
       end
 
     list =
-      case cursor1 == cursor2 do
-        true -> list
-        false -> [{:c, cursor2} | list]
+      for item <- list do
+        case item do
+          {:d, d} -> {:d, Enum.reverse(d)}
+          other -> other
+        end
       end
 
-    list
+    list |> Enum.reverse()
   end
 
   def encode(encoder, list) when is_list(list) do
@@ -216,13 +258,17 @@ defmodule Ash.Tui.Canvas do
 
   defp encode(_, list, []), do: list
 
-  defp encode(encoder, list, [{:m, x, y} | tail]) do
-    d = encoder.(:move, {x, y})
+  defp encode(encoder, list, [{:x, x} | tail]) do
+    d = encoder.(:x, x)
+    encode(encoder, [d | list], tail)
+  end
+
+  defp encode(encoder, list, [{:y, y} | tail]) do
+    d = encoder.(:y, y)
     encode(encoder, [d | list], tail)
   end
 
   defp encode(encoder, list, [{:d, d} | tail]) do
-    d = :lists.reverse(d)
     d = encoder.(:text, d)
     encode(encoder, [d | list], tail)
   end
