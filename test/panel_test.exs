@@ -240,7 +240,7 @@ defmodule PanelTest do
     assert elem(inner.children.c0, 1).focused == true
     inner = elem(panel.children.p1, 1)
     assert elem(inner.children.c0, 1).focused == false
-    {panel, {:p1, {:c0, {:click, :nop}}}} = Panel.handle(panel, @ev_mp_left)
+    {panel, {:p1, {:c0, {:click, :nop}}}} = Panel.handle(panel, ev_mp_left(0, 0))
     inner = elem(panel.children.p0, 1)
     assert inner.focused == false
     assert elem(inner.children.c0, 1).focused == false

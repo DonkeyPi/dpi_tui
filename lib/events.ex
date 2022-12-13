@@ -21,7 +21,7 @@ defmodule Ash.Tui.Events do
       @ev_kp_enter %{type: :key, action: :press, key: :return, flag: :none}
       @ev_kp_trigger %{type: :key, action: :press, key: :return, flag: :control}
 
-      @ev_mp_left %{type: :mouse, action: :press, key: :bleft, x: 0, y: 0, flag: :none}
+      @ev_mp_left %{type: :mouse, action: :press, key: :bleft, flag: :none}
 
       @ev_ms_up %{type: :mouse, action: :scroll, dir: :up, flag: :none}
       @ev_ms_down %{type: :mouse, action: :scroll, dir: :down, flag: :none}

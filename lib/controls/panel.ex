@@ -66,10 +66,12 @@ defmodule Ash.Tui.Panel do
           if Map.has_key?(children, id), do: raise("Duplicated child id: #{id}")
           focused = momo_focused(child)
           focusable = momo_focusable(child)
+          modal = momo_modal(child)
 
+          # Do not undo auto focus for modals.
           child =
-            case {focused, focusable} do
-              {true, false} -> momo_focused(child, false, :next)
+            case {focused, focusable, modal} do
+              {true, false, false} -> momo_focused(child, false, :next)
               _ -> child
             end
 
@@ -92,6 +94,7 @@ defmodule Ash.Tui.Panel do
     check(model)
   end
 
+  # Modals have absolute positioning. Offset begins at modal.
   def handle(
         %{origin: {x, y}} = model,
         {:modal, [], %{type: :mouse, x: mx, y: my} = event}
@@ -162,7 +165,7 @@ defmodule Ash.Tui.Panel do
 
   # Shortcuts are broadcasted without focus pre-assigment.
   # The matching button wont get focused either.
-  def handle(%{index: index, children: children} = model, {:shortcut, _} = event) do
+  def handle(%{index: index, children: children} = model, {:shortcut, _, _} = event) do
     Enum.each(index, fn id ->
       momo = Map.get(children, id)
 
@@ -349,6 +352,7 @@ defmodule Ash.Tui.Panel do
   defp momo_findex({module, model}), do: module.findex(model)
   defp momo_focusable({module, model}), do: module.focusable(model)
   defp momo_focused({module, model}), do: module.focused(model)
+  defp momo_modal({module, model}), do: module.modal(model)
 
   # Modal or hidden panels are not rendered.
   defp momo_render({module, model}, canvas, id) do

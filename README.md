@@ -41,3 +41,4 @@
 - Buttons with a matching shortcut get triggered.
 - Shortcuts are not exclusibly associated to a single button.
 - Multiple buttons can be triggered at once.
+- Shortcuts are broadcasted without model inplace update.

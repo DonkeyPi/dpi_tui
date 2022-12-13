@@ -1,5 +1,6 @@
 defmodule Ash.Tui.Driver do
   @behaviour Ash.React.Driver
+  use Ash.Tui.Events
   alias Ash.Tui.Term
   alias Ash.Tui.Canvas
   alias Ash.Tui.Control
@@ -15,16 +16,35 @@ defmodule Ash.Tui.Driver do
     cols = Keyword.fetch!(opts, :cols)
     rows = Keyword.fetch!(opts, :rows)
     put(:canvas, Canvas.new(cols, rows))
+    put(:modal, nil)
     put(:module, nil)
     put(:model, nil)
     put(:cols, cols)
     put(:rows, rows)
     put(:tree, %{})
+    put(:ids, [])
     put(:id, nil)
     :ok
   end
 
   def opts(), do: Term.opts()
+
+  def push(id) do
+    ids = get(:ids)
+
+    if ids == [] do
+      put(:modal, nil)
+    end
+
+    put(:ids, [id | ids])
+    :ok
+  end
+
+  def pop() do
+    [_ | tail] = get(:ids)
+    put(:ids, tail)
+    :ok
+  end
 
   # On root node it captures module, model, and id
   # and appends extra props [root: true].
@@ -49,6 +69,14 @@ defmodule Ash.Tui.Driver do
       put(:module, module)
       put(:model, model)
       put(:id, id)
+    else
+      modal = module.modal(model)
+      visible = module.visible(model)
+
+      if modal and visible do
+        [_ | ids] = Enum.reverse(ids)
+        put(:modal, {ids, module, model})
+      end
     end
 
     {module, model}
@@ -62,11 +90,28 @@ defmodule Ash.Tui.Driver do
   def handle({:event, event}) do
     module = get(:module)
     model = get(:model)
+    modal = get(:modal)
     id = get(:id)
-    # FIXME what is event for?
-    # FIXME ensure event always returns nil
+
+    event =
+      case event do
+        %{type: :key, action: action, key: key, flag: :none} when key in @shortcuts ->
+          {:shortcut, key, action}
+
+        _ ->
+          event
+      end
+
+    event =
+      case modal do
+        nil -> event
+        {id, _module, _model} -> {:modal, id, event}
+      end
+
+    # Events that trigger an on_XXX handler return
+    # the handler return value nested in path tuples
+    # like {:p0, {:c0, {:click, :nop}}}
     {model, _event} = module.handle(model, event)
-    # IO.inspect({:handle, _event})
     tree = Control.tree({module, model}, [id])
     put(:model, model)
     put(:tree, tree)
@@ -76,6 +121,7 @@ defmodule Ash.Tui.Driver do
   def render(id, {module, model}) do
     cols = get(:cols)
     rows = get(:rows)
+    modal = get(:modal)
 
     theme = Theme.get(id, module, model)
 
@@ -83,13 +129,27 @@ defmodule Ash.Tui.Driver do
     canvas2 = Canvas.new(cols, rows)
     canvas2 = module.render(model, canvas2, theme)
 
+    canvas2 =
+      case modal do
+        nil ->
+          canvas2
+
+        {id, module, model} ->
+          theme = Theme.get(id, module, model)
+          bounds = module.bounds(model)
+          canvas2 = Canvas.modal(canvas2)
+          canvas2 = Canvas.push(canvas2, bounds)
+          canvas2 = module.render(model, canvas2, theme)
+          Canvas.pop(canvas2)
+      end
+
     # FIXME pass canvas1 to optimize with diff
     data =
       encode(canvas1, canvas2, fn command, param ->
         Term.encode(command, param)
       end)
 
-    :ok = Term.write("#{data}")
+    :ok = Term.write("c#{data}")
     put(:canvas, canvas2)
     :ok
   end

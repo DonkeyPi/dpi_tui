@@ -23,7 +23,7 @@ defmodule CheckboxTest do
     # triggers: left click, space, ctrl+enter
     model1 = %{on_change: &Checkbox.nop/1, checked: false}
     model2 = %{on_change: &Checkbox.nop/1, checked: true}
-    assert Checkbox.handle(model1, @ev_mp_left) == {model2, {:checked, true, {:nop, true}}}
+    assert Checkbox.handle(model1, ev_mp_left(0, 0)) == {model2, {:checked, true, {:nop, true}}}
     assert Checkbox.handle(model1, @ev_kp_space) == {model2, {:checked, true, {:nop, true}}}
     assert Checkbox.handle(model2, @ev_kp_trigger) == {model2, {:checked, true, {:nop, true}}}
 
@@ -60,7 +60,7 @@ defmodule CheckboxTest do
     |> handle(@ev_kp_trigger, {:checked, true, {:nop, true}})
     |> render()
     |> assert("[X]T", 0, @tc_normal)
-    |> handle(@ev_mp_left, {:checked, false, {:nop, false}})
+    |> handle(ev_mp_left(0, 0), {:checked, false, {:nop, false}})
     |> render()
     |> assert("[ ]T", 0, @tc_normal)
     |> handle(@ev_kp_space, {:checked, true, {:nop, true}})
@@ -69,7 +69,7 @@ defmodule CheckboxTest do
     |> handle(@ev_kp_space, {:checked, false, {:nop, false}})
     |> render()
     |> assert("[ ]T", 0, @tc_normal)
-    |> handle(@ev_mp_left, {:checked, true, {:nop, true}})
+    |> handle(ev_mp_left(0, 0), {:checked, true, {:nop, true}})
     |> render()
     |> assert("[X]T", 0, @tc_normal)
   end

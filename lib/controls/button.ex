@@ -70,7 +70,7 @@ defmodule Ash.Tui.Button do
   def handle(model, @ev_kp_trigger), do: trigger(model)
   def handle(model, @ev_kp_space), do: trigger(model)
   def handle(model, @ev_mp_left), do: trigger(model)
-  def handle(%{shortcut: shortcut} = model, {:shortcut, shortcut}), do: trigger(model)
+  def handle(%{shortcut: shortcut} = model, {:shortcut, shortcut, :press}), do: trigger(model)
   def handle(model, _event), do: {model, nil}
 
   def render(model, canvas, theme) do
