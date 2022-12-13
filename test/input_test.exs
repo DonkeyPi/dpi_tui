@@ -1,4 +1,4 @@
-defmodule InputTest do
+defmodule Ash.InputTest do
   use ExUnit.Case
   use TestMacros
 

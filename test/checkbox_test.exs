@@ -1,4 +1,4 @@
-defmodule CheckboxTest do
+defmodule Ash.CheckboxTest do
   use ExUnit.Case
   use TestMacros
 

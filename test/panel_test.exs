@@ -1,4 +1,4 @@
-defmodule PanelTest do
+defmodule Ash.PanelTest do
   use ExUnit.Case
   use TestMacros
 

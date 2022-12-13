@@ -1,4 +1,4 @@
-defmodule FocusTest do
+defmodule Ash.FocusTest do
   use ExUnit.Case
   use Ash.Tui.Aliases
   use Ash.Tui.Events

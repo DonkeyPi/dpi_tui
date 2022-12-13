@@ -1,4 +1,4 @@
-defmodule ControlTest do
+defmodule Ash.ControlTest do
   use ExUnit.Case
   use Ash.Tui.Aliases
   use Ash.Tui.Colors
