@@ -107,6 +107,7 @@ defmodule ControlTest do
     # children getter
     if panel? do
       assert module.children(%{children: nil, index: []}) == []
+      assert module.children(%{children: %{0 => 0, 1 => 1}, index: [0, 1]}) == [{0, 0}, {1, 1}]
     else
       assert module.children(:state) == []
       assert module.children(:state, []) == :state
@@ -137,13 +138,13 @@ defmodule ControlTest do
       assert module.children(:state, []) == :state
     else
       initial = module.init()
-      children = [{0, {module, initial}}]
+      children = [{0, {module, initial}}, {1, {module, initial}}]
 
       assert module.children(initial, children) == %{
                initial
-               | index: [0],
-                 children: %{0 => {module, initial}},
-                 focusables: %{0 => false}
+               | index: [0, 1],
+                 children: %{0 => {module, initial}, 1 => {module, initial}},
+                 focusables: %{0 => false, 1 => false}
              }
     end
   end

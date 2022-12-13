@@ -53,9 +53,7 @@ defmodule Ash.Tui.Panel do
   end
 
   def children(%{index: index, children: children}) do
-    for id <- index, reduce: [] do
-      list -> [{id, children[id]} | list]
-    end
+    for id <- index, do: {id, children[id]}
   end
 
   def children(model, children) do
@@ -82,7 +80,7 @@ defmodule Ash.Tui.Panel do
 
     model = Map.put(model, :focusables, focusables)
     model = Map.put(model, :children, children)
-    model = Map.put(model, :index, index)
+    model = Map.put(model, :index, index |> Enum.reverse())
     recalculate(model, :next)
   end
 
@@ -134,25 +132,38 @@ defmodule Ash.Tui.Panel do
         %{focus: focus, index: index, children: children} = model,
         %{type: :mouse, x: mx, y: my} = event
       ) do
+    # top to bottom
+    index = Enum.reverse(index)
+
     Enum.find_value(index, {model, nil}, fn id ->
       momo = Map.get(children, id)
       focusable = momo_focusable(momo)
+      visible = momo_visible(momo)
       bounds = momo_bounds(momo)
       client = toclient(bounds, mx, my)
-
-      case {focusable, client, focus} do
-        {false, _, _} ->
+      # Invisible modals are implicitly ignored.
+      # Visible modals would ignore events because they are not focusabled.
+      # Visible modals nested in visible modal would ignore events for same reason.
+      #
+      # This does not (should not) impact modals event handling.
+      # The support for modals and nested modals depends on which
+      # modal gets detected and cached by the driver.
+      case {focusable, visible, client, focus == id} do
+        {_, false, _, _} ->
           false
 
-        {_, false, _} ->
+        {_, _, false, _} ->
           false
 
-        {_, {dx, dy}, ^id} ->
+        {false, _, _, _} ->
+          {model, nil}
+
+        {_, _, {dx, dy}, true} ->
           event = %{event | x: dx, y: dy}
           {momo, event} = momo_handle(momo, event)
           child_event(model, momo, event)
 
-        {_, {dx, dy}, _} ->
+        {_, _, {dx, dy}, _} ->
           model = unfocus(model)
           model = %{model | focus: id}
           momo = momo_focused(momo, true, :next)
@@ -180,7 +191,7 @@ defmodule Ash.Tui.Panel do
   def handle(model, _event), do: {model, nil}
 
   def render(%{index: index, children: children}, canvas, _theme) do
-    for id <- Enum.reverse(index), reduce: canvas do
+    for id <- index, reduce: canvas do
       canvas ->
         momo = Map.get(children, id)
         momo_render(momo, canvas, id)
@@ -314,12 +325,12 @@ defmodule Ash.Tui.Panel do
     end
   end
 
-  defp focus_list(model, :next) do
-    index = focus_list(model, :prev)
+  defp focus_list(model, :prev) do
+    index = focus_list(model, :next)
     Enum.reverse(index)
   end
 
-  defp focus_list(model, :prev) do
+  defp focus_list(model, :next) do
     %{index: index} = model
     index = Enum.filter(index, &child_focusable(model, &1))
     Enum.sort(index, &focus_compare(model, &1, &2))
@@ -352,6 +363,7 @@ defmodule Ash.Tui.Panel do
   defp momo_findex({module, model}), do: module.findex(model)
   defp momo_focusable({module, model}), do: module.focusable(model)
   defp momo_focused({module, model}), do: module.focused(model)
+  defp momo_visible({module, model}), do: module.visible(model)
   defp momo_modal({module, model}), do: module.modal(model)
 
   # Modal or hidden panels are not rendered.

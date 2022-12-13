@@ -62,17 +62,41 @@ defmodule TestImports do
 
   defp init(module, props) do
     model = module.init(props)
-    %{module: module, model: model, models: %{}}
+    %{module: module, model: model, momos: %{}}
+  end
+
+  defp add(map, module, props) do
+    model = module.init(props)
+    %{map | module: module, model: model}
   end
 
   def button(props \\ []), do: init(Button, props)
+  def button(maps, props), do: add(maps, Button, props)
   def checkbox(props \\ []), do: init(Checkbox, props)
+  def checkbox(maps, props), do: add(maps, Checkbox, props)
   def frame(props \\ []), do: init(Frame, props)
+  def frame(maps, props), do: add(maps, Frame, props)
   def label(props \\ []), do: init(Label, props)
+  def label(maps, props), do: add(maps, Label, props)
   def input(props \\ []), do: init(Input, props)
+  def input(maps, props), do: add(maps, Input, props)
   def select(props \\ []), do: init(Select, props)
+  def select(maps, props), do: add(maps, Select, props)
   def radio(props \\ []), do: init(Radio, props)
+  def radio(maps, props), do: add(maps, Radio, props)
   def panel(props \\ []), do: init(Panel, props)
+  def panel(maps, props), do: add(maps, Panel, props)
+
+  def save(map, id) do
+    momo = {map.module, map.model}
+    momos = Map.put(map.momos, id, momo)
+    Map.put(map, :momos, momos)
+  end
+
+  def restore(map, id) do
+    {module, model} = Map.fetch!(map.momos, id)
+    %{map | module: module, model: model}
+  end
 
   def render(map, cols, rows) do
     Theme.set(TestTheme)
@@ -97,8 +121,20 @@ defmodule TestImports do
     map
   end
 
+  defp dump_curr(map) do
+    IO.inspect({map.module, map.model})
+    map
+  end
+
+  defp dump_momo(map, id) do
+    IO.inspect(map.momos[id])
+    map
+  end
+
+  def dump(map), do: dump_curr(map)
   def dump(map, :canvas), do: dump_item(map, :canvas)
   def dump(map, :model), do: dump_item(map, :model)
+  def dump(map, id), do: dump_momo(map, id)
 
   def assert(map, text, y, false), do: assert_cursor(map, text, y, false)
   def assert(map, text, y, cx) when is_integer(cx), do: assert_cursor(map, text, y, cx)
@@ -177,26 +213,65 @@ defmodule TestImports do
     Map.put(map, :model, model)
   end
 
-  defp update(map, prop, value) do
-    model = map.module.update(map.model, [{prop, value}])
+  def update(map, props) do
+    model = map.module.update(map.model, props)
     Map.put(map, :model, model)
   end
 
-  defp put(map, prop, value) do
-    model = Map.put(map.model, prop, value)
+  def update(map, id, props) do
+    {module, model} = map.model.children[id]
+    model = module.update(model, props)
+    child = {module, model}
+    module = map.module
+    model = map.model
+    children = module.children(model)
+    children = Keyword.replace!(children, id, child)
+    model = module.children(model, children)
+    %{map | module: module, model: model}
+  end
+
+  def put(map, props) do
+    props = Enum.into(props, %{})
+    model = Map.merge(map.model, props)
     Map.put(map, :model, model)
   end
 
-  def enabled(map, enabled), do: update(map, :enabled, enabled)
-  def checked(map, checked), do: update(map, :checked, checked)
-  def size(map, size), do: update(map, :size, size)
-  def text(map, text), do: update(map, :text, text)
-  def align(map, align), do: update(map, :align, align)
-  def password(map, password), do: update(map, :password, password)
-  def selected(map, selected), do: update(map, :selected, selected)
-  def cursor(map, cursor), do: put(map, :cursor, cursor)
+  def put(map, id, props) do
+    props = Enum.into(props, %{})
+    {module, model} = map.model.children[id]
+    model = Map.merge(model, props)
+    child = {module, model}
+    module = map.module
+    model = map.model
+    children = module.children(model)
+    children = Keyword.replace!(children, id, child)
+    model = module.children(model, children)
+    %{map | module: module, model: model}
+  end
+
+  def enabled(map, enabled), do: update(map, enabled: enabled)
+  def checked(map, checked), do: update(map, checked: checked)
+  def size(map, size), do: update(map, size: size)
+  def text(map, text), do: update(map, text: text)
+  def align(map, align), do: update(map, align: align)
+  def password(map, password), do: update(map, password: password)
+  def selected(map, selected), do: update(map, selected: selected)
+  def cursor(map, cursor), do: put(map, cursor: cursor)
 
   def children(map, children) do
+    children =
+      case Keyword.keyword?(children) do
+        true ->
+          children
+
+        _ ->
+          momos = map.momos
+
+          for id <- children do
+            {id, Map.fetch!(momos, id)}
+          end
+      end
+
     model = map.module.children(map.model, children)
     Map.put(map, :model, model)
   end

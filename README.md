@@ -31,6 +31,7 @@
 - The modal model is rendered on top of a dimmed root model.
 - The last visited and closest to root modal gets selected.
 - No modal nesting is supported at this time.
+- Support for nested modals requires keeping an stack for dimmed rendering.
 
 ## Shortcuts
 

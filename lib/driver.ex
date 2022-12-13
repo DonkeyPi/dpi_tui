@@ -75,6 +75,12 @@ defmodule Ash.Tui.Driver do
 
       if modal and visible do
         [_ | ids] = Enum.reverse(ids)
+
+        case get(:modal) do
+          nil -> :ok
+          {id2, _, _} -> raise "Duplicated modal #{ids} and #{id2}"
+        end
+
         put(:modal, {ids, module, model})
       end
     end

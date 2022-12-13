@@ -38,6 +38,26 @@ defmodule PanelTest do
     |> children(l0: l0, l1: l1)
     |> render()
     |> assert("0", 0, @tc_normal)
+
+    # modal wont render (visible or invisible)
+    label(text: "abc")
+    |> save(:label1)
+    |> label(text: "xyz")
+    |> save(:label2)
+    |> panel(root: true, size: {3, 1}, visible: false)
+    |> children([:label2])
+    |> save(:modal)
+    |> panel(root: true, size: {3, 1})
+    |> children([:label1, :modal])
+    |> render()
+    |> assert("abc", 0, @tc_normal)
+    |> update(:modal, visible: true)
+    |> render()
+    |> assert("abc", 0, @tc_normal)
+    # root is dropped by update
+    |> put(:modal, root: false)
+    |> render()
+    |> assert("xyz", 0, @tc_normal)
   end
 
   test "panel handle check" do
@@ -55,7 +75,7 @@ defmodule PanelTest do
     {^panel, {:c0, {:click, :nop}}} = Panel.handle(panel, ev_mp_left(0, 0))
 
     # mouse changes focus with reversed order match search
-    # last in the stack mean at the top
+    # last in the index means at the top
     panel =
       Panel.children(root,
         c0: Control.init(Button, size: {1, 1}),
@@ -68,7 +88,7 @@ defmodule PanelTest do
     assert elem(panel.children.c0, 1).focused == false
     assert elem(panel.children.c1, 1).focused == true
 
-    # mouse ignores non focusables at the top
+    # mouse ignores non visibles at the top
     panel =
       Panel.children(root,
         c0: Control.init(Button, size: {1, 1}),
@@ -76,6 +96,33 @@ defmodule PanelTest do
       )
 
     {^panel, {:c0, {:click, :nop}}} = Panel.handle(panel, ev_mp_left(0, 0))
+
+    # non focusable shadows button
+    panel =
+      Panel.children(root,
+        c0: Control.init(Button, size: {1, 1}),
+        c1: Control.init(Label, size: {1, 1})
+      )
+
+    {^panel, nil} = Panel.handle(panel, ev_mp_left(0, 0))
+
+    # invisible modal wont shadow button
+    panel =
+      Panel.children(root,
+        c0: Control.init(Button, size: {1, 1}),
+        c1: Control.init(Panel, size: {1, 1}, root: true, visible: false)
+      )
+
+    {^panel, {:c0, {:click, :nop}}} = Panel.handle(panel, ev_mp_left(0, 0))
+
+    # visible modal shadows button
+    panel =
+      Panel.children(root,
+        c0: Control.init(Button, size: {1, 1}),
+        c1: Control.init(Panel, size: {1, 1}, root: true, visible: true)
+      )
+
+    {^panel, nil} = Panel.handle(panel, {:modal, [:c1], ev_mp_left(0, 0)})
 
     # keys get to nested focused control
     panel = Panel.children(normal, c0: Control.init(Button))
@@ -106,7 +153,7 @@ defmodule PanelTest do
     assert elem(inner.children.c0, 1).focused == false
     assert elem(inner.children.c1, 1).focused == true
 
-    # mouse get to second level next child converted to client coordinates
+    # mouse gets to second level next child converted to client coordinates
     panel0 = Panel.update(normal, origin: {1, 1}, size: {2, 2})
     panel0 = Panel.children(panel0, c0: Control.init(Button, origin: {1, 1}, size: {1, 1}))
     panel = Panel.update(root, size: {3, 3})
@@ -116,7 +163,7 @@ defmodule PanelTest do
     {_, {:p0, {:c0, {:click, :nop}}}} = Panel.handle(panel, ev_mp_left(2, 2))
     {_, nil} = Panel.handle(panel, ev_mp_left(3, 3))
 
-    # input get to second level next child converted to client coordinates
+    # input gets to second level next child converted to client coordinates
     panel0 = Panel.update(normal, origin: {1, 1}, size: {4, 2})
     panel0 = Panel.children(panel0, c0: Control.init(Radio, origin: {1, 1}, items: [0, 1]))
     panel = Panel.update(root, size: {5, 3})
@@ -128,7 +175,7 @@ defmodule PanelTest do
     {panel, {:p0, {:c0, {:item, 0, 0, {:nop, {0, 0}}}}}} = Panel.handle(panel, ev_mp_left(2, 2))
     {_, nil} = Panel.handle(panel, ev_mp_left(3, 3))
 
-    # input get to second level next child converted to client coordinates
+    # input gets to second level next child converted to client coordinates
     # click goes to control on unfocused branch
     panel0 = Panel.children(normal, c0: Control.init(Button))
     panel1 = Panel.update(normal, origin: {1, 1}, size: {4, 2})
@@ -176,6 +223,7 @@ defmodule PanelTest do
     panel = Panel.children(panel, c1: Control.init(Button))
     assert panel.focus == :c1
 
+    # modals use the autofocus below when made visible
     # making a root panel visible gains focus
     panel = Panel.children(hidden, c0: Control.init(Button))
     assert panel.focus == nil
