@@ -25,7 +25,7 @@ defmodule Ash.Tui.Canvas do
     bg = Keyword.get(opts, :bg, @black)
     data = for {key, {d, _, _}} <- canvas.data, do: {key, {d, fg, bg}}
     data = Enum.into(data, %{})
-    %{canvas | data: data}
+    %{canvas | data: data, cursor: {false, 0, 0}}
   end
 
   def push(%{clips: clips} = canvas, bounds) do
