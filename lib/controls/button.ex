@@ -5,6 +5,7 @@ defmodule Ash.Tui.Button do
   alias Ash.Tui.Control
   alias Ash.Tui.Check
   alias Ash.Tui.Button
+  alias Ash.Tui.Frame
   alias Ash.Tui.Canvas
 
   def init(opts \\ []) do
@@ -79,33 +80,49 @@ defmodule Ash.Tui.Button do
       size: {cols, rows}
     } = model
 
-    canvas = Canvas.color(canvas, :fore, theme.({:fore, :normal}))
-    canvas = Canvas.color(canvas, :back, theme.({:back, :normal}))
+    if rows < 3 do
+      canvas = Canvas.color(canvas, :fore, theme.({:fore, :normal}))
+      canvas = Canvas.color(canvas, :back, theme.({:back, :normal}))
 
-    line = String.duplicate(" ", cols)
+      line = String.duplicate(" ", cols)
 
-    canvas =
-      for r <- 0..(rows - 1), reduce: canvas do
-        canvas ->
-          canvas = Canvas.move(canvas, 0, r)
-          Canvas.write(canvas, line)
-      end
+      canvas =
+        for r <- 0..(rows - 1), reduce: canvas do
+          canvas ->
+            canvas = Canvas.move(canvas, 0, r)
+            Canvas.write(canvas, line)
+        end
 
-    # center vertically and horizontally
-    offy = div(rows - 1, 2)
-    empty = max(0, cols - 2 - String.length(text))
-    offx = div(empty, 2)
+      # center vertically and horizontally
+      offy = div(rows - 1, 2)
+      empty = max(0, cols - 2 - String.length(text))
+      offx = div(empty, 2)
 
-    line = [
-      "[",
-      String.duplicate(" ", offx),
-      text |> String.slice(0, max(0, cols - 2)),
-      String.duplicate(" ", max(0, empty - offx)),
-      "]"
-    ]
+      line = [
+        "[",
+        String.duplicate(" ", offx),
+        text |> String.slice(0, max(0, cols - 2)),
+        String.duplicate(" ", max(0, empty - offx)),
+        "]"
+      ]
 
-    canvas = Canvas.move(canvas, 0, offy)
-    Canvas.write(canvas, line)
+      canvas = Canvas.move(canvas, 0, offy)
+      Canvas.write(canvas, line)
+    else
+      canvas = Frame.render(%{size: {cols, rows}, text: "", border: :round}, canvas, theme)
+      offy = div(rows - 1, 2)
+      empty = max(0, cols - 2 - String.length(text))
+      offx = div(empty, 2)
+
+      line = [
+        String.duplicate(" ", offx),
+        text |> String.slice(0, max(0, cols - 2)),
+        String.duplicate(" ", max(0, empty - offx))
+      ]
+
+      canvas = Canvas.move(canvas, 1, offy)
+      Canvas.write(canvas, line)
+    end
   end
 
   defp trigger(%{on_click: on_click} = model) do

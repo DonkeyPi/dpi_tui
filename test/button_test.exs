@@ -45,9 +45,9 @@ defmodule Ash.ButtonTest do
     # text is vertically centered
     button(text: "T", size: {3, 3})
     |> render()
-    |> check("   ", 0, @tc_normal)
-    |> check("[T]", 1, @tc_normal)
-    |> check("   ", 2, @tc_normal)
+    |> check("╭─╮", 0, @tc_normal)
+    |> check("│T│", 1, @tc_normal)
+    |> check("╰─╯", 2, @tc_normal)
 
     button(text: "T", size: {3, 2})
     |> render()
@@ -57,9 +57,9 @@ defmodule Ash.ButtonTest do
     # text is fully centered
     button(text: "T", size: {5, 3})
     |> render()
-    |> check("     ", 0, @tc_normal)
-    |> check("[ T ]", 1, @tc_normal)
-    |> check("     ", 2, @tc_normal)
+    |> check("╭───╮", 0, @tc_normal)
+    |> check("│ T │", 1, @tc_normal)
+    |> check("╰───╯", 2, @tc_normal)
 
     # excess text
     button(text: "Title", size: {5, 1})

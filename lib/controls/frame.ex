@@ -91,7 +91,7 @@ defmodule Ash.Tui.Frame do
     Check.assert_point_2d(:origin, model.origin)
     Check.assert_point_2d(:size, model.size)
     Check.assert_boolean(:visible, model.visible)
-    Check.assert_in_list(:border, model.border, [:single, :double])
+    Check.assert_in_list(:border, model.border, [:single, :double, :round])
     Check.assert_string(:text, model.text)
     model
   end
@@ -117,6 +117,16 @@ defmodule Ash.Tui.Frame do
           :bottom_right -> "╝"
           :horizontal -> "═"
           :vertical -> "║"
+        end
+
+      :round ->
+        case elem do
+          :top_left -> "╭"
+          :top_right -> "╮"
+          :bottom_left -> "╰"
+          :bottom_right -> "╯"
+          :horizontal -> "─"
+          :vertical -> "│"
         end
     end
   end

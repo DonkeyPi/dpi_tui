@@ -45,6 +45,13 @@ defmodule Ash.FrameTest do
     |> check("║ ║", 1, @tc_normal)
     |> check("╚═╝", 2, @tc_normal)
 
+    # double border
+    frame(size: {3, 3}, border: :round)
+    |> render()
+    |> check("╭─╮", 0, @tc_normal)
+    |> check("│ │", 1, @tc_normal)
+    |> check("╰─╯", 2, @tc_normal)
+
     # unicode
     frame(text: "Tĩtlĕ")
     |> render()
