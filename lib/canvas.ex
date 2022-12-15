@@ -12,7 +12,7 @@ defmodule Ash.Tui.Canvas do
       data: %{},
       cols: cols,
       rows: rows,
-      cell: {' ', fg, bg, 0},
+      cell: {' ', fg, bg, {1, 0, 0}},
       cursor: {false, 0, 0},
       fore: fg,
       back: bg,
@@ -124,7 +124,7 @@ defmodule Ash.Tui.Canvas do
     %{
       x: x1,
       y: y1,
-      cell: cell1,
+      cell: cel1,
       data: data1,
       rows: rows,
       cols: cols,
@@ -139,7 +139,7 @@ defmodule Ash.Tui.Canvas do
       y: y2,
       back: b2,
       fore: f2,
-      cell: cell2,
+      cell: cel2,
       data: data2,
       rows: ^rows,
       cols: ^cols,
@@ -157,8 +157,8 @@ defmodule Ash.Tui.Canvas do
     {list, f, b, x, y, e} =
       for row <- 0..(rows - 1), col <- 0..(cols - 1), reduce: {[], f1, b1, x1, y1, e1} do
         {list, f, b, x, y, e} ->
-          cel1 = Map.get(data1, {col, row}, cell1)
-          cel2 = Map.get(data2, {col, row}, cell2)
+          cel1 = Map.get(data1, {col, row}, cel1)
+          cel2 = Map.get(data2, {col, row}, cel2)
 
           case cel2 == cel1 do
             true ->

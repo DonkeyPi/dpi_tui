@@ -123,10 +123,22 @@ defmodule Ash.Tui.Driver do
           event
       end
 
+    # coordinates are translated on destination for modals
     event =
       case modal do
         nil -> event
         {id, _module, _model} -> {:modal, id, event}
+      end
+
+    # offset coordinates for root panel
+    event =
+      case event do
+        %{type: :mouse, x: x, y: y} ->
+          {ox, oy, _, _} = module.bounds(model)
+          %{event | x: x - ox, y: y - oy}
+
+        _ ->
+          event
       end
 
     # Events that trigger an on_XXX handler return

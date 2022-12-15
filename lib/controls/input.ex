@@ -140,6 +140,12 @@ defmodule Ash.Tui.Input do
     end
   end
 
+  # allow shift + key
+  def handle(model, %{type: :key, action: :press, key: data, flag: :shift} = msg)
+      when is_list(data) do
+    handle(model, %{msg | flag: :none})
+  end
+
   def handle(model, %{type: :key, action: :press, key: data, flag: :none}) when is_list(data) do
     %{cursor: cursor, text: text, size: {cols, _}} = model
     count = String.length(text)
