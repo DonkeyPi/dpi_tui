@@ -17,6 +17,7 @@ defmodule Ash.Tui.Control do
   @callback children(model :: map(), Keyword.t()) :: any()
   @callback refocus(model :: map(), dir :: any()) :: model :: map()
   @callback modal(model :: map()) :: true | false
+  @callback valid(model :: map()) :: true | false
   # No need to add getters/setter for enabled, class, theme, etc.
   # The init | update are the only entry poing needed.
 

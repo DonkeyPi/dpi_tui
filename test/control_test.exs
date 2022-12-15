@@ -36,6 +36,7 @@ defmodule Ash.ControlTest do
 
   def nop(), do: :nop
   def nop(value), do: {:nop, value}
+  def validate(_), do: true
 
   # Per feature testing is in this case better than per control
   # testing. It makes clear the differences between controls.
@@ -60,6 +61,7 @@ defmodule Ash.ControlTest do
       findex: 0,
       on_click: &nop/0,
       on_change: &nop/1,
+      validate: &validate/1,
       root: false,
       children: %{},
       focusables: %{},
@@ -73,6 +75,7 @@ defmodule Ash.ControlTest do
     assert module.bounds(%{origin: {1, 2}, size: {3, 4}}) == {1, 2, 3, 4}
     assert module.visible(%{visible: :visible}) == :visible
     assert module.shortcut(%{shortcut: :shortcut}) == if(button?, do: :shortcut, else: nil)
+    assert module.valid(focusable) == true
 
     # focused getter
     if input? or panel? do

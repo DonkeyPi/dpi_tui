@@ -25,6 +25,7 @@ defmodule Ash.Tui.Theme do
     selector = getp(selector, model, :enabled, true)
     selector = getp(selector, model, :focused, false)
     selector = getp(selector, model, :class, nil)
+    selector = Map.put(selector, :valid, module.valid(model))
     # FIXME implement extra selectors
     # selector = getp(selector, model, :hovered, nil)
     # selector = getp(selector, model, :invalid, nil)

@@ -40,6 +40,7 @@ defmodule Ash.Tui.Panel do
   def refocus(model, dir), do: recalculate(model, dir)
   def findex(%{findex: findex}), do: findex
   def shortcut(_), do: nil
+  def valid(_), do: true
   def modal(%{root: root}), do: root
 
   # Modals are ignored by focus calculator.

@@ -12,6 +12,7 @@ defmodule Ash.Tui.Nil do
   def shortcut(_), do: nil
   def children(_), do: []
   def children(_, _), do: nil
+  def valid(_), do: true
   def modal(_), do: false
   def update(_, _), do: nil
   def handle(_, _), do: {nil, nil}

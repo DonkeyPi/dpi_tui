@@ -53,6 +53,7 @@ defmodule Ash.Tui.Button do
   def shortcut(%{shortcut: shortcut}), do: shortcut
   def children(_), do: []
   def children(model, _), do: model
+  def valid(_), do: true
   def modal(_), do: false
 
   def update(model, props) do

@@ -19,6 +19,7 @@ defmodule Ash.Tui.Input do
     password = Map.get(opts, :password, false)
     cursor = Map.get(opts, :cursor, String.length(text))
     on_change = Map.get(opts, :on_change, &Input.nop/1)
+    validate = Map.get(opts, :validate, &Input.validate/1)
 
     model = %{
       focused: false,
@@ -31,13 +32,15 @@ defmodule Ash.Tui.Input do
       password: password,
       text: text,
       cursor: cursor,
-      on_change: on_change
+      on_change: on_change,
+      validate: validate
     }
 
     check(model)
   end
 
   def nop(value), do: {:nop, value}
+  def validate(_), do: true
 
   def bounds(%{origin: {x, y}, size: {w, h}}), do: {x, y, w, h}
   def visible(%{visible: visible}), do: visible
@@ -47,6 +50,7 @@ defmodule Ash.Tui.Input do
   def focusable(%{findex: findex}), do: findex >= 0
   def focused(%{focused: focused}), do: focused
   def focused(model, focused), do: %{model | focused: focused}
+  def valid(%{validate: validate, text: text}), do: validate.(text)
   def refocus(model, _), do: model
   def findex(%{findex: findex}), do: findex
   def shortcut(_), do: nil
@@ -244,6 +248,7 @@ defmodule Ash.Tui.Input do
     Check.assert_string(:text, model.text)
     Check.assert_gte(:cursor, model.cursor, 0)
     Check.assert_function(:on_change, model.on_change, 1)
+    Check.assert_function(:validate, model.validate, 1)
     model
   end
 end

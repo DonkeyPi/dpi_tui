@@ -50,6 +50,7 @@ defmodule Ash.Tui.Checkbox do
   def shortcut(_), do: nil
   def children(_), do: []
   def children(model, _), do: model
+  def valid(_), do: true
   def modal(_), do: false
 
   def update(model, props) do

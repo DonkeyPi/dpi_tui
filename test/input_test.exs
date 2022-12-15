@@ -18,7 +18,8 @@ defmodule Ash.InputTest do
              password: false,
              text: "",
              cursor: 0,
-             on_change: &Input.nop/1
+             on_change: &Input.nop/1,
+             validate: &Input.validate/1
            }
 
     on_change = fn value -> value end
