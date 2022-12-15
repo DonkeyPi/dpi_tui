@@ -7,9 +7,9 @@ defmodule Ash.CanvasTest do
     # Rendering end with the top control,
     # the label in this case, so it end at
     # {1, 0} with normal colors.
-    panel(root: true, size: {2, 2})
+    panel(root: true, size: {5, 2})
     |> save(:main)
-    |> label(text: "L")
+    |> label(text: "0012")
     |> save(:hello)
     |> restore(:main)
     |> children([:hello])
@@ -17,14 +17,14 @@ defmodule Ash.CanvasTest do
     |> check([
       {:f, @tcf_normal},
       {:b, @tcb_normal},
-      {:d, 'L'},
+      {:d, [{48, 2}, 49, 50]},
       {:f, @tcf_focused},
       {:b, @tcb_focused},
       {:d, ' '},
       {:x, 0},
       {:y, 1},
-      {:d, '  '},
-      {:x, 1},
+      {:d, [{32, 5}]},
+      {:x, 4},
       {:y, 0},
       {:f, @tcf_normal},
       {:b, @tcb_normal}

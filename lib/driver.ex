@@ -169,20 +169,14 @@ defmodule Ash.Tui.Driver do
 
     canvas1 = Canvas.new(cols, rows, opts)
     canvas1 = get(:canvas, canvas1)
-
-    data =
-      encode(canvas1, canvas2, fn command, param ->
-        Term.encode(command, param)
-      end)
-
-    :ok = Term.write("#{data}")
     put(:canvas, canvas2)
-    :ok
-  end
 
-  defp encode(canvas1, canvas2, encoder) do
+    encoder = fn command, param ->
+      Term.encode(command, param)
+    end
+
     diff = Canvas.diff(canvas1, canvas2)
     data = Canvas.encode(encoder, diff)
-    IO.iodata_to_binary(data)
+    :ok = Term.write(data)
   end
 end

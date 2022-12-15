@@ -207,6 +207,8 @@ defmodule Ash.Tui.Canvas do
               # be written even if it did not changed
               list =
                 case list do
+                  [{:d, [^d2 | dd]} | tail] -> [{:d, [{d2, 2} | dd]} | tail]
+                  [{:d, [{^d2, n} | dd]} | tail] -> [{:d, [{d2, n + 1} | dd]} | tail]
                   [{:d, dd} | tail] -> [{:d, [d2 | dd]} | tail]
                   _ -> [{:d, [d2]} | list]
                 end
