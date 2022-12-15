@@ -2,6 +2,8 @@ defmodule Ash.Tui.Canvas do
   use Ash.Tui.Colors
   use Bitwise
 
+  @factor {1, 0, 0}
+
   def new(cols, rows, opts \\ []) do
     fg = Keyword.get(opts, :fg, @white)
     bg = Keyword.get(opts, :bg, @black)
@@ -12,11 +14,12 @@ defmodule Ash.Tui.Canvas do
       data: %{},
       cols: cols,
       rows: rows,
-      cell: {' ', fg, bg, {1, 0, 0}},
+      cell: {' ', fg, bg, @factor},
       cursor: {false, 0, 0},
       fore: fg,
       back: bg,
-      factor: {1, 0, 0},
+      nobg: false,
+      factor: @factor,
       clip: {0, 0, cols, rows},
       clips: []
     }
@@ -58,8 +61,8 @@ defmodule Ash.Tui.Canvas do
   def get(%{cell: cell}, :cell), do: cell
   def get(%{cursor: cursor}, :cursor), do: cursor
 
-  def clear(canvas, :colors) do
-    %{canvas | fore: @white, back: @black}
+  def reset(canvas) do
+    %{canvas | fore: @white, back: @black, factor: @factor, nobg: false}
   end
 
   def move(%{clip: {cx, cy, _, _}} = canvas, x, y) do
@@ -75,7 +78,10 @@ defmodule Ash.Tui.Canvas do
   end
 
   def color(canvas, :back, color) do
-    %{canvas | back: color}
+    case color do
+      :none -> %{canvas | nobg: true}
+      _ -> %{canvas | back: color, nobg: false}
+    end
   end
 
   def factor(canvas, factor, x, y) do
@@ -90,6 +96,8 @@ defmodule Ash.Tui.Canvas do
       data: data,
       fore: fg,
       back: bg,
+      nobg: nobg,
+      cell: cell,
       factor: fe,
       clip: {cx, cy, cw, ch}
     } = canvas
@@ -111,6 +119,17 @@ defmodule Ash.Tui.Canvas do
               {:cont, {data, x + 1}}
 
             _ ->
+              # use current background
+              bg =
+                case nobg do
+                  true ->
+                    {_, _, bg, _} = Map.get(data, {x, y}, cell)
+                    bg
+
+                  _ ->
+                    bg
+                end
+
               data = Map.put(data, {x, y}, {c, fg, bg, fe})
               {:cont, {data, x + 1}}
           end

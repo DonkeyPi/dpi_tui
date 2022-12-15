@@ -207,6 +207,7 @@ defmodule Ash.Tui.Panel do
 
     for id <- index, reduce: canvas do
       canvas ->
+        canvas = Canvas.reset(canvas)
         momo = Map.get(children, id)
         momo_render(momo, canvas, id)
     end

@@ -88,7 +88,6 @@ defmodule Ash.Tui.Label do
         canvas = Canvas.move(canvas, x, y)
         Canvas.write(canvas, c)
     end
-    |> Canvas.factor(1, 0, 0)
   end
 
   defp check(model) do

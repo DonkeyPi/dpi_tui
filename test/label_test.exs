@@ -117,8 +117,7 @@ defmodule Ash.LabelTest do
       {:e, {2, 0, 1}},
       {:d, 'T'},
       {:e, {2, 1, 1}},
-      {:d, 'T'},
-      {:e, {1, 0, 0}}
+      {:d, 'T'}
     ])
 
     # factor restored
