@@ -257,11 +257,15 @@ defmodule Ash.ControlTest do
       Button ->
         on_click = fn -> :click end
         assert module.update(initial, text: "") == initial
-        assert module.update(initial, shortcut: nil) == initial
         assert module.update(initial, on_click: nil) == initial
+        assert module.update(initial, shortcut: nil) == initial
         assert module.update(initial, text: "text") == %{initial | text: "text"}
-        assert module.update(initial, shortcut: :esc) == %{initial | shortcut: :esc}
         assert module.update(initial, on_click: on_click) == %{initial | on_click: on_click}
+
+        assert module.update(initial, shortcut: {:esc, :none}) == %{
+                 initial
+                 | shortcut: {:esc, :none}
+               }
 
       Checkbox ->
         on_change = fn checked -> checked end

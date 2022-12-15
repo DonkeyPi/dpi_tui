@@ -16,6 +16,7 @@ defmodule Ash.ButtonTest do
              findex: 0,
              class: nil,
              text: "",
+             border: :none,
              shortcut: nil,
              on_click: &Button.nop/0
            }
@@ -62,7 +63,7 @@ defmodule Ash.ButtonTest do
     |> check(" T ", 0, @tc_normal)
 
     # text is vertically centered
-    button(text: "T", size: {3, 3})
+    button(text: "T", size: {3, 3}, border: :round)
     |> render()
     |> check("╭─╮", 0, @tc_normal)
     |> check("│T│", 1, @tc_normal)
@@ -74,7 +75,7 @@ defmodule Ash.ButtonTest do
     |> check("   ", 1, @tc_normal)
 
     # text is fully centered
-    button(text: "T", size: {5, 3})
+    button(text: "T", size: {5, 3}, border: :round)
     |> render()
     |> check("╭───╮", 0, @tc_normal)
     |> check("│ T │", 1, @tc_normal)
