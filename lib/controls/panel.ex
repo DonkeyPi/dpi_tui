@@ -140,7 +140,7 @@ defmodule Ash.Tui.Panel do
       focusable = momo_focusable(momo)
       visible = momo_visible(momo)
       bounds = momo_bounds(momo)
-      client = toclient(bounds, mx, my)
+      client = Control.toclient(bounds, mx, my)
       # Invisible modals are implicitly ignored.
       # Visible modals would ignore events because they are not focusabled.
       # Visible modals nested in visible modal would ignore events for same reason.
@@ -360,13 +360,6 @@ defmodule Ash.Tui.Panel do
     momo = get_child(model, focus)
     momo = momo_focused(momo, false, :next)
     put_child(model, focus, momo)
-  end
-
-  defp toclient({x, y, w, h}, mx, my) do
-    case mx >= x and mx < x + w and my >= y and my < y + h do
-      false -> false
-      true -> {mx - x, my - y}
-    end
   end
 
   defp get_child(model, id), do: get_in(model, [:children, id])

@@ -49,4 +49,11 @@ defmodule Ash.Tui.Control do
 
     Map.put(map, ids, {module, model})
   end
+
+  def toclient({x, y, w, h}, mx, my) do
+    case mx >= x and mx < x + w and my >= y and my < y + h do
+      false -> false
+      true -> {mx - x, my - y}
+    end
+  end
 end

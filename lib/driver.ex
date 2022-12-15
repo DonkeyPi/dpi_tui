@@ -106,8 +106,8 @@ defmodule Ash.Tui.Driver do
   def handles?({:event, _}), do: true
   def handles?(_msg), do: false
 
-  # Uses module, model, and id
-  # Generates model tree with root [id]
+  # Uses module, model, and id.
+  # Generates model tree with root [id].
   def handle({:event, event}) do
     module = get(:module)
     model = get(:model)
@@ -123,31 +123,42 @@ defmodule Ash.Tui.Driver do
           event
       end
 
-    # coordinates are translated on destination for modals
+    # Coordinates are translated on destination for modals.
+    # Momo needed below to clip the rendering region.
+    # Do not handle events directly to modal or its
+    # model would need to be updated to its parent on the
+    # main tree to avoid impacting state handling.
     event =
       case modal do
         nil -> event
         {id, _module, _model} -> {:modal, id, event}
       end
 
-    # offset coordinates for root panel
+    # Offset coordinates for root panel.
     event =
       case event do
         %{type: :mouse, x: x, y: y} ->
-          {ox, oy, _, _} = module.bounds(model)
-          %{event | x: x - ox, y: y - oy}
+          bounds = module.bounds(model)
+
+          case Control.toclient(bounds, x, y) do
+            false -> nil
+            {x, y} -> %{event | x: x, y: y}
+          end
 
         _ ->
           event
       end
 
-    # Events that trigger an on_XXX handler return
-    # the handler return value nested in path tuples
-    # like {:p0, {:c0, {:click, :nop}}}
-    {model, _event} = module.handle(model, event)
-    tree = Control.tree({module, model}, [id])
-    put(:model, model)
-    put(:tree, tree)
+    if event != nil do
+      # Events that trigger an on_event handler return
+      # value nested in tuples path like below:
+      # {:p0, {:c0, {:click, :nop}}}
+      {model, _event} = module.handle(model, event)
+      tree = Control.tree({module, model}, [id])
+      put(:model, model)
+      put(:tree, tree)
+    end
+
     :ok
   end
 
