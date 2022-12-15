@@ -171,17 +171,17 @@ defmodule TestImports do
     cells =
       for i <- x..(x + len - 1) do
         case Map.get(data, {i, y}) do
-          nil -> {nil, nil, nil}
+          nil -> {nil, nil, nil, nil}
           cell -> cell
         end
       end
 
-    fg1 = for {_, _, _} <- cells, do: fg
-    bg1 = for {_, _, _} <- cells, do: bg
+    fg1 = for {_, _, _, _} <- cells, do: fg
+    bg1 = for {_, _, _, _} <- cells, do: bg
 
-    text2 = for {c, _, _} <- cells, do: c
-    fg2 = for {_, f, _} <- cells, do: f
-    bg2 = for {_, _, b} <- cells, do: b
+    text2 = for {c, _, _, _} <- cells, do: c
+    fg2 = for {_, f, _, _} <- cells, do: f
+    bg2 = for {_, _, b, _} <- cells, do: b
 
     assert text1 == text2
     assert fg1 == fg2
@@ -199,12 +199,12 @@ defmodule TestImports do
     cells =
       for i <- x..(x + len - 1) do
         case Map.get(data, {i, y}) do
-          nil -> {nil, nil, nil}
+          nil -> {nil, nil, nil, nil}
           cell -> cell
         end
       end
 
-    text2 = for {c, _, _} <- cells, do: c
+    text2 = for {c, _, _, _} <- cells, do: c
 
     assert text1 == text2
 

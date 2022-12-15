@@ -8,7 +8,8 @@ defmodule Ash.Tui.Label do
     opts = Enum.into(opts, %{})
     text = Map.get(opts, :text, "")
     origin = Map.get(opts, :origin, {0, 0})
-    size = Map.get(opts, :size, {String.length(text), 1})
+    factor = Map.get(opts, :factor, 1)
+    size = Map.get(opts, :size, {String.length(text) * factor, factor})
     visible = Map.get(opts, :visible, true)
     class = Map.get(opts, :class, nil)
     align = Map.get(opts, :align, :left)
@@ -19,7 +20,8 @@ defmodule Ash.Tui.Label do
       visible: visible,
       class: class,
       text: text,
-      align: align
+      align: align,
+      factor: factor
     }
 
     check(model)
@@ -49,6 +51,7 @@ defmodule Ash.Tui.Label do
     %{
       text: text,
       align: align,
+      factor: factor,
       size: {cols, rows}
     } = model
 
@@ -65,29 +68,27 @@ defmodule Ash.Tui.Label do
       end
 
     # center vertically
-    offy = div(rows - 1, 2)
+    offy = div(rows - factor, 2)
 
-    text =
+    offx =
       case align do
-        :left ->
-          String.slice(text, 0, cols) |> String.pad_trailing(cols)
-
-        :right ->
-          String.slice(text, 0, cols) |> String.pad_leading(cols)
-
-        :center ->
-          empty = max(0, cols - String.length(text))
-          offx = div(empty, 2)
-
-          [
-            String.duplicate(" ", offx),
-            text |> String.slice(0, cols),
-            String.duplicate(" ", max(0, empty - offx))
-          ]
+        :left -> 0
+        :right -> cols - factor * String.length(text)
+        :center -> div(cols - factor * String.length(text), 2)
       end
 
-    canvas = Canvas.move(canvas, 0, offy)
-    Canvas.write(canvas, text)
+    chars = String.codepoints(text) |> Enum.with_index()
+
+    for {c, i} <- chars, x <- 0..(factor - 1), y <- 0..(factor - 1), reduce: canvas do
+      canvas ->
+        # IO.inspect({i, c, x, y})
+        canvas = Canvas.factor(canvas, factor, x, y)
+        x = offx + i * factor + x
+        y = offy + y
+        canvas = Canvas.move(canvas, x, y)
+        Canvas.write(canvas, c)
+    end
+    |> Canvas.factor(1, 0, 0)
   end
 
   defp check(model) do
@@ -96,6 +97,7 @@ defmodule Ash.Tui.Label do
     Check.assert_boolean(:visible, model.visible)
     Check.assert_string(:text, model.text)
     Check.assert_in_list(:align, model.align, [:left, :center, :right])
+    Check.assert_in_range(:factor, model.factor, 1..16)
     model
   end
 end

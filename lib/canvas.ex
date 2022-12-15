@@ -1,5 +1,6 @@
 defmodule Ash.Tui.Canvas do
   use Ash.Tui.Colors
+  use Bitwise
 
   def new(cols, rows, opts \\ []) do
     fg = Keyword.get(opts, :fg, @white)
@@ -11,10 +12,11 @@ defmodule Ash.Tui.Canvas do
       data: %{},
       cols: cols,
       rows: rows,
-      cell: {' ', fg, bg},
+      cell: {' ', fg, bg, 0},
       cursor: {false, 0, 0},
       fore: fg,
       back: bg,
+      factor: {1, 0, 0},
       clip: {0, 0, cols, rows},
       clips: []
     }
@@ -23,7 +25,7 @@ defmodule Ash.Tui.Canvas do
   def modal(canvas, opts \\ []) do
     fg = Keyword.get(opts, :fg, @black2)
     bg = Keyword.get(opts, :bg, @black)
-    data = for {key, {d, _, _}} <- canvas.data, do: {key, {d, fg, bg}}
+    data = for {key, {d, _, _, fe}} <- canvas.data, do: {key, {d, fg, bg, fe}}
     data = Enum.into(data, %{})
     %{canvas | data: data, cursor: {false, 0, 0}}
   end
@@ -76,6 +78,10 @@ defmodule Ash.Tui.Canvas do
     %{canvas | back: color}
   end
 
+  def factor(canvas, factor, x, y) do
+    %{canvas | factor: {factor, x, y}}
+  end
+
   # writes a single line clipping excess to avoid terminal wrapping
   def write(canvas, chardata) do
     %{
@@ -84,6 +90,7 @@ defmodule Ash.Tui.Canvas do
       data: data,
       fore: fg,
       back: bg,
+      factor: fe,
       clip: {cx, cy, cw, ch}
     } = canvas
 
@@ -104,7 +111,7 @@ defmodule Ash.Tui.Canvas do
               {:cont, {data, x + 1}}
 
             _ ->
-              data = Map.put(data, {x, y}, {c, fg, bg})
+              data = Map.put(data, {x, y}, {c, fg, bg, fe})
               {:cont, {data, x + 1}}
           end
         end)
@@ -123,6 +130,7 @@ defmodule Ash.Tui.Canvas do
       cols: cols,
       back: b1,
       fore: f1,
+      factor: e1,
       cursor: {c1, cx1, cy1}
     } = canvas1
 
@@ -135,6 +143,7 @@ defmodule Ash.Tui.Canvas do
       data: data2,
       rows: ^rows,
       cols: ^cols,
+      factor: e2,
       cursor: {c2, cx2, cy2}
     } = canvas2
 
@@ -145,18 +154,18 @@ defmodule Ash.Tui.Canvas do
         false -> {x1, y1}
       end
 
-    {list, f, b, x, y} =
-      for row <- 0..(rows - 1), col <- 0..(cols - 1), reduce: {[], f1, b1, x1, y1} do
-        {list, f, b, x, y} ->
+    {list, f, b, x, y, e} =
+      for row <- 0..(rows - 1), col <- 0..(cols - 1), reduce: {[], f1, b1, x1, y1, e1} do
+        {list, f, b, x, y, e} ->
           cel1 = Map.get(data1, {col, row}, cell1)
           cel2 = Map.get(data2, {col, row}, cell2)
 
           case cel2 == cel1 do
             true ->
-              {list, f, b, x, y}
+              {list, f, b, x, y, e}
 
             false ->
-              {d2, f2, b2} = cel2
+              {d2, f2, b2, e2} = cel2
 
               list =
                 case x == col do
@@ -188,6 +197,12 @@ defmodule Ash.Tui.Canvas do
                   false -> [{:b, b2} | list]
                 end
 
+              list =
+                case e == e2 do
+                  true -> list
+                  false -> [{:e, e2} | list]
+                end
+
               # to update fore and back the char needs to
               # be written even if it did not changed
               list =
@@ -197,7 +212,7 @@ defmodule Ash.Tui.Canvas do
                 end
 
               # term does not wrap x around
-              {list, f2, b2, col + 1, row}
+              {list, f2, b2, col + 1, row, e2}
           end
       end
 
@@ -241,6 +256,12 @@ defmodule Ash.Tui.Canvas do
       end
 
     list =
+      case e == e2 do
+        true -> list
+        false -> [{:e, e2} | list]
+      end
+
+    list =
       for item <- list do
         case item do
           {:d, d} -> {:d, Enum.reverse(d)}
@@ -280,6 +301,11 @@ defmodule Ash.Tui.Canvas do
 
   defp encode(encoder, list, [{:f, f} | tail]) do
     d = encoder.(:fore, f)
+    encode(encoder, [d | list], tail)
+  end
+
+  defp encode(encoder, list, [{:e, e} | tail]) do
+    d = encoder.(:factor, e)
     encode(encoder, [d | list], tail)
   end
 
