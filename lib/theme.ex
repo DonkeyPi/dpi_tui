@@ -51,6 +51,7 @@ defmodule Ash.Tui.Theme do
   def calc_style({:back, _}, %{type: Button, focused: true}), do: @blue
   def calc_style({:fore, _}, %{type: Input, focused: true}), do: @white
   def calc_style({:back, _}, %{type: Input, focused: true}), do: @blue
+  def calc_style({:fore, _}, %{type: Checkbox, focused: true}), do: @white
   def calc_style({:fore, :selected}, %{type: Select}), do: @white
   def calc_style({:fore, :selected}, %{type: Radio}), do: @white
   def calc_style({:fore, _}, _), do: @black2

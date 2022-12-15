@@ -116,8 +116,8 @@ defmodule Ash.Tui.Driver do
 
     event =
       case event do
-        %{type: :key, action: action, key: key, flag: :none} when key in @shortcuts ->
-          {:shortcut, key, action}
+        %{type: :key, action: action, key: key, flag: flag} when {key, flag} in @shortcuts ->
+          {:shortcut, {key, flag}, action}
 
         _ ->
           event

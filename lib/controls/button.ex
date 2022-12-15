@@ -12,7 +12,7 @@ defmodule Ash.Tui.Button do
     opts = Enum.into(opts, %{})
     text = Map.get(opts, :text, "")
     origin = Map.get(opts, :origin, {0, 0})
-    size = Map.get(opts, :size, {String.length(text) + 2, 1})
+    size = Map.get(opts, :size, {String.length(text), 1})
     visible = Map.get(opts, :visible, true)
     enabled = Map.get(opts, :enabled, true)
     findex = Map.get(opts, :findex, 0)
@@ -80,6 +80,10 @@ defmodule Ash.Tui.Button do
       size: {cols, rows}
     } = model
 
+    # center vertically and horizontally
+    offy = div(rows - 1, 2)
+    offx = div(cols - String.length(text), 2)
+
     if rows < 3 do
       canvas = Canvas.color(canvas, :fore, theme.({:fore, :normal}))
       canvas = Canvas.color(canvas, :back, theme.({:back, :normal}))
@@ -93,37 +97,20 @@ defmodule Ash.Tui.Button do
             Canvas.write(canvas, line)
         end
 
-      # center vertically and horizontally
-      offy = div(rows - 1, 2)
-      empty = max(0, cols - 2 - String.length(text))
-      offx = div(empty, 2)
-
-      line = [
-        "[",
-        String.duplicate(" ", offx),
-        text |> String.slice(0, max(0, cols - 2)),
-        String.duplicate(" ", max(0, empty - offx)),
-        "]"
-      ]
-
-      canvas = Canvas.move(canvas, 0, offy)
-      Canvas.write(canvas, line)
+      canvas = Canvas.move(canvas, offx, offy)
+      Canvas.write(canvas, text)
     else
       canvas = Frame.render(%{size: {cols, rows}, text: "", border: :round}, canvas, theme)
-      offy = div(rows - 1, 2)
-      empty = max(0, cols - 2 - String.length(text))
-      offx = div(empty, 2)
-
-      line = [
-        String.duplicate(" ", offx),
-        text |> String.slice(0, max(0, cols - 2)),
-        String.duplicate(" ", max(0, empty - offx))
-      ]
-
-      canvas = Canvas.move(canvas, 1, offy)
-      Canvas.write(canvas, line)
+      canvas = Canvas.color(canvas, :fore, theme.({:fore, :normal}))
+      canvas = Canvas.color(canvas, :back, theme.({:back, :normal}))
+      canvas = Canvas.move(canvas, offx, offy)
+      Canvas.write(canvas, text)
     end
   end
+
+  # Panel prevents delivery of events to non focusables.
+  # Shortcuts are also restricted to focusables by panel.
+  defp trigger(%{enabled: false} = model), do: {model, nil}
 
   defp trigger(%{on_click: on_click} = model) do
     {model, {:click, on_click.()}}

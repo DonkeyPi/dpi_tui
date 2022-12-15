@@ -1,7 +1,10 @@
 defmodule Ash.Tui.Events do
   defmacro __using__(_) do
     quote do
-      @shortcuts [:esc, :f1, :f2, :f3, :f4, :f5, :f6, :f7, :f8, :f9, :f10, :f11, :f12]
+      @hotkeys [:esc, :f1, :f2, :f3, :f4, :f5, :f6, :f7, :f8, :f9, :f10, :f11, :f12, :print]
+      @flags [:none, :control, :alt, :super]
+
+      @shortcuts for h <- @hotkeys, f <- @flags, do: {h, f}
 
       @ev_kp_kdown %{type: :key, action: :press, key: :kdown, flag: :none}
       @ev_kp_kright %{type: :key, action: :press, key: :kright, flag: :none}

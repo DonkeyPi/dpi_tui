@@ -242,7 +242,7 @@ defmodule Ash.ControlTest do
     assert module.update(initial, size: {0, 2}) == %{initial | size: {0, 2}}
 
     case module do
-      Button -> assert module.update(initial, size: {2, 1}) == initial
+      Button -> assert module.update(initial, size: {0, 1}) == initial
       Checkbox -> assert module.update(initial, size: {3, 1}) == initial
       Frame -> assert module.update(initial, size: {2, 2}) == initial
       Input -> assert module.update(initial, size: {0, 1}) == initial
