@@ -14,7 +14,7 @@ defmodule Ash.CanvasTest do
     |> restore(:main)
     |> children([:hello])
     |> render()
-    |> check([
+    |> assert_diff([
       {:f, @tcf_normal},
       {:b, @tcb_normal},
       {:d, [{48, 2}, 49, 50]},

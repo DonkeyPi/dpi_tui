@@ -19,48 +19,48 @@ defmodule Ash.FrameTest do
     # default rendering
     frame()
     |> render()
-    |> check("┌┐", 0, @tc_normal)
-    |> check("└┘", 1, @tc_normal)
+    |> assert_color("┌┐", 0, @tc_normal)
+    |> assert_color("└┘", 1, @tc_normal)
     |> size({3, 3})
     |> render()
-    |> check("┌─┐", 0, @tc_normal)
-    |> check("│ │", 1, @tc_normal)
-    |> check("└─┘", 2, @tc_normal)
+    |> assert_color("┌─┐", 0, @tc_normal)
+    |> assert_color("│ │", 1, @tc_normal)
+    |> assert_color("└─┘", 2, @tc_normal)
 
     # excess text
     frame(text: "Title", size: {2, 2})
     |> render()
-    |> check("┌┐", 0, @tc_normal)
-    |> check("└┘", 1, @tc_normal)
+    |> assert_color("┌┐", 0, @tc_normal)
+    |> assert_color("└┘", 1, @tc_normal)
     |> size({5, 3})
     |> render()
-    |> check("┌Tit┐", 0, @tc_normal)
-    |> check("│   │", 1, @tc_normal)
-    |> check("└───┘", 2, @tc_normal)
+    |> assert_color("┌Tit┐", 0, @tc_normal)
+    |> assert_color("│   │", 1, @tc_normal)
+    |> assert_color("└───┘", 2, @tc_normal)
 
     # double border
     frame(size: {3, 3}, border: :double)
     |> render()
-    |> check("╔═╗", 0, @tc_normal)
-    |> check("║ ║", 1, @tc_normal)
-    |> check("╚═╝", 2, @tc_normal)
+    |> assert_color("╔═╗", 0, @tc_normal)
+    |> assert_color("║ ║", 1, @tc_normal)
+    |> assert_color("╚═╝", 2, @tc_normal)
 
     # double border
     frame(size: {3, 3}, border: :round)
     |> render()
-    |> check("╭─╮", 0, @tc_normal)
-    |> check("│ │", 1, @tc_normal)
-    |> check("╰─╯", 2, @tc_normal)
+    |> assert_color("╭─╮", 0, @tc_normal)
+    |> assert_color("│ │", 1, @tc_normal)
+    |> assert_color("╰─╯", 2, @tc_normal)
 
     # unicode
     frame(text: "Tĩtlĕ")
     |> render()
-    |> check("┌Tĩtlĕ┐", 0, @tc_normal)
-    |> check("└─────┘", 1, @tc_normal)
+    |> assert_color("┌Tĩtlĕ┐", 0, @tc_normal)
+    |> assert_color("└─────┘", 1, @tc_normal)
 
     frame(text: "Tĩtlĕ", size: {5, 2})
     |> render()
-    |> check("┌Tĩt┐", 0, @tc_normal)
-    |> check("└───┘", 1, @tc_normal)
+    |> assert_color("┌Tĩt┐", 0, @tc_normal)
+    |> assert_color("└───┘", 1, @tc_normal)
   end
 end

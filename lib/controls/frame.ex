@@ -53,8 +53,8 @@ defmodule Ash.Tui.Frame do
       text: text
     } = model
 
-    canvas = Canvas.color(canvas, :fore, theme.({:fore, :normal}))
-    canvas = Canvas.color(canvas, :back, theme.({:back, :normal}))
+    canvas = Canvas.color(canvas, :fore, theme.(:fore, :normal))
+    canvas = Canvas.color(canvas, :back, theme.(:back, :normal))
 
     top = [
       border_char(border, :top_left),

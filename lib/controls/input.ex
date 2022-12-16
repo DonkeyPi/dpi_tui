@@ -198,8 +198,8 @@ defmodule Ash.Tui.Input do
       text: text
     } = model
 
-    canvas = Canvas.color(canvas, :fore, theme.({:fore, :normal}))
-    canvas = Canvas.color(canvas, :back, theme.({:back, :normal}))
+    canvas = Canvas.color(canvas, :fore, theme.(:fore, :normal))
+    canvas = Canvas.color(canvas, :back, theme.(:back, :normal))
 
     line = String.duplicate(" ", cols)
 

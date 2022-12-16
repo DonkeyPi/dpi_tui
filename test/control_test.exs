@@ -62,6 +62,7 @@ defmodule Ash.ControlTest do
       on_click: &nop/0,
       on_change: &nop/1,
       validate: &validate/1,
+      text: nil,
       root: false,
       children: %{},
       focusables: %{},

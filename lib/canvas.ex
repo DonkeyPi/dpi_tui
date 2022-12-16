@@ -18,7 +18,7 @@ defmodule Ash.Tui.Canvas do
       cursor: {false, 0, 0},
       fore: fg,
       back: bg,
-      nobg: false,
+      opaque: true,
       factor: @factor,
       clip: {0, 0, cols, rows},
       clips: []
@@ -62,7 +62,7 @@ defmodule Ash.Tui.Canvas do
   def get(%{cursor: cursor}, :cursor), do: cursor
 
   def reset(canvas) do
-    %{canvas | fore: @white, back: @black, factor: @factor, nobg: false}
+    %{canvas | fore: @white, back: @black, factor: @factor, opaque: true}
   end
 
   def move(%{clip: {cx, cy, _, _}} = canvas, x, y) do
@@ -79,8 +79,8 @@ defmodule Ash.Tui.Canvas do
 
   def color(canvas, :back, color) do
     case color do
-      :none -> %{canvas | nobg: true}
-      _ -> %{canvas | back: color, nobg: false}
+      nil -> %{canvas | opaque: false}
+      _ -> %{canvas | back: color, opaque: true}
     end
   end
 
@@ -96,7 +96,7 @@ defmodule Ash.Tui.Canvas do
       data: data,
       fore: fg,
       back: bg,
-      nobg: nobg,
+      opaque: opaque,
       cell: cell,
       factor: fe,
       clip: {cx, cy, cw, ch}
@@ -121,8 +121,8 @@ defmodule Ash.Tui.Canvas do
             _ ->
               # use current background
               bg =
-                case nobg do
-                  true ->
+                case opaque do
+                  false ->
                     {_, _, bg, _} = Map.get(data, {x, y}, cell)
                     bg
 

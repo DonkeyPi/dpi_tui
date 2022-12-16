@@ -157,8 +157,8 @@ defmodule Ash.Tui.Radio do
       selected: selected
     } = model
 
-    canvas = Canvas.color(canvas, :fore, theme.({:fore, :normal}))
-    canvas = Canvas.color(canvas, :back, theme.({:back, :normal}))
+    canvas = Canvas.color(canvas, :fore, theme.(:fore, :normal))
+    canvas = Canvas.color(canvas, :back, theme.(:back, :normal))
 
     line = String.duplicate(" ", cols)
 
@@ -174,11 +174,11 @@ defmodule Ash.Tui.Radio do
         {canvas, x} ->
           canvas =
             if i == selected do
-              canvas = Canvas.color(canvas, :fore, theme.({:fore, :selected}))
-              Canvas.color(canvas, :back, theme.({:back, :selected}))
+              canvas = Canvas.color(canvas, :fore, theme.(:fore, :selected))
+              Canvas.color(canvas, :back, theme.(:back, :selected))
             else
-              canvas = Canvas.color(canvas, :fore, theme.({:fore, :normal}))
-              Canvas.color(canvas, :back, theme.({:back, :normal}))
+              canvas = Canvas.color(canvas, :fore, theme.(:fore, :normal))
+              Canvas.color(canvas, :back, theme.(:back, :normal))
             end
 
           canvas = Canvas.move(canvas, x, 0)

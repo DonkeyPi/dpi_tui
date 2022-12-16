@@ -16,7 +16,7 @@ defmodule Ash.ButtonTest do
              findex: 0,
              class: nil,
              text: "",
-             border: :none,
+             border: nil,
              shortcut: nil,
              on_click: &Button.nop/0
            }
@@ -49,62 +49,62 @@ defmodule Ash.ButtonTest do
     # colors properly applied for each state
     button(text: "T")
     |> render()
-    |> check("T", 0, @tc_normal)
+    |> assert_color("T", 0, @tc_normal)
     |> focused(true)
     |> render()
-    |> check("T", 0, @tc_focused)
+    |> assert_color("T", 0, @tc_focused)
     |> enabled(false)
     |> render()
-    |> check("T", 0, @tc_disabled)
+    |> assert_color("T", 0, @tc_disabled)
 
     # text is horizontally centered
     button(text: "T", size: {3, 1})
     |> render()
-    |> check(" T ", 0, @tc_normal)
+    |> assert_color(" T ", 0, @tc_normal)
 
     # text is vertically centered
     button(text: "T", size: {3, 3}, border: :round)
     |> render()
-    |> check("╭─╮", 0, @tc_normal)
-    |> check("│T│", 1, @tc_normal)
-    |> check("╰─╯", 2, @tc_normal)
+    |> assert_color("╭─╮", 0, @tc_normal)
+    |> assert_color("│T│", 1, @tc_normal)
+    |> assert_color("╰─╯", 2, @tc_normal)
 
     button(text: "T", size: {3, 2})
     |> render()
-    |> check(" T ", 0, @tc_normal)
-    |> check("   ", 1, @tc_normal)
+    |> assert_color(" T ", 0, @tc_normal)
+    |> assert_color("   ", 1, @tc_normal)
 
     # text is fully centered
     button(text: "T", size: {5, 3}, border: :round)
     |> render()
-    |> check("╭───╮", 0, @tc_normal)
-    |> check("│ T │", 1, @tc_normal)
-    |> check("╰───╯", 2, @tc_normal)
+    |> assert_color("╭───╮", 0, @tc_normal)
+    |> assert_color("│ T │", 1, @tc_normal)
+    |> assert_color("╰───╯", 2, @tc_normal)
 
     # excess text
     button(text: "Title", size: {3, 1})
     |> render()
-    |> check("itl", 0, @tc_normal)
+    |> assert_color("itl", 0, @tc_normal)
 
     # unicode
     button(text: "Tĩtlĕ")
     |> render()
-    |> check("Tĩtlĕ", 0, @tc_normal)
+    |> assert_color("Tĩtlĕ", 0, @tc_normal)
 
     button(text: "Tĩtlĕ", size: {3, 1})
     |> render()
-    |> check("ĩtl", 0, @tc_normal)
+    |> assert_color("ĩtl", 0, @tc_normal)
 
     # triggers
     button(text: "T")
     |> handle(@ev_kp_trigger, {:click, :nop})
     |> render()
-    |> check("T", 0, @tc_normal)
+    |> assert_color("T", 0, @tc_normal)
     |> handle(@ev_mp_left, {:click, :nop})
     |> render()
-    |> check("T", 0, @tc_normal)
+    |> assert_color("T", 0, @tc_normal)
     |> handle(@ev_kp_space, {:click, :nop})
     |> render()
-    |> check("T", 0, @tc_normal)
+    |> assert_color("T", 0, @tc_normal)
   end
 end

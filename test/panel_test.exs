@@ -24,7 +24,7 @@ defmodule Ash.PanelTest do
     # panel draws background
     panel(size: {2, 1})
     |> render()
-    |> check("  ", 0, @tc_normal)
+    |> assert_color("  ", 0, @tc_normal)
 
     # top label overrides bottom label
     l0 = Control.init(Label, text: "0")
@@ -33,7 +33,7 @@ defmodule Ash.PanelTest do
     panel(size: {1, 1})
     |> children(l0: l0, l1: l1)
     |> render()
-    |> check("1", 0, @tc_normal)
+    |> assert_color("1", 0, @tc_normal)
 
     # hidded label wont render
     l0 = Control.init(Label, text: "0")
@@ -42,7 +42,7 @@ defmodule Ash.PanelTest do
     panel(size: {1, 1})
     |> children(l0: l0, l1: l1)
     |> render()
-    |> check("0", 0, @tc_normal)
+    |> assert_color("0", 0, @tc_normal)
 
     # modal wont render (visible or invisible)
     label(text: "abc")
@@ -55,14 +55,14 @@ defmodule Ash.PanelTest do
     |> panel(root: true, size: {3, 1})
     |> children([:label1, :modal])
     |> render()
-    |> check("abc", 0, @tc_normal)
+    |> assert_color("abc", 0, @tc_normal)
     |> update(:modal, visible: true)
     |> render()
-    |> check("abc", 0, @tc_normal)
+    |> assert_color("abc", 0, @tc_normal)
     # root is dropped by update
     |> put(:modal, root: false)
     |> render()
-    |> check("xyz", 0, @tc_normal)
+    |> assert_color("xyz", 0, @tc_normal)
   end
 
   test "panel handle check" do

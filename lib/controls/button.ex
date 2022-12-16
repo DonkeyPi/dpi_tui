@@ -19,7 +19,7 @@ defmodule Ash.Tui.Button do
     class = Map.get(opts, :class, nil)
     shortcut = Map.get(opts, :shortcut, nil)
     on_click = Map.get(opts, :on_click, &Button.nop/0)
-    border = Map.get(opts, :border, :none)
+    border = Map.get(opts, :border, nil)
 
     model = %{
       focused: false,
@@ -88,9 +88,9 @@ defmodule Ash.Tui.Button do
     offy = div(rows - 1, 2)
     offx = div(cols - String.length(text), 2)
 
-    if border == :none do
-      canvas = Canvas.color(canvas, :fore, theme.({:fore, :normal}))
-      canvas = Canvas.color(canvas, :back, theme.({:back, :normal}))
+    if border == nil do
+      canvas = Canvas.color(canvas, :fore, theme.(:fore, :normal))
+      canvas = Canvas.color(canvas, :back, theme.(:back, :normal))
 
       line = String.duplicate(" ", cols)
 
@@ -105,8 +105,8 @@ defmodule Ash.Tui.Button do
       Canvas.write(canvas, text)
     else
       canvas = Frame.render(%{size: {cols, rows}, text: "", border: border}, canvas, theme)
-      canvas = Canvas.color(canvas, :fore, theme.({:fore, :normal}))
-      canvas = Canvas.color(canvas, :back, theme.({:back, :normal}))
+      canvas = Canvas.color(canvas, :fore, theme.(:fore, :normal))
+      canvas = Canvas.color(canvas, :back, theme.(:back, :normal))
       canvas = Canvas.move(canvas, offx, offy)
       Canvas.write(canvas, text)
     end
@@ -130,7 +130,7 @@ defmodule Ash.Tui.Button do
     Check.assert_string(:text, model.text)
     shortcuts = [nil | @shortcuts]
     Check.assert_in_list(:shortcut, model.shortcut, shortcuts)
-    Check.assert_in_list(:border, model.border, [:none, :single, :double, :round])
+    Check.assert_in_list(:border, model.border, [nil, :single, :double, :round])
     Check.assert_function(:on_click, model.on_click, 0)
     model
   end

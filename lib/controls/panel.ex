@@ -194,8 +194,8 @@ defmodule Ash.Tui.Panel do
   def render(%{index: index, children: children} = model, canvas, theme) do
     %{size: {cols, rows}} = model
 
-    canvas = Canvas.color(canvas, :fore, theme.({:fore, :normal}))
-    canvas = Canvas.color(canvas, :back, theme.({:back, :normal}))
+    canvas = Canvas.color(canvas, :fore, theme.(:fore, :normal))
+    canvas = Canvas.color(canvas, :back, theme.(:back, :normal))
 
     line = String.duplicate(" ", cols)
 

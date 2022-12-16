@@ -20,92 +20,92 @@ defmodule Ash.LabelTest do
     # default render
     label(text: "T")
     |> render()
-    |> check("T", 0, @tc_normal)
+    |> assert_color("T", 0, @tc_normal)
 
     # excess text
     label(text: "Title", size: {3, 1})
     |> render()
-    |> check("Tit", 0, @tc_normal)
+    |> assert_color("Tit", 0, @tc_normal)
     |> align(:right)
     |> render()
-    |> check("tle", 0, @tc_normal)
+    |> assert_color("tle", 0, @tc_normal)
     |> align(:center)
     |> render()
-    |> check("itl", 0, @tc_normal)
+    |> assert_color("itl", 0, @tc_normal)
 
     # align text
     label(text: "Title", size: {7, 1})
     |> render()
-    |> check("Title  ", 0, @tc_normal)
+    |> assert_color("Title  ", 0, @tc_normal)
     |> align(:right)
     |> render()
-    |> check("  Title", 0, @tc_normal)
+    |> assert_color("  Title", 0, @tc_normal)
     |> align(:center)
     |> render()
-    |> check(" Title ", 0, @tc_normal)
+    |> assert_color(" Title ", 0, @tc_normal)
 
     label(text: "Title", size: {6, 1})
     |> align(:center)
     |> render()
-    |> check("Title ", 0, @tc_normal)
+    |> assert_color("Title ", 0, @tc_normal)
 
     # vertically center
     label(text: "T", size: {1, 3})
     |> render()
-    |> check(" ", 0, @tc_normal)
-    |> check("T", 1, @tc_normal)
-    |> check(" ", 2, @tc_normal)
+    |> assert_color(" ", 0, @tc_normal)
+    |> assert_color("T", 1, @tc_normal)
+    |> assert_color(" ", 2, @tc_normal)
 
     label(text: "T", size: {1, 2})
     |> render()
-    |> check("T", 0, @tc_normal)
-    |> check(" ", 1, @tc_normal)
+    |> assert_color("T", 0, @tc_normal)
+    |> assert_color(" ", 1, @tc_normal)
 
     # unicode
     label(text: "Tĩtlĕ")
     |> render()
-    |> check("Tĩtlĕ", 0, @tc_normal)
+    |> assert_color("Tĩtlĕ", 0, @tc_normal)
 
     label(text: "Tĩtlĕ", size: {3, 1})
     |> render()
-    |> check("Tĩt", 0, @tc_normal)
+    |> assert_color("Tĩt", 0, @tc_normal)
 
     # factor
     label(text: "T", factor: 2)
     |> render()
-    |> check("TT", 0, @tc_normal)
-    |> check("TT", 1, @tc_normal)
+    |> assert_color("TT", 0, @tc_normal)
+    |> assert_color("TT", 1, @tc_normal)
 
     label(text: "TA", factor: 2)
     |> render()
-    |> check("TTAA", 0, @tc_normal)
-    |> check("TTAA", 1, @tc_normal)
+    |> assert_color("TTAA", 0, @tc_normal)
+    |> assert_color("TTAA", 1, @tc_normal)
 
     label(text: "T", factor: 2, size: {4, 4})
     |> render()
-    |> check("    ", 0, @tc_normal)
-    |> check("TT  ", 1, @tc_normal)
-    |> check("TT  ", 2, @tc_normal)
-    |> check("    ", 3, @tc_normal)
+    |> assert_color("    ", 0, @tc_normal)
+    |> assert_color("TT  ", 1, @tc_normal)
+    |> assert_color("TT  ", 2, @tc_normal)
+    |> assert_color("    ", 3, @tc_normal)
     |> align(:right)
     |> render()
-    |> check("    ", 0, @tc_normal)
-    |> check("  TT", 1, @tc_normal)
-    |> check("  TT", 2, @tc_normal)
-    |> check("    ", 3, @tc_normal)
+    |> assert_color("    ", 0, @tc_normal)
+    |> assert_color("  TT", 1, @tc_normal)
+    |> assert_color("  TT", 2, @tc_normal)
+    |> assert_color("    ", 3, @tc_normal)
     |> align(:center)
     |> render()
-    |> check("    ", 0, @tc_normal)
-    |> check(" TT ", 1, @tc_normal)
-    |> check(" TT ", 2, @tc_normal)
-    |> check("    ", 3, @tc_normal)
+    |> assert_color("    ", 0, @tc_normal)
+    |> assert_color(" TT ", 1, @tc_normal)
+    |> assert_color(" TT ", 2, @tc_normal)
+    |> assert_color("    ", 3, @tc_normal)
 
     # factor rendering
     label(text: "T", factor: 2)
     |> render()
-    |> check("TT", 0, @tc_normal)
-    |> check("TT", 1, @tc_normal)
-    |> check([
+    |> assert_color("TT", 0, @tc_normal)
+    |> assert_color("TT", 1, @tc_normal)
+    |> assert_diff([
       {:f, 17},
       {:b, 18},
       {:e, {2, 0, 0}},
@@ -120,6 +120,24 @@ defmodule Ash.LabelTest do
       {:d, 'T'}
     ])
 
+    # opaque false for no background
+    panel(root: true, size: {1, 1})
+    |> save(:main)
+    |> label(text: "1", class: %{back: @green})
+    |> save(:f1)
+    |> label(text: "2", class: %{back: nil})
+    |> save(:f2)
+    |> restore(:main)
+    |> children([:f1])
+    |> render()
+    |> assert_color("1", 0, {@tcf_normal, @green})
+    |> children([:f2])
+    |> render()
+    |> assert_color("2", 0, {@tcf_normal, @tcb_focused})
+    |> children([:f1, :f2])
+    |> render()
+    |> assert_color("2", 0, {@tcf_normal, @green})
+
     # factor restored
     panel(root: true, size: {3, 2})
     |> save(:main)
@@ -130,11 +148,11 @@ defmodule Ash.LabelTest do
     |> restore(:main)
     |> children([:f2, :f1])
     |> render()
-    |> check("22", 0, @tc_normal)
-    |> check("22", 1, @tc_normal)
-    |> check("1", 2, 0, @tc_normal)
-    |> check(" ", 2, 1, @tc_focused)
-    |> check([
+    |> assert_color("22", 0, @tc_normal)
+    |> assert_color("22", 1, @tc_normal)
+    |> assert_color("1", 2, 0, @tc_normal)
+    |> assert_color(" ", 2, 1, @tc_focused)
+    |> assert_diff([
       {:f, 17},
       {:b, 18},
       {:e, {2, 0, 0}},

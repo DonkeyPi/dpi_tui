@@ -31,14 +31,14 @@ defmodule Ash.Tui.Theme do
     # selector = getp(selector, model, :invalid, nil)
 
     cond do
-      is_function(theme, 2) -> fn prop -> theme.(prop, selector) end
-      is_atom(theme) -> fn prop -> theme.get_style(prop, selector) end
+      is_function(theme, 3) -> fn item, type -> theme.(item, type, selector) end
+      is_atom(theme) -> fn item, type -> theme.get_style(item, type, selector) end
     end
   end
 
-  def get_style(prop, selector) do
+  def get_style(item, type, selector) do
     # IO.inspect({prop, selector, calc_style(prop, selector)})
-    calc_style(prop, selector)
+    calc_style(item, type, selector)
   end
 
   defp getp(dest, src, name, def) do
@@ -46,15 +46,18 @@ defmodule Ash.Tui.Theme do
     Map.put(dest, name, value)
   end
 
-  def calc_style({:fore, _}, %{enabled: false}), do: @black2
-  def calc_style({:back, _}, %{enabled: false}), do: @black
-  def calc_style({:fore, _}, %{type: Button, focused: true}), do: @white
-  def calc_style({:back, _}, %{type: Button, focused: true}), do: @blue
-  def calc_style({:fore, _}, %{type: Input, focused: true}), do: @white
-  def calc_style({:back, _}, %{type: Input, focused: true}), do: @blue
-  def calc_style({:fore, _}, %{type: Checkbox, focused: true}), do: @white
-  def calc_style({:fore, :selected}, %{type: Select}), do: @white
-  def calc_style({:fore, :selected}, %{type: Radio}), do: @white
-  def calc_style({:fore, _}, _), do: @black2
-  def calc_style({:back, _}, _), do: @black
+  def calc_style(:fore, _, %{class: %{fore: fore}}), do: fore
+  def calc_style(:back, _, %{class: %{back: back}}), do: back
+  def calc_style(:fore, _, %{enabled: false}), do: @black2
+  def calc_style(:back, _, %{enabled: false}), do: @black
+  def calc_style(:fore, _, %{type: Input, valid: false}), do: @red
+  def calc_style(:fore, _, %{type: Input, focused: true}), do: @white
+  def calc_style(:back, _, %{type: Input, focused: true}), do: @blue
+  def calc_style(:fore, _, %{type: Button, focused: true}), do: @white
+  def calc_style(:back, _, %{type: Button, focused: true}), do: @blue
+  def calc_style(:fore, _, %{type: Checkbox, focused: true}), do: @white
+  def calc_style(:fore, :selected, %{type: Select}), do: @white
+  def calc_style(:fore, :selected, %{type: Radio}), do: @white
+  def calc_style(:fore, _, _), do: @black2
+  def calc_style(:back, _, _), do: @black
 end

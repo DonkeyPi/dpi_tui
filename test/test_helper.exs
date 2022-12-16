@@ -5,6 +5,7 @@ defmodule TestMacros do
     quote do
       use Ash.Tui.Aliases
       use Ash.Tui.Events
+      use Ash.Tui.Colors
       import TestImports
       use TestColors
     end
@@ -23,12 +24,17 @@ defmodule TestColors do
       @tcb_disabled 0x16
       @tcf_selected 0x17
       @tcb_selected 0x18
+      @tcf_invalid 0x19
+      @tcb_invalid 0x1A
 
       @tc_normal :normal
       @tc_focused :focused
       @tc_disabled :disabled
       @tc_selected :selected
+      @tc_invalid :invalid
 
+      def get_color(:fore, {fore, _}), do: fore
+      def get_color(:back, {_, back}), do: back
       def get_color(:fore, :normal), do: @tcf_normal
       def get_color(:back, :normal), do: @tcb_normal
       def get_color(:fore, :focused), do: @tcf_focused
@@ -37,6 +43,8 @@ defmodule TestColors do
       def get_color(:back, :disabled), do: @tcb_disabled
       def get_color(:fore, :selected), do: @tcf_selected
       def get_color(:back, :selected), do: @tcb_selected
+      def get_color(:fore, :invalid), do: @tcf_invalid
+      def get_color(:back, :invalid), do: @tcb_invalid
     end
   end
 end
@@ -45,14 +53,18 @@ defmodule TestTheme do
   use Ash.Tui.Aliases
   use TestColors
 
-  def get_style({:fore, :selected}, %{}), do: @tcf_selected
-  def get_style({:back, :selected}, %{}), do: @tcb_selected
-  def get_style({:fore, _}, %{enabled: false}), do: @tcf_disabled
-  def get_style({:back, _}, %{enabled: false}), do: @tcb_disabled
-  def get_style({:fore, _}, %{focused: true}), do: @tcf_focused
-  def get_style({:back, _}, %{focused: true}), do: @tcb_focused
-  def get_style({:fore, _}, %{}), do: @tcf_normal
-  def get_style({:back, _}, %{}), do: @tcb_normal
+  def get_style(:back, _, %{class: %{back: back}}), do: back
+  def get_style(:fore, _, %{class: %{fore: fore}}), do: fore
+  def get_style(:fore, :selected, %{}), do: @tcf_selected
+  def get_style(:back, :selected, %{}), do: @tcb_selected
+  def get_style(:fore, _, %{valid: false}), do: @tcf_invalid
+  def get_style(:back, _, %{valid: false}), do: @tcb_invalid
+  def get_style(:fore, _, %{enabled: false}), do: @tcf_disabled
+  def get_style(:back, _, %{enabled: false}), do: @tcb_disabled
+  def get_style(:fore, _, %{focused: true}), do: @tcf_focused
+  def get_style(:back, _, %{focused: true}), do: @tcb_focused
+  def get_style(:fore, _, %{}), do: @tcf_normal
+  def get_style(:back, _, %{}), do: @tcb_normal
 end
 
 defmodule TestImports do
@@ -101,40 +113,7 @@ defmodule TestImports do
     %{map | module: module, model: model}
   end
 
-  defp dump_item(map, item) do
-    IO.inspect(Map.get(map, item))
-    map
-  end
-
-  defp dump_curr(map) do
-    IO.inspect({map.module, map.model})
-    map
-  end
-
-  defp dump_momo(map, id) do
-    IO.inspect(map.momos[id])
-    map
-  end
-
-  def dump(map), do: dump_curr(map)
-  def dump(map, :canvas), do: dump_item(map, :canvas)
-  def dump(map, :model), do: dump_item(map, :model)
-  def dump(map, id), do: dump_momo(map, id)
-
-  def check(map, diff) when is_list(diff), do: assert_diff(map, diff)
-  def check(map, text, y, false), do: assert_cursor(map, text, y, false)
-  def check(map, text, y, cx) when is_integer(cx), do: assert_cursor(map, text, y, cx)
-
-  def check(map, text, xy, color) when is_atom(color) do
-    case map do
-      %{module: Radio} -> assert_color(map, text, xy, 0, color)
-      _ -> assert_color(map, text, 0, xy, color)
-    end
-  end
-
-  def check(map, text, x, y, color) when is_atom(color), do: assert_color(map, text, x, y, color)
-
-  defp assert_diff(map, diff) do
+  def assert_diff(map, diff) do
     canvas2 = map.canvas
     {cols, rows} = Canvas.get(canvas2, :size)
     canvas1 = Canvas.new(cols, rows)
@@ -143,25 +122,14 @@ defmodule TestImports do
     map
   end
 
-  def render(map, cols, rows) do
-    Theme.set(TestTheme)
-    canvas = Canvas.new(cols, rows)
-    module = map.module
-    model = map.model
-    bounds = module.bounds(model)
-    canvas = Canvas.push(canvas, bounds)
-    theme = Theme.get(:id, module, model)
-    canvas = module.render(model, canvas, theme)
-    canvas = Canvas.pop(canvas)
-    Map.put(map, :canvas, canvas)
+  def assert_color(map, text, xy, color) do
+    case map do
+      %{module: Radio} -> assert_color(map, text, xy, 0, color)
+      _ -> assert_color(map, text, 0, xy, color)
+    end
   end
 
-  def render(map) do
-    {ox, oy, cols, rows} = map.module.bounds(map.model)
-    render(map, cols + 2 * ox, rows + 2 * oy)
-  end
-
-  defp assert_color(map, text, x, y, color) when is_atom(color) do
+  def assert_color(map, text, x, y, color) do
     fg = get_color(:fore, color)
     bg = get_color(:back, color)
     text1 = String.to_charlist(text)
@@ -190,7 +158,7 @@ defmodule TestImports do
     map
   end
 
-  defp assert_cursor(map, text, y, cx) do
+  def assert_cursor(map, text, y, cx) do
     text1 = String.to_charlist(text)
     len = length(text1)
     data = map.canvas.data
@@ -219,6 +187,24 @@ defmodule TestImports do
     end
 
     map
+  end
+
+  def render(map, cols, rows) do
+    Theme.set(TestTheme)
+    canvas = Canvas.new(cols, rows)
+    module = map.module
+    model = map.model
+    bounds = module.bounds(model)
+    canvas = Canvas.push(canvas, bounds)
+    theme = Theme.get(:id, module, model)
+    canvas = module.render(model, canvas, theme)
+    canvas = Canvas.pop(canvas)
+    Map.put(map, :canvas, canvas)
+  end
+
+  def render(map) do
+    {ox, oy, cols, rows} = map.module.bounds(map.model)
+    render(map, cols + 2 * ox, rows + 2 * oy)
   end
 
   def focused(map, focused) do
@@ -292,5 +278,20 @@ defmodule TestImports do
   def handle(map, event, result \\ nil) do
     {model, ^result} = map.module.handle(map.model, event)
     Map.put(map, :model, model)
+  end
+
+  def dump_item(map, item) do
+    IO.inspect(Map.get(map, item))
+    map
+  end
+
+  def dump_curr(map) do
+    IO.inspect({map.module, map.model})
+    map
+  end
+
+  def dump_momo(map, id) do
+    IO.inspect(map.momos[id])
+    map
   end
 end

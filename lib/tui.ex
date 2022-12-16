@@ -13,7 +13,7 @@ defmodule Ash.Tui do
     Theme.set(theme)
   end
 
-  def get_style(prop, selector) do
-    Theme.get_style(prop, selector)
+  def get_style(item, type, selector) do
+    Theme.get_style(item, type, selector)
   end
 end
