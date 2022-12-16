@@ -103,12 +103,9 @@ defmodule Ash.Tui.Driver do
     {module, model}
   end
 
-  def handles?({:event, _}), do: true
-  def handles?(_msg), do: false
-
   # Uses module, model, and id.
   # Generates model tree with root [id].
-  def handle({:event, event}) do
+  def handle(event) do
     module = get(:module)
     model = get(:model)
     modal = get(:modal)
@@ -117,7 +114,7 @@ defmodule Ash.Tui.Driver do
     # Process shortcuts async.
     with %{type: :key, action: action, key: key, flag: flag} <- event,
          true <- Map.has_key?(@shortcutm, {key, flag}) do
-      send(self(), {:event, {:shortcut, {key, flag}, action}})
+      send(self(), {:event, %{type: :shortcut, shortcut: {key, flag}, action: action}})
     end
 
     # Coordinates are translated on destination for modals.

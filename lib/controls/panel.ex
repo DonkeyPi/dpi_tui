@@ -177,7 +177,7 @@ defmodule Ash.Tui.Panel do
 
   # Shortcuts are broadcasted without focus pre-assigment.
   # The matching button wont get focused either.
-  def handle(%{index: index, children: children} = model, {:shortcut, _, _} = event) do
+  def handle(%{index: index, children: children} = model, %{type: :shortcut} = event) do
     Enum.each(index, fn id ->
       momo = Map.get(children, id)
 
