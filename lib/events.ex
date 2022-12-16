@@ -1,7 +1,10 @@
 defmodule Ash.Tui.Events do
   defmacro __using__(_) do
     quote do
-      @hotkeys [:esc, :f1, :f2, :f3, :f4, :f5, :f6, :f7, :f8, :f9, :f10, :f11, :f12, :print]
+      # avilable on recent macbooks: esc + f1-12 (require fn key)
+      # print and pause will be reserved for window switching
+      # esc kept for the user since modal close may require validation
+      @hotkeys [:esc, :f1, :f2, :f3, :f4, :f5, :f6, :f7, :f8, :f9, :f10, :f11, :f12]
       @flags [:none, :control, :alt, :super]
 
       @shortcuts for h <- @hotkeys, f <- @flags, do: {h, f}
