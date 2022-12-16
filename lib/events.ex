@@ -5,6 +5,7 @@ defmodule Ash.Tui.Events do
       @flags [:none, :control, :alt, :super]
 
       @shortcuts for h <- @hotkeys, f <- @flags, do: {h, f}
+      @shortcutm Enum.map(@shortcuts, fn {h, k} -> {{h, k}, true} end) |> Enum.into(%{})
 
       @ev_kp_kdown %{type: :key, action: :press, key: :kdown, flag: :none}
       @ev_kp_kright %{type: :key, action: :press, key: :kright, flag: :none}

@@ -36,6 +36,13 @@ defmodule Ash.Tui.Check do
     end
   end
 
+  def assert_is_key(name, value, map) do
+    case Map.has_key?(map, value) do
+      false -> raise("#{name} not key of #{inspect(map)}: #{inspect(value)}")
+      _ -> nil
+    end
+  end
+
   def assert_in_range(name, value, range) do
     if !(value in range), do: raise("#{name} not in #{inspect(range)}: #{inspect(value)}")
   end

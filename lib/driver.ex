@@ -114,14 +114,11 @@ defmodule Ash.Tui.Driver do
     modal = get(:modal)
     id = get(:id)
 
-    event =
-      case event do
-        %{type: :key, action: action, key: key, flag: flag} when {key, flag} in @shortcuts ->
-          {:shortcut, {key, flag}, action}
-
-        _ ->
-          event
-      end
+    # Process shortcuts async.
+    with %{type: :key, action: action, key: key, flag: flag} <- event,
+         true <- Map.has_key?(@shortcutm, {key, flag}) do
+      send(self(), {:event, {:shortcut, {key, flag}, action}})
+    end
 
     # Coordinates are translated on destination for modals.
     # Momo needed below to clip the rendering region.
