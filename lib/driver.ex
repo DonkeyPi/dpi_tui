@@ -106,10 +106,9 @@ defmodule Ash.Tui.Driver do
 
   # full refresh
   def handle(%{type: :sys, key: :print}) do
+    delete(:canvas)
     data = Term.encode(:clear, nil)
     :ok = Term.write(data)
-    delete(:canvas)
-    :ok
   end
 
   # Uses module, model, and id.
