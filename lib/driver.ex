@@ -8,6 +8,7 @@ defmodule Ash.Tui.Driver do
 
   defp get(key, value \\ nil), do: Process.get({__MODULE__, key}, value)
   defp put(key, value), do: Process.put({__MODULE__, key}, value)
+  defp delete(key), do: Process.delete({__MODULE__, key})
 
   defp color(key, value, opts) do
     <<
@@ -101,6 +102,14 @@ defmodule Ash.Tui.Driver do
     end
 
     {module, model}
+  end
+
+  # full refresh
+  def handle(%{type: :sys, key: :print}) do
+    data = Term.encode(:clear, nil)
+    :ok = Term.write(data)
+    delete(:canvas)
+    :ok
   end
 
   # Uses module, model, and id.
