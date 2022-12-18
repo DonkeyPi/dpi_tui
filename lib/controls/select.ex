@@ -166,11 +166,11 @@ defmodule Ash.Tui.Select do
 
         canvas =
           if oi == selected do
-            canvas = Canvas.color(canvas, :fore, theme.(:fore, :selected))
-            Canvas.color(canvas, :back, theme.(:back, :selected))
+            canvas = Canvas.fore(canvas, theme.(:fore, :selected))
+            Canvas.back(canvas, theme.(:back, :selected))
           else
-            canvas = Canvas.color(canvas, :fore, theme.(:fore, :normal))
-            Canvas.color(canvas, :back, theme.(:back, :normal))
+            canvas = Canvas.fore(canvas, theme.(:fore, :normal))
+            Canvas.back(canvas, theme.(:back, :normal))
           end
 
         canvas = Canvas.move(canvas, 0, i)

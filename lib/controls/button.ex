@@ -95,8 +95,8 @@ defmodule Ash.Tui.Button do
     offx = div(cols - String.length(text), 2)
 
     if border == nil do
-      canvas = Canvas.color(canvas, :fore, theme.(:fore, :normal))
-      canvas = Canvas.color(canvas, :back, theme.(:back, :normal))
+      canvas = Canvas.fore(canvas, theme.(:fore, :normal))
+      canvas = Canvas.back(canvas, theme.(:back, :normal))
 
       line = String.duplicate(" ", cols)
 
@@ -111,8 +111,8 @@ defmodule Ash.Tui.Button do
       Canvas.write(canvas, text)
     else
       canvas = Frame.render(%{size: {cols, rows}, text: "", border: border}, canvas, theme)
-      canvas = Canvas.color(canvas, :fore, theme.(:fore, :normal))
-      canvas = Canvas.color(canvas, :back, theme.(:back, :normal))
+      canvas = Canvas.fore(canvas, theme.(:fore, :normal))
+      canvas = Canvas.back(canvas, theme.(:back, :normal))
       canvas = Canvas.move(canvas, offx, offy)
       Canvas.write(canvas, text)
     end

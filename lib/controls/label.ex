@@ -13,6 +13,7 @@ defmodule Ash.Tui.Label do
     visible = Map.get(opts, :visible, true)
     class = Map.get(opts, :class, nil)
     align = Map.get(opts, :align, :left)
+    font = Map.get(opts, :font, 0)
 
     model = %{
       origin: origin,
@@ -21,6 +22,7 @@ defmodule Ash.Tui.Label do
       class: class,
       text: text,
       align: align,
+      font: font,
       factor: factor
     }
 
@@ -50,14 +52,16 @@ defmodule Ash.Tui.Label do
 
   def render(model, canvas, theme) do
     %{
+      font: font,
       text: text,
       align: align,
       factor: factor,
       size: {cols, rows}
     } = model
 
-    canvas = Canvas.color(canvas, :fore, theme.(:fore, :normal))
-    canvas = Canvas.color(canvas, :back, theme.(:back, :normal))
+    canvas = Canvas.font(canvas, font)
+    canvas = Canvas.fore(canvas, theme.(:fore, :normal))
+    canvas = Canvas.back(canvas, theme.(:back, :normal))
 
     line = String.duplicate(" ", cols)
 
@@ -98,6 +102,7 @@ defmodule Ash.Tui.Label do
     Check.assert_string(:text, model.text)
     Check.assert_in_list(:align, model.align, [:left, :center, :right])
     Check.assert_in_range(:factor, model.factor, 1..16)
+    Check.assert_in_range(:font, model.font, 0..0xFF)
     model
   end
 end

@@ -51,7 +51,7 @@ defmodule Ash.CanvasTest do
 
     # Opaque true.
     canvas1 = Canvas.new(1, 1)
-    canvas2 = Canvas.color(canvas1, :back, @red)
+    canvas2 = Canvas.back(canvas1, @red)
     canvas2 = Canvas.write(canvas2, "a")
 
     assert Canvas.diff(canvas1, canvas2) == [
@@ -61,12 +61,12 @@ defmodule Ash.CanvasTest do
 
     # Opaque false.
     canvas1 = Canvas.new(2, 1)
-    canvas2 = Canvas.color(canvas1, :back, @red)
+    canvas2 = Canvas.back(canvas1, @red)
     canvas2 = Canvas.write(canvas2, "ab")
     canvas2 = Canvas.move(canvas2, 0, 0)
-    canvas2 = Canvas.color(canvas2, :back, @green)
+    canvas2 = Canvas.back(canvas2, @green)
     canvas2 = Canvas.write(canvas2, "c")
-    canvas2 = Canvas.color(canvas2, :back, nil)
+    canvas2 = Canvas.back(canvas2, nil)
     canvas2 = Canvas.write(canvas2, "d")
 
     assert Canvas.diff(canvas1, canvas2) == [
@@ -80,7 +80,7 @@ defmodule Ash.CanvasTest do
     # Backcolor.
     canvas1 = Canvas.new(2, 1)
     canvas2 = Canvas.write(canvas1, "a")
-    canvas2 = Canvas.color(canvas2, :back, @red)
+    canvas2 = Canvas.back(canvas2, @red)
     canvas2 = Canvas.write(canvas2, "b")
 
     assert Canvas.diff(canvas1, canvas2) == [
@@ -89,7 +89,7 @@ defmodule Ash.CanvasTest do
              {:d, 'b'}
            ]
 
-    canvas2 = Canvas.color(canvas2, :back, @green)
+    canvas2 = Canvas.back(canvas2, @green)
 
     assert Canvas.diff(canvas1, canvas2) == [
              {:d, 'a'},
@@ -98,7 +98,7 @@ defmodule Ash.CanvasTest do
              {:b, @green}
            ]
 
-    canvas1 = Canvas.color(canvas1, :back, @green)
+    canvas1 = Canvas.back(canvas1, @green)
 
     assert Canvas.diff(canvas1, canvas2) == [
              {:b, @black},
@@ -111,7 +111,7 @@ defmodule Ash.CanvasTest do
     # Forecolor.
     canvas1 = Canvas.new(2, 1)
     canvas2 = Canvas.write(canvas1, "a")
-    canvas2 = Canvas.color(canvas2, :fore, @red)
+    canvas2 = Canvas.fore(canvas2, @red)
     canvas2 = Canvas.write(canvas2, "b")
 
     assert Canvas.diff(canvas1, canvas2) == [
@@ -120,7 +120,7 @@ defmodule Ash.CanvasTest do
              {:d, 'b'}
            ]
 
-    canvas2 = Canvas.color(canvas2, :fore, @green)
+    canvas2 = Canvas.fore(canvas2, @green)
 
     assert Canvas.diff(canvas1, canvas2) == [
              {:d, 'a'},
@@ -129,7 +129,7 @@ defmodule Ash.CanvasTest do
              {:f, @green}
            ]
 
-    canvas1 = Canvas.color(canvas1, :fore, @green)
+    canvas1 = Canvas.fore(canvas1, @green)
 
     assert Canvas.diff(canvas1, canvas2) == [
              {:f, @white},
@@ -137,6 +137,37 @@ defmodule Ash.CanvasTest do
              {:f, @red},
              {:d, 'b'},
              {:f, @green}
+           ]
+
+    # Font.
+    canvas1 = Canvas.new(2, 1)
+    canvas2 = Canvas.write(canvas1, "a")
+    canvas2 = Canvas.font(canvas2, 1)
+    canvas2 = Canvas.write(canvas2, "b")
+
+    assert Canvas.diff(canvas1, canvas2) == [
+             {:d, 'a'},
+             {:n, 1},
+             {:d, 'b'}
+           ]
+
+    canvas2 = Canvas.font(canvas2, 2)
+
+    assert Canvas.diff(canvas1, canvas2) == [
+             {:d, 'a'},
+             {:n, 1},
+             {:d, 'b'},
+             {:n, 2}
+           ]
+
+    canvas1 = Canvas.font(canvas1, 2)
+
+    assert Canvas.diff(canvas1, canvas2) == [
+             {:n, 0},
+             {:d, 'a'},
+             {:n, 1},
+             {:d, 'b'},
+             {:n, 2}
            ]
 
     # Factor.

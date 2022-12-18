@@ -10,8 +10,9 @@ defmodule Ash.Tui.Canvas do
   @cursor {false, 0, 0}
 
   def new(cols, rows, opts \\ []) do
-    fg = Keyword.get(opts, :fore, @fore)
-    bg = Keyword.get(opts, :back, @back)
+    fore = Keyword.get(opts, :fore, @fore)
+    back = Keyword.get(opts, :back, @back)
+    font = Keyword.get(opts, :font, 0)
 
     %{
       x: 0,
@@ -19,10 +20,11 @@ defmodule Ash.Tui.Canvas do
       data: %{},
       cols: cols,
       rows: rows,
-      cell: {@char, fg, bg, @factor},
+      cell: {@char, fore, back, font, @factor},
       cursor: @cursor,
-      fore: fg,
-      back: bg,
+      font: font,
+      fore: fore,
+      back: back,
       opaque: true,
       factor: @factor,
       clip: {0, 0, cols, rows},
@@ -34,7 +36,7 @@ defmodule Ash.Tui.Canvas do
     canvas = reset(canvas)
     fg = Keyword.get(opts, :fore, @dimmed)
     bg = Keyword.get(opts, :back, @back)
-    data = for {key, {d, _, _, fc}} <- canvas.data, do: {key, {d, fg, bg, fc}}
+    data = for {key, {d, _, _, ff, fc}} <- canvas.data, do: {key, {d, fg, bg, ff, fc}}
     %{canvas | data: Enum.into(data, %{}), cursor: @cursor}
   end
 
@@ -66,8 +68,8 @@ defmodule Ash.Tui.Canvas do
     %{canvas | clip: clip}
   end
 
-  def reset(%{clip: {cx, cy, _, _}, cell: {_, fore, back, factor}} = canvas) do
-    %{canvas | fore: fore, back: back, factor: factor, opaque: true, x: cx, y: cy}
+  def reset(%{clip: {cx, cy, _, _}, cell: {_, fore, back, font, factor}} = canvas) do
+    %{canvas | font: font, fore: fore, back: back, factor: factor, opaque: true, x: cx, y: cy}
   end
 
   def move(%{clip: {cx, cy, _, _}} = canvas, x, y) do
@@ -78,10 +80,17 @@ defmodule Ash.Tui.Canvas do
     %{canvas | cursor: {true, cx + x, cy + y}}
   end
 
-  def color(canvas, :fore, color), do: %{canvas | fore: color}
-  def color(canvas, :back, nil), do: %{canvas | opaque: false}
-  def color(canvas, :back, color), do: %{canvas | back: color, opaque: true}
-  def factor(canvas, factor, fx, fy), do: %{canvas | factor: {factor, fx, fy}}
+  def font(canvas, font) when font in 0..0xFF, do: %{canvas | font: font}
+
+  def back(canvas, nil), do: %{canvas | opaque: false}
+
+  def back(canvas, color) when color in 0..0xFFFFFF,
+    do: %{canvas | back: color, opaque: true}
+
+  def fore(canvas, color) when color in 0..0xFFFFFF, do: %{canvas | fore: color}
+
+  def factor(canvas, factor, fx, fy) when factor in 1..16 and fx in 0..15 and fy in 0..15,
+    do: %{canvas | factor: {factor, fx, fy}}
 
   # writes a single line clipping excess to avoid terminal wrapping
   def write(canvas, chardata) do
@@ -89,6 +98,7 @@ defmodule Ash.Tui.Canvas do
       x: x,
       y: y,
       data: data,
+      font: ff,
       fore: fg,
       back: bg,
       opaque: opaque,
@@ -114,7 +124,7 @@ defmodule Ash.Tui.Canvas do
           else
             # use current background if not opaque
             bg = if opaque, do: bg, else: Map.get(data, {x, y}, cell) |> elem(2)
-            data = Map.put(data, {x, y}, {c, fg, bg, fc})
+            data = Map.put(data, {x, y}, {c, fg, bg, ff, fc})
             {data, x + 1}
           end
         end)
@@ -131,6 +141,7 @@ defmodule Ash.Tui.Canvas do
       data: data1,
       rows: rows,
       cols: cols,
+      font: ff1,
       back: bg1,
       fore: fg1,
       factor: fc1,
@@ -140,6 +151,7 @@ defmodule Ash.Tui.Canvas do
     %{
       x: x2,
       y: y2,
+      font: ff2,
       back: bg2,
       fore: fg2,
       cell: cel2,
@@ -157,18 +169,18 @@ defmodule Ash.Tui.Canvas do
         false -> {x1, y1}
       end
 
-    {list, f, b, x, y, e} =
-      for row <- 0..(rows - 1), col <- 0..(cols - 1), reduce: {[], fg1, bg1, x1, y1, fc1} do
-        {list, f, b, x, y, e} ->
+    {list, f, b, x, y, ff, fc} =
+      for row <- 0..(rows - 1), col <- 0..(cols - 1), reduce: {[], fg1, bg1, x1, y1, ff1, fc1} do
+        {list, f, b, x, y, ff, fc} ->
           cel1 = Map.get(data1, {col, row}, cel1)
           cel2 = Map.get(data2, {col, row}, cel2)
 
           case cel2 == cel1 do
             true ->
-              {list, f, b, x, y, e}
+              {list, f, b, x, y, ff, fc}
 
             false ->
-              {d2, fg2, bg2, fc2} = cel2
+              {d2, fg2, bg2, ff2, fc2} = cel2
 
               list =
                 case x == col do
@@ -195,7 +207,13 @@ defmodule Ash.Tui.Canvas do
                 end
 
               list =
-                case e == fc2 do
+                case ff == ff2 do
+                  true -> list
+                  false -> [{:n, ff2} | list]
+                end
+
+              list =
+                case fc == fc2 do
                   true -> list
                   false -> [{:e, fc2} | list]
                 end
@@ -213,7 +231,7 @@ defmodule Ash.Tui.Canvas do
                 end
 
               # term does not wrap x around
-              {list, fg2, bg2, col + 1, row, fc2}
+              {list, fg2, bg2, col + 1, row, ff2, fc2}
           end
       end
 
@@ -251,7 +269,13 @@ defmodule Ash.Tui.Canvas do
       end
 
     list =
-      case e == fc2 do
+      case ff == ff2 do
+        true -> list
+        false -> [{:n, ff2} | list]
+      end
+
+    list =
+      case fc == fc2 do
         true -> list
         false -> [{:e, fc2} | list]
       end
@@ -297,6 +321,11 @@ defmodule Ash.Tui.Canvas do
 
   defp encode(encoder, list, [{:f, f} | tail]) do
     d = encoder.(:fore, f)
+    encode(encoder, [d | list], tail)
+  end
+
+  defp encode(encoder, list, [{:n, n} | tail]) do
+    d = encoder.(:font, n)
     encode(encoder, [d | list], tail)
   end
 
