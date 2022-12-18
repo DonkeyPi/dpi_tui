@@ -175,17 +175,23 @@ defmodule Ash.Tui.Panel do
     end)
   end
 
-  # Shortcuts are broadcasted without focus pre-assigment.
-  # The matching button wont get focused either.
-  def handle(%{index: index, children: children} = model, %{type: :shortcut} = event) do
-    Enum.each(index, fn id ->
-      momo = Map.get(children, id)
+  # No focus is assigned on shortcut execution.
+  # Shortcuts restricted to focusables.
+  # Modal updates are discarded.
+  def handle(%{children: children} = model, {:shortcut, [id], {shortcut, action}}) do
+    momo = Map.get(children, id)
+    IO.inspect({[id], {shortcut, action}})
 
-      if momo_focusable(momo) do
-        momo_handle(momo, event)
-      end
-    end)
+    if momo_focusable(momo),
+      do: momo_handle(momo, %{type: :shortcut, shortcut: shortcut, action: action})
 
+    {model, nil}
+  end
+
+  def handle(%{children: children} = model, {:shortcut, [id | ids], event}) do
+    momo = Map.get(children, id)
+    IO.inspect({[id | ids], event})
+    if momo_focusable(momo), do: momo_handle(momo, {:shortcut, ids, event})
     {model, nil}
   end
 

@@ -134,8 +134,6 @@ defmodule Ash.Tui.Button do
     Check.assert_boolean(:enabled, model.enabled)
     Check.assert_gte(:findex, model.findex, -1)
     Check.assert_string(:text, model.text)
-    shortcuts = Map.put(@shortcutm, nil, true)
-    Check.assert_is_key(:shortcut, model.shortcut, shortcuts)
     Check.assert_in_list(:border, model.border, [nil, :single, :double, :round])
     Check.assert_function(:on_click, model.on_click, 0)
     model

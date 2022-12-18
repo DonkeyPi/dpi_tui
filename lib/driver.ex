@@ -32,6 +32,7 @@ defmodule Ash.Tui.Driver do
     put(:back, color(:bgcolor, "000000", opts))
     put(:fore, color(:fgcolor, "FFFFFF", opts))
     put(:canvas, Canvas.new(cols, rows))
+    put(:shortcuts, %{})
     put(:module, nil)
     put(:model, nil)
     put(:modal, nil)
@@ -49,6 +50,7 @@ defmodule Ash.Tui.Driver do
     ids = get(:ids)
 
     if ids == [] do
+      put(:shortcuts, %{})
       put(:modal, nil)
     end
 
@@ -81,6 +83,21 @@ defmodule Ash.Tui.Driver do
 
     model = module.children(model, children)
 
+    shortcut = module.shortcut(model)
+
+    if shortcut != nil do
+      [_ | ids] = Enum.reverse(ids)
+      shortcuts = get(:shortcuts)
+
+      shortcuts =
+        case Map.get(shortcuts, shortcut) do
+          nil -> Map.put(shortcuts, shortcut, [ids])
+          curr -> Map.put(shortcuts, shortcut, [ids | curr])
+        end
+
+      put(:shortcuts, shortcuts)
+    end
+
     if root do
       put(:module, module)
       put(:model, model)
@@ -94,7 +111,7 @@ defmodule Ash.Tui.Driver do
 
         case get(:modal) do
           nil -> :ok
-          {id2, _, _} -> raise "Duplicated modal #{ids} and #{id2}"
+          {id2, _, _} -> raise "Duplicated modal #{inspect(ids)} and #{inspect(id2)}"
         end
 
         put(:modal, {ids, module, model})
@@ -119,10 +136,14 @@ defmodule Ash.Tui.Driver do
     modal = get(:modal)
     id = get(:id)
 
-    # Process shortcuts async.
-    with %{type: :key, action: action, key: key, flag: flag} <- event,
-         true <- Map.has_key?(@shortcutm, {key, flag}) do
-      send(self(), {:event, %{type: :shortcut, shortcut: {key, flag}, action: action}})
+    # Process shortcuts synchronously since model updates are discarded
+    # and async handling requires path adjusting for modals.
+    shortcuts = get(:shortcuts)
+
+    with %{type: :key, action: action, key: key, flag: flag} <- event do
+      for ids <- Map.get(shortcuts, {key, flag}, []) do
+        module.handle(model, {:shortcut, ids, {{key, flag}, action}})
+      end
     end
 
     # Coordinates are translated on destination for modals.

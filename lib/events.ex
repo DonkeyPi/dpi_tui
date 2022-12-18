@@ -1,15 +1,6 @@
 defmodule Ash.Tui.Events do
   defmacro __using__(_) do
     quote do
-      # avilable on recent macbooks: esc + f1-12 (require fn key)
-      # print and pause will be reserved for window switching
-      # esc kept for the user since modal close may require validation
-      @hotkeys [:esc, :f1, :f2, :f3, :f4, :f5, :f6, :f7, :f8, :f9, :f10, :f11, :f12]
-      @flags [:none, :control, :alt, :super]
-
-      @shortcuts for h <- @hotkeys, f <- @flags, do: {h, f}
-      @shortcutm Enum.map(@shortcuts, fn {h, k} -> {{h, k}, true} end) |> Enum.into(%{})
-
       @ev_kp_kdown %{type: :key, action: :press, key: :kdown, flag: :none}
       @ev_kp_kright %{type: :key, action: :press, key: :kright, flag: :none}
       @ev_kp_kleft %{type: :key, action: :press, key: :kleft, flag: :none}
