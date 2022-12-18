@@ -3,6 +3,7 @@ ExUnit.start()
 defmodule TestMacros do
   defmacro __using__(_) do
     quote do
+      alias Ash.Tui.Canvas
       use Ash.Tui.Aliases
       use Ash.Tui.Events
       use Ash.Tui.Colors
@@ -115,7 +116,8 @@ defmodule TestImports do
 
   def assert_diff(map, diff) do
     canvas2 = map.canvas
-    {cols, rows} = Canvas.get(canvas2, :size)
+    cols = canvas2.cols
+    rows = canvas2.rows
     canvas1 = Canvas.new(cols, rows)
     diff1 = Canvas.diff(canvas1, canvas2)
     assert diff1 == diff

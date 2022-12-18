@@ -22,6 +22,6 @@ defmodule Ash.Tui.Term do
   end
 
   def opts(), do: get(:state) |> get(:module).opts()
-  def encode(command, param), do: get(:module).encode(command, param)
+  def encode(cmd, param), do: get(:module).encode(cmd, param)
   def write(chardata), do: get(:state) |> get(:module).write(chardata)
 end

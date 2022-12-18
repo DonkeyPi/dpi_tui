@@ -2,11 +2,16 @@ defmodule Ash.Tui.Canvas do
   use Ash.Tui.Colors
   use Bitwise
 
+  @char 32
+  @fore @white
+  @back @black
+  @dimmed @black2
   @factor {1, 0, 0}
+  @cursor {false, 0, 0}
 
   def new(cols, rows, opts \\ []) do
-    fg = Keyword.get(opts, :fg, @white)
-    bg = Keyword.get(opts, :bg, @black)
+    fg = Keyword.get(opts, :fore, @fore)
+    bg = Keyword.get(opts, :back, @back)
 
     %{
       x: 0,
@@ -14,8 +19,8 @@ defmodule Ash.Tui.Canvas do
       data: %{},
       cols: cols,
       rows: rows,
-      cell: {' ', fg, bg, @factor},
-      cursor: {false, 0, 0},
+      cell: {@char, fg, bg, @factor},
+      cursor: @cursor,
       fore: fg,
       back: bg,
       opaque: true,
@@ -26,11 +31,11 @@ defmodule Ash.Tui.Canvas do
   end
 
   def modal(canvas, opts \\ []) do
-    fg = Keyword.get(opts, :fg, @black2)
-    bg = Keyword.get(opts, :bg, @black)
-    data = for {key, {d, _, _, fe}} <- canvas.data, do: {key, {d, fg, bg, fe}}
-    data = Enum.into(data, %{})
-    %{canvas | data: data, cursor: {false, 0, 0}}
+    canvas = reset(canvas)
+    fg = Keyword.get(opts, :fore, @dimmed)
+    bg = Keyword.get(opts, :back, @back)
+    data = for {key, {d, _, _, fc}} <- canvas.data, do: {key, {d, fg, bg, fc}}
+    %{canvas | data: Enum.into(data, %{}), cursor: @cursor}
   end
 
   def push(%{clips: clips} = canvas, bounds) do
@@ -49,20 +54,20 @@ defmodule Ash.Tui.Canvas do
     clip =
       for {ix, iy, iw, ih} <- Enum.reverse(clips), reduce: clip do
         {ax, ay, aw, ah} ->
+          # always grows, assumes positive xy
+          x = ax + ix
+          y = ay + iy
+          # always shrinks, assumes positive wh
           w = min(iw, aw - ix)
           h = min(ih, ah - iy)
-          {ax + ix, ay + iy, w, h}
+          {x, y, w, h}
       end
 
     %{canvas | clip: clip}
   end
 
-  def get(%{cols: cols, rows: rows}, :size), do: {cols, rows}
-  def get(%{cell: cell}, :cell), do: cell
-  def get(%{cursor: cursor}, :cursor), do: cursor
-
-  def reset(canvas) do
-    %{canvas | fore: @white, back: @black, factor: @factor, opaque: true}
+  def reset(%{clip: {cx, cy, _, _}, cell: {_, fore, back, factor}} = canvas) do
+    %{canvas | fore: fore, back: back, factor: factor, opaque: true, x: cx, y: cy}
   end
 
   def move(%{clip: {cx, cy, _, _}} = canvas, x, y) do
@@ -73,20 +78,10 @@ defmodule Ash.Tui.Canvas do
     %{canvas | cursor: {true, cx + x, cy + y}}
   end
 
-  def color(canvas, :fore, color) do
-    %{canvas | fore: color}
-  end
-
-  def color(canvas, :back, color) do
-    case color do
-      nil -> %{canvas | opaque: false}
-      _ -> %{canvas | back: color, opaque: true}
-    end
-  end
-
-  def factor(canvas, factor, x, y) do
-    %{canvas | factor: {factor, x, y}}
-  end
+  def color(canvas, :fore, color), do: %{canvas | fore: color}
+  def color(canvas, :back, nil), do: %{canvas | opaque: false}
+  def color(canvas, :back, color), do: %{canvas | back: color, opaque: true}
+  def factor(canvas, factor, fx, fy), do: %{canvas | factor: {factor, fx, fy}}
 
   # writes a single line clipping excess to avoid terminal wrapping
   def write(canvas, chardata) do
@@ -98,40 +93,29 @@ defmodule Ash.Tui.Canvas do
       back: bg,
       opaque: opaque,
       cell: cell,
-      factor: fe,
+      factor: fc,
       clip: {cx, cy, cw, ch}
     } = canvas
 
-    mx = cx + cw
-    my = cy + ch
+    cx2 = cx + cw
+    cy2 = cy + ch
 
-    if y < cy or y >= my do
+    if y < cy or y >= cy2 do
       canvas
     else
       {data, x} =
         chardata
         |> IO.chardata_to_string()
         |> String.to_charlist()
-        |> Enum.reduce_while({data, x}, fn c, {data, x} ->
-          case x < cx or x >= mx do
-            true ->
-              # don't write, but walk the path
-              {:cont, {data, x + 1}}
-
-            _ ->
-              # use current background
-              bg =
-                case opaque do
-                  false ->
-                    {_, _, bg, _} = Map.get(data, {x, y}, cell)
-                    bg
-
-                  _ ->
-                    bg
-                end
-
-              data = Map.put(data, {x, y}, {c, fg, bg, fe})
-              {:cont, {data, x + 1}}
+        |> Enum.reduce({data, x}, fn c, {data, x} ->
+          if x < cx or x >= cx2 do
+            # don't write, but walk the path
+            {data, x + 1}
+          else
+            # use current background if not opaque
+            bg = if opaque, do: bg, else: Map.get(data, {x, y}, cell) |> elem(2)
+            data = Map.put(data, {x, y}, {c, fg, bg, fc})
+            {data, x + 1}
           end
         end)
 
@@ -147,22 +131,22 @@ defmodule Ash.Tui.Canvas do
       data: data1,
       rows: rows,
       cols: cols,
-      back: b1,
-      fore: f1,
-      factor: e1,
+      back: bg1,
+      fore: fg1,
+      factor: fc1,
       cursor: {c1, cx1, cy1}
     } = canvas1
 
     %{
       x: x2,
       y: y2,
-      back: b2,
-      fore: f2,
+      back: bg2,
+      fore: fg2,
       cell: cel2,
       data: data2,
       rows: ^rows,
       cols: ^cols,
-      factor: e2,
+      factor: fc2,
       cursor: {c2, cx2, cy2}
     } = canvas2
 
@@ -174,7 +158,7 @@ defmodule Ash.Tui.Canvas do
       end
 
     {list, f, b, x, y, e} =
-      for row <- 0..(rows - 1), col <- 0..(cols - 1), reduce: {[], f1, b1, x1, y1, e1} do
+      for row <- 0..(rows - 1), col <- 0..(cols - 1), reduce: {[], fg1, bg1, x1, y1, fc1} do
         {list, f, b, x, y, e} ->
           cel1 = Map.get(data1, {col, row}, cel1)
           cel2 = Map.get(data2, {col, row}, cel2)
@@ -184,56 +168,52 @@ defmodule Ash.Tui.Canvas do
               {list, f, b, x, y, e}
 
             false ->
-              {d2, f2, b2, e2} = cel2
+              {d2, fg2, bg2, fc2} = cel2
 
               list =
                 case x == col do
-                  true ->
-                    list
-
-                  false ->
-                    [{:x, col} | list]
+                  true -> list
+                  false -> [{:x, col} | list]
                 end
 
               list =
                 case y == row do
-                  true ->
-                    list
-
-                  false ->
-                    [{:y, row} | list]
+                  true -> list
+                  false -> [{:y, row} | list]
                 end
 
               list =
-                case f == f2 do
+                case f == fg2 do
                   true -> list
-                  false -> [{:f, f2} | list]
+                  false -> [{:f, fg2} | list]
                 end
 
               list =
-                case b == b2 do
+                case b == bg2 do
                   true -> list
-                  false -> [{:b, b2} | list]
+                  false -> [{:b, bg2} | list]
                 end
 
               list =
-                case e == e2 do
+                case e == fc2 do
                   true -> list
-                  false -> [{:e, e2} | list]
+                  false -> [{:e, fc2} | list]
                 end
 
-              # to update fore and back the char needs to
-              # be written even if it did not changed
+              # To update fore and back the char needs to
+              # be written even if it did not changed.
+              # Encoding should maximize readability.
               list =
                 case list do
-                  [{:d, [^d2 | dd]} | tail] -> [{:d, [{d2, 2} | dd]} | tail]
-                  [{:d, [{^d2, n} | dd]} | tail] -> [{:d, [{d2, n + 1} | dd]} | tail]
-                  [{:d, dd} | tail] -> [{:d, [d2 | dd]} | tail]
+                  [{:d, {[^d2], n}} | tail] -> [{:d, {[d2], n + 1}} | tail]
+                  [{:d, [^d2]} | tail] -> [{:d, {[d2], 2}} | tail]
+                  [{:d, [^d2 | dd]} | tail] -> [{:d, {[d2], 2}}, {:d, dd} | tail]
+                  [{:d, dd} | tail] when is_list(dd) -> [{:d, [d2 | dd]} | tail]
                   _ -> [{:d, [d2]} | list]
                 end
 
               # term does not wrap x around
-              {list, f2, b2, col + 1, row, e2}
+              {list, fg2, bg2, col + 1, row, fc2}
           end
       end
 
@@ -248,43 +228,38 @@ defmodule Ash.Tui.Canvas do
 
     list =
       case x == x2 do
-        true ->
-          list
-
-        false ->
-          [{:x, x2} | list]
+        true -> list
+        false -> [{:x, x2} | list]
       end
 
     list =
       case y == y2 do
-        true ->
-          list
-
-        false ->
-          [{:y, y2} | list]
+        true -> list
+        false -> [{:y, y2} | list]
       end
 
     list =
-      case f == f2 do
+      case f == fg2 do
         true -> list
-        false -> [{:f, f2} | list]
+        false -> [{:f, fg2} | list]
       end
 
     list =
-      case b == b2 do
+      case b == bg2 do
         true -> list
-        false -> [{:b, b2} | list]
+        false -> [{:b, bg2} | list]
       end
 
     list =
-      case e == e2 do
+      case e == fc2 do
         true -> list
-        false -> [{:e, e2} | list]
+        false -> [{:e, fc2} | list]
       end
 
     list =
       for item <- list do
         case item do
+          {:d, {d, n}} -> {:d, {d, n}}
           {:d, d} -> {:d, Enum.reverse(d)}
           other -> other
         end
@@ -330,13 +305,13 @@ defmodule Ash.Tui.Canvas do
     encode(encoder, [d | list], tail)
   end
 
-  defp encode(encoder, list, [{:c, c} | tail]) do
-    d =
-      case c do
-        true -> encoder.(:show, nil)
-        false -> encoder.(:hide, nil)
-      end
+  defp encode(encoder, list, [{:c, true} | tail]) do
+    d = encoder.(:show, nil)
+    encode(encoder, [d | list], tail)
+  end
 
+  defp encode(encoder, list, [{:c, false} | tail]) do
+    d = encoder.(:hide, nil)
     encode(encoder, [d | list], tail)
   end
 end

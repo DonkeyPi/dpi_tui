@@ -170,11 +170,10 @@ defmodule Ash.Tui.Driver do
     modal = get(:modal)
 
     theme = Theme.get(id, module, model)
-
-    opts = [bg: get(:back), fg: get(:fore)]
-    canvas2 = Canvas.new(cols, rows, opts)
     bounds = module.bounds(model)
-    canvas2 = Canvas.push(canvas2, bounds)
+    opts = [back: get(:back), fore: get(:fore)]
+    canvas = Canvas.new(cols, rows, opts)
+    canvas2 = Canvas.push(canvas, bounds)
     canvas2 = module.render(model, canvas2, theme)
     canvas2 = Canvas.pop(canvas2)
 
@@ -192,12 +191,11 @@ defmodule Ash.Tui.Driver do
           Canvas.pop(canvas2)
       end
 
-    canvas1 = Canvas.new(cols, rows, opts)
-    canvas1 = get(:canvas, canvas1)
+    canvas1 = get(:canvas, canvas)
     put(:canvas, canvas2)
 
-    encoder = fn command, param ->
-      Term.encode(command, param)
+    encoder = fn cmd, param ->
+      Term.encode(cmd, param)
     end
 
     diff = Canvas.diff(canvas1, canvas2)
