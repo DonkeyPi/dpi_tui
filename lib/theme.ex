@@ -37,8 +37,8 @@ defmodule Ash.Tui.Theme do
   end
 
   def get_style(item, type, selector) do
-    # IO.inspect({prop, selector, calc_style(prop, selector)})
-    calc_style(item, type, selector)
+    # IO.inspect({prop, selector, gets(prop, selector)})
+    gets(item, type, selector)
   end
 
   defp getp(dest, src, name, def) do
@@ -46,18 +46,31 @@ defmodule Ash.Tui.Theme do
     Map.put(dest, name, value)
   end
 
-  def calc_style(:fore, _, %{class: %{fore: fore}}), do: fore
-  def calc_style(:back, _, %{class: %{back: back}}), do: back
-  def calc_style(:fore, _, %{enabled: false}), do: @black2
-  def calc_style(:back, _, %{enabled: false}), do: @black
-  def calc_style(:fore, _, %{type: Input, valid: false}), do: @red
-  def calc_style(:fore, _, %{type: Input, focused: true}), do: @white
-  def calc_style(:back, _, %{type: Input, focused: true}), do: @blue
-  def calc_style(:fore, _, %{type: Button, focused: true}), do: @white
-  def calc_style(:back, _, %{type: Button, focused: true}), do: @blue
-  def calc_style(:fore, _, %{type: Checkbox, focused: true}), do: @white
-  def calc_style(:fore, :selected, %{type: Select}), do: @white
-  def calc_style(:fore, :selected, %{type: Radio}), do: @white
-  def calc_style(:fore, _, _), do: @black2
-  def calc_style(:back, _, _), do: @black
+  def gets(:fore, _, %{class: %{fore: fore}}), do: fore
+  def gets(:back, _, %{class: %{back: back}}), do: back
+
+  def gets(:back, _, %{type: Frame}), do: nil
+  def gets(:back, _, %{type: Panel}), do: 0x00
+  def gets(:back, _, %{type: Label}), do: 0x00
+  def gets(:fore, _, %{type: Label}), do: 0xF6
+  def gets(:fore, _, %{type: Button, focused: true}), do: 0x0F
+  def gets(:back, _, %{type: Button, focused: true}), do: 0x16
+  def gets(:fore, _, %{type: Checkbox, focused: true}), do: 0x0F
+  def gets(:back, _, %{type: Checkbox, focused: true}), do: 0x16
+
+  def gets(:fore, _, %{type: Input, enabled: true, focused: true}), do: 0x0F
+  def gets(:fore, _, %{type: Input, enabled: true}), do: 0x07
+
+  def gets(:back, _, %{type: Input, enabled: true, focused: true, valid: true}), do: 0x16
+  def gets(:back, _, %{type: Input, enabled: true, focused: true, valid: false}), do: 0x7C
+  def gets(:back, _, %{type: Input, enabled: true, focused: false, valid: false}), do: 0x34
+  def gets(:back, _, %{type: Input, enabled: true}), do: 0xEA
+
+  def gets(:fore, :selected, %{enabled: true, focused: true}), do: 0x0F
+  def gets(:back, :selected, %{enabled: true, focused: true}), do: 0x16
+  def gets(:back, :selected, %{enabled: true, focused: false}), do: 0xEF
+
+  def gets(:fore, _, %{enabled: true}), do: 0x07
+  def gets(:fore, _, _), do: 0xF1
+  def gets(:back, _, _), do: 0xEA
 end

@@ -201,11 +201,9 @@ defmodule Ash.Tui.Driver do
           event
       end
 
-    if event != nil do
-      model = momo_handle(module, model, event)
-      put(:tree, Control.tree({module, model}, [id]))
-      put(:model, model)
-    end
+    model = momo_handle(module, model, event)
+    put(:tree, Control.tree({module, model}, [id]))
+    put(:model, model)
 
     :ok
   end
