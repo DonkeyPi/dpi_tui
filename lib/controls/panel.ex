@@ -180,7 +180,6 @@ defmodule Ash.Tui.Panel do
   # Modal updates are discarded.
   def handle(%{children: children} = model, {:shortcut, [id], {shortcut, action}}) do
     momo = Map.get(children, id)
-    IO.inspect({[id], {shortcut, action}})
 
     if momo_focusable(momo),
       do: momo_handle(momo, %{type: :shortcut, shortcut: shortcut, action: action})
@@ -190,7 +189,6 @@ defmodule Ash.Tui.Panel do
 
   def handle(%{children: children} = model, {:shortcut, [id | ids], event}) do
     momo = Map.get(children, id)
-    IO.inspect({[id | ids], event})
     if momo_focusable(momo), do: momo_handle(momo, {:shortcut, ids, event})
     {model, nil}
   end

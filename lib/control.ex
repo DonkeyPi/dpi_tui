@@ -42,6 +42,10 @@ defmodule Ash.Tui.Control do
   end
 
   # Build a model tree to detect node preexistence.
+  # This cannot be build during model upgrade because
+  # children can be changed while adding to parent
+  # and that changes would be lost. This needs to run
+  # on the final fully built model.
   def tree({module, model}, ids, map \\ %{}) do
     map =
       for {id, momo} <- module.children(model), reduce: map do

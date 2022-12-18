@@ -99,6 +99,12 @@ defmodule Ash.Tui.Driver do
     end
 
     if root do
+      # not having an up-to-date tree means inits are replaced by
+      # updates above and state is being lost or not reset.
+      # A timer only app would only and always call inits
+      # because the tree is never initialized.
+      # Both tree updates are needed, here and in update.
+      put(:tree, Control.tree({module, model}, [id]))
       put(:module, module)
       put(:model, model)
       put(:id, id)
@@ -177,9 +183,8 @@ defmodule Ash.Tui.Driver do
       # value nested in tuples path like below:
       # {:p0, {:c0, {:click, :nop}}}
       {model, _event} = module.handle(model, event)
-      tree = Control.tree({module, model}, [id])
+      put(:tree, Control.tree({module, model}, [id]))
       put(:model, model)
-      put(:tree, tree)
     end
 
     :ok
