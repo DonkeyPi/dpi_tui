@@ -10,27 +10,12 @@ defmodule Ash.Tui.Driver do
   defp put(key, value), do: Process.put({__MODULE__, key}, value)
   defp delete(key), do: Process.delete({__MODULE__, key})
 
-  defp color(key, value, opts) do
-    <<
-      r::binary-size(2),
-      g::binary-size(2),
-      b::binary-size(2)
-    >> = Keyword.get(opts, key, value)
-
-    r = String.to_integer(r, 16)
-    g = String.to_integer(g, 16)
-    b = String.to_integer(b, 16)
-    {r, g, b}
-  end
-
   def start(opts) do
     {term, opts} = Keyword.pop!(opts, :term)
     :ok = Term.start(term, opts)
     opts = Term.opts()
     cols = Keyword.fetch!(opts, :cols)
     rows = Keyword.fetch!(opts, :rows)
-    put(:back, color(:bgcolor, "000000", opts))
-    put(:fore, color(:fgcolor, "FFFFFF", opts))
     put(:canvas, Canvas.new(cols, rows))
     put(:shortcuts, %{})
     put(:module, nil)
@@ -215,8 +200,7 @@ defmodule Ash.Tui.Driver do
 
     theme = Theme.get(id, module, model)
     bounds = module.bounds(model)
-    opts = [back: get(:back), fore: get(:fore)]
-    canvas = Canvas.new(cols, rows, opts)
+    canvas = Canvas.new(cols, rows)
     canvas2 = Canvas.push(canvas, bounds)
     canvas2 = module.render(model, canvas2, theme)
     canvas2 = Canvas.pop(canvas2)
