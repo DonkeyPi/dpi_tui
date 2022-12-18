@@ -8,9 +8,9 @@ defmodule Ash.Tui.Theme do
   #  - class   - Arbitrary qualifier.
   #  - enabled - Enable flag.
   #  - focused - Focus flag.
-  # Future selector props:
+  #  - valid   - Valid flag (Input).
+  # FIXME Future selector props:
   #  - hovered - Hover flag.
-  #  - invalid - Nil or invalid reason.
   @callback get_style(prop :: any, selector :: map()) :: color :: any()
 
   def set(theme), do: Process.put(__MODULE__, theme)
@@ -26,9 +26,6 @@ defmodule Ash.Tui.Theme do
     selector = getp(selector, model, :focused, false)
     selector = getp(selector, model, :class, nil)
     selector = Map.put(selector, :valid, module.valid(model))
-    # FIXME implement extra selectors
-    # selector = getp(selector, model, :hovered, nil)
-    # selector = getp(selector, model, :invalid, nil)
 
     cond do
       is_function(theme, 3) -> fn item, type -> theme.(item, type, selector) end
@@ -50,8 +47,8 @@ defmodule Ash.Tui.Theme do
   def gets(:back, _, %{class: %{back: back}}), do: back
 
   def gets(:back, _, %{type: Frame}), do: nil
-  def gets(:back, _, %{type: Panel}), do: 0x00
-  def gets(:back, _, %{type: Label}), do: 0x00
+  def gets(:back, _, %{type: Panel}), do: nil
+  def gets(:back, _, %{type: Label}), do: nil
   def gets(:fore, _, %{type: Label}), do: 0xF6
   def gets(:fore, _, %{type: Button, focused: true}), do: 0x0F
   def gets(:back, _, %{type: Button, focused: true}), do: 0x16

@@ -7,6 +7,7 @@ defmodule Ash.Tui.Macros do
   alias Ash.Tui.Label
   alias Ash.Tui.Panel
   alias Ash.Tui.Radio
+  alias Ash.Tui.Custom
   use Ash.Node
 
   defmacro panel(id, props) do
@@ -92,6 +93,14 @@ defmodule Ash.Tui.Macros do
       id = unquote(id)
       props = unquote(props)
       node(id, Radio, props)
+    end
+  end
+
+  defmacro custom(id, props) do
+    quote do
+      id = unquote(id)
+      props = unquote(props)
+      node(id, Custom, props)
     end
   end
 end
