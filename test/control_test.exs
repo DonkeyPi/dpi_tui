@@ -352,11 +352,9 @@ defmodule Ash.ControlTest do
     if button? do
       model = %{on_click: &Button.nop/0, shortcut: :shortcut}
 
-      assert module.handle(model, %{type: :shortcut, shortcut: :shortcut, action: :press}) ==
-               {model, {:click, :nop}}
+      assert module.handle(model, {:shortcut, :shortcut, :press}) == {model, {:click, :nop}}
     else
-      assert module.handle(%{}, %{type: :shortcut, shortcut: :shortcut, action: :press}) ==
-               {%{}, nil}
+      assert module.handle(%{}, {:shortcut, :shortcut, :press}) == {%{}, nil}
     end
   end
 

@@ -103,7 +103,7 @@ defmodule Ash.Tui.Driver do
       # updates above and state is being lost or not reset.
       # A timer only app would only and always call inits
       # because the tree is never initialized.
-      # Both tree updates are needed, here and in update.
+      # Both tree updates are needed, here and in handle.
       put(:tree, Control.tree({module, model}, [id]))
       put(:module, module)
       put(:model, model)
@@ -127,7 +127,7 @@ defmodule Ash.Tui.Driver do
     {module, model}
   end
 
-  # full refresh
+  # Full refresh.
   def handle(%{type: :sys, key: :print}) do
     delete(:canvas)
     data = Term.encode(:clear, nil)
@@ -142,15 +142,38 @@ defmodule Ash.Tui.Driver do
     modal = get(:modal)
     id = get(:id)
 
-    # Process shortcuts synchronously since model updates are discarded
-    # and async handling requires path adjusting for modals.
+    # Process shortcuts synchronously accumulating module updates.
+    # No direct model changes expected on shortcut handlers.
+    # Model 'changes' accumulated for completeness sake.
     shortcuts = get(:shortcuts)
 
-    with %{type: :key, action: action, key: key, flag: flag} <- event do
-      for ids <- Map.get(shortcuts, {key, flag}, []) do
-        module.handle(model, {:shortcut, ids, {{key, flag}, action}})
+    # This updated model is lost if event nils below as happens
+    # for mouse outside root client area. Safe at this time.
+    model =
+      with %{type: :key, action: action, key: key, flag: flag} <- event do
+        for ids <- Map.get(shortcuts, {key, flag}, []), reduce: model do
+          model ->
+            event =
+              case modal do
+                nil ->
+                  {:shortcut, ids, {{key, flag}, action}}
+
+                {mid, _, _} ->
+                  case Enum.split(ids, length(mid)) do
+                    {^mid, tail} ->
+                      event = {:shortcut, tail, {{key, flag}, action}}
+                      {:modal, mid, event}
+
+                    _ ->
+                      nil
+                  end
+              end
+
+            momo_handle(module, model, event)
+        end
+      else
+        _ -> model
       end
-    end
 
     # Coordinates are translated on destination for modals.
     # Momo needed below to clip the rendering region.
@@ -160,7 +183,7 @@ defmodule Ash.Tui.Driver do
     event =
       case modal do
         nil -> event
-        {id, _module, _model} -> {:modal, id, event}
+        {mid, _, _} -> {:modal, mid, event}
       end
 
     # Offset coordinates for root panel.
@@ -179,10 +202,7 @@ defmodule Ash.Tui.Driver do
       end
 
     if event != nil do
-      # Events that trigger an on_event handler return
-      # value nested in tuples path like below:
-      # {:p0, {:c0, {:click, :nop}}}
-      {model, _event} = module.handle(model, event)
+      model = momo_handle(module, model, event)
       put(:tree, Control.tree({module, model}, [id]))
       put(:model, model)
     end
@@ -227,5 +247,15 @@ defmodule Ash.Tui.Driver do
     diff = Canvas.diff(canvas1, canvas2)
     data = Canvas.encode(encoder, diff)
     :ok = Term.write(data)
+  end
+
+  defp momo_handle(_module, model, nil), do: model
+
+  defp momo_handle(module, model, event) do
+    # Events that trigger an on_event handler return
+    # value nested in tuples path like below:
+    # {:p0, {:c0, {:click, :nop}}}
+    {model, _event} = module.handle(model, event)
+    model
   end
 end

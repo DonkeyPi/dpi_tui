@@ -77,7 +77,7 @@ defmodule Ash.Tui.Button do
 
   def handle(
         %{shortcut: shortcut} = model,
-        %{type: :shortcut, shortcut: shortcut, action: :press}
+        {:shortcut, shortcut, :press}
       ),
       do: trigger(model)
 

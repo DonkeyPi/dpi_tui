@@ -93,6 +93,8 @@ defmodule Ash.Tui.Panel do
     check(model)
   end
 
+  # Handles: mouse, key, modal, and shortcut.
+
   # Modals have absolute positioning. Offset begins at modal.
   def handle(
         %{origin: {x, y}} = model,
@@ -103,11 +105,36 @@ defmodule Ash.Tui.Panel do
 
   def handle(model, {:modal, [], event}), do: handle(model, event)
 
-  def handle(model, {:modal, [key | tail], event}) do
-    momo = model.children[key]
+  def handle(model, {:modal, [id | tail], event}) do
+    momo = model.children[id]
     {momo, event} = momo_handle(momo, {:modal, tail, event})
-    model = put_child(model, key, momo)
+    model = put_child(model, id, momo)
     {model, event}
+  end
+
+  # Shortcuts restricted to focusables.
+  def handle(model, {:shortcut, [id], {shortcut, action}}) do
+    momo = model.children[id]
+
+    if momo_focusable(momo) do
+      event = {:shortcut, shortcut, action}
+      {momo, event} = momo_handle(momo, event)
+      {put_child(model, id, momo), event}
+    else
+      {model, nil}
+    end
+  end
+
+  def handle(model, {:shortcut, [id | ids], event}) do
+    momo = model.children[id]
+
+    if momo_focusable(momo) do
+      event = {:shortcut, ids, event}
+      {momo, event} = momo_handle(momo, event)
+      {put_child(model, id, momo), event}
+    else
+      {model, nil}
+    end
   end
 
   # Prevent next handler from receiving a key event with nil focus.
@@ -175,24 +202,6 @@ defmodule Ash.Tui.Panel do
     end)
   end
 
-  # No focus is assigned on shortcut execution.
-  # Shortcuts restricted to focusables.
-  # Modal updates are discarded.
-  def handle(%{children: children} = model, {:shortcut, [id], {shortcut, action}}) do
-    momo = Map.get(children, id)
-
-    if momo_focusable(momo),
-      do: momo_handle(momo, %{type: :shortcut, shortcut: shortcut, action: action})
-
-    {model, nil}
-  end
-
-  def handle(%{children: children} = model, {:shortcut, [id | ids], event}) do
-    momo = Map.get(children, id)
-    if momo_focusable(momo), do: momo_handle(momo, {:shortcut, ids, event})
-    {model, nil}
-  end
-
   def handle(model, _event), do: {model, nil}
 
   def render(%{index: index, children: children} = model, canvas, theme) do
@@ -219,7 +228,7 @@ defmodule Ash.Tui.Panel do
   end
 
   # This is recursive. Both in setting and removing focus.
-  # Assumes no child other than the pointed by the focus key will
+  # Assumes no child other than the pointed by the focus will
   # be ever focused. No attempt is made to unfocus every children.
   defp recalculate(model, dir) do
     %{
@@ -232,7 +241,7 @@ defmodule Ash.Tui.Panel do
 
     expected = visible and enabled and focused and findex >= 0
 
-    # Try to recover the current focus key returning nil if not recoverable
+    # Try to recover the current focus returning nil if not recoverable
     {model, focus} =
       case focus do
         nil ->
@@ -270,7 +279,7 @@ defmodule Ash.Tui.Panel do
           end
       end
 
-    # Try to initialize the focus key if nil.
+    # Try to initialize focus if nil.
     case {expected, focus} do
       {true, nil} ->
         case focus_list(model, dir) do
