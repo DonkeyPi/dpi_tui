@@ -24,4 +24,5 @@ defmodule Ash.Tui.Term do
   def opts(), do: get(:state) |> get(:module).opts()
   def encode(cmd, param), do: get(:module).encode(cmd, param)
   def write(chardata), do: get(:state) |> get(:module).write(chardata)
+  def set_title(title), do: get(:state) |> get(:module).set_title(title)
 end
