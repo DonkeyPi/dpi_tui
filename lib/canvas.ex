@@ -84,10 +84,16 @@ defmodule Ash.Tui.Canvas do
 
   def back(canvas, nil), do: %{canvas | opaque: false}
 
+  def back(canvas, {r, g, b}) when r in 0..0xFF and g in 0..0xFF and b in 0..0xFF,
+    do: %{canvas | back: r <<< 16 ||| g <<< 8 ||| b}
+
   def back(canvas, color) when color in 0..0xFFFFFF,
     do: %{canvas | back: color, opaque: true}
 
   def fore(canvas, color) when color in 0..0xFFFFFF, do: %{canvas | fore: color}
+
+  def fore(canvas, {r, g, b}) when r in 0..0xFF and g in 0..0xFF and b in 0..0xFF,
+    do: %{canvas | fore: r <<< 16 ||| g <<< 8 ||| b}
 
   def factor(canvas, factor, fx, fy) when factor in 1..16 and fx in 0..15 and fy in 0..15,
     do: %{canvas | factor: {factor, fx, fy}}

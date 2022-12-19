@@ -14,7 +14,8 @@ defmodule Ash.LabelTest do
              class: nil,
              text: "",
              align: :left,
-             factor: 1
+             factor: 1,
+             font: 0
            }
 
     # default render
