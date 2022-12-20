@@ -159,7 +159,10 @@ defmodule Ash.ControlTest do
 
     # navigation (except Panel)
     if input? do
-      assert module.handle(%{}, @ev_kp_enter) == {%{}, {:focus, :next}}
+      if not button? do
+        assert module.handle(%{}, @ev_kp_enter) == {%{}, {:focus, :next}}
+      end
+
       assert module.handle(%{}, @ev_kp_fnext) == {%{}, {:focus, :next}}
       assert module.handle(%{}, @ev_kp_fprev) == {%{}, {:focus, :prev}}
     else

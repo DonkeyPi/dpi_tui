@@ -70,7 +70,7 @@ defmodule Ash.Tui.Button do
   def handle(model, @ev_kp_kright), do: {model, {:focus, :next}}
   def handle(model, @ev_kp_kleft), do: {model, {:focus, :prev}}
   def handle(model, @ev_kp_kup), do: {model, {:focus, :prev}}
-  def handle(model, @ev_kp_enter), do: {model, {:focus, :next}}
+  def handle(model, @ev_kp_enter), do: trigger(model)
   def handle(model, @ev_kp_trigger), do: trigger(model)
   def handle(model, @ev_kp_space), do: trigger(model)
   def handle(model, @ev_mp_left), do: trigger(model)

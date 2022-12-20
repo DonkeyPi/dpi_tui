@@ -14,7 +14,7 @@ defmodule Ash.LabelTest do
              class: nil,
              text: "",
              align: :left,
-             factor: 1,
+             scale: 1,
              font: 0
            }
 
@@ -71,18 +71,18 @@ defmodule Ash.LabelTest do
     |> render()
     |> assert_color("Tĩt", 0, @tc_normal)
 
-    # factor
-    label(text: "T", factor: 2)
+    # scale
+    label(text: "T", scale: 2)
     |> render()
     |> assert_color("TT", 0, @tc_normal)
     |> assert_color("TT", 1, @tc_normal)
 
-    label(text: "TA", factor: 2)
+    label(text: "TA", scale: 2)
     |> render()
     |> assert_color("TTAA", 0, @tc_normal)
     |> assert_color("TTAA", 1, @tc_normal)
 
-    label(text: "T", factor: 2, size: {4, 4})
+    label(text: "T", scale: 2, size: {4, 4})
     |> render()
     |> assert_color("    ", 0, @tc_normal)
     |> assert_color("TT  ", 1, @tc_normal)
@@ -101,8 +101,8 @@ defmodule Ash.LabelTest do
     |> assert_color(" TT ", 2, @tc_normal)
     |> assert_color("    ", 3, @tc_normal)
 
-    # factor rendering
-    label(text: "T", factor: 2)
+    # scale rendering
+    label(text: "T", scale: 2)
     |> render()
     |> assert_color("TT", 0, @tc_normal)
     |> assert_color("TT", 1, @tc_normal)
@@ -139,10 +139,10 @@ defmodule Ash.LabelTest do
     |> render()
     |> assert_color("2", 0, {@tcf_normal, @green})
 
-    # factor restored
+    # scale restored
     panel(root: true, size: {3, 2})
     |> save(:main)
-    |> label(text: "2", factor: 2)
+    |> label(text: "2", scale: 2)
     |> save(:f2)
     |> label(text: "1", origin: {2, 0})
     |> save(:f1)

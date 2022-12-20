@@ -23,6 +23,7 @@ defmodule Ash.ButtonTest do
 
     # triggers: left click, space, ctrl+enter
     model = %{on_click: &Button.nop/0, enabled: true}
+    assert Button.handle(model, @ev_kp_enter) == {model, {:click, :nop}}
     assert Button.handle(model, @ev_kp_space) == {model, {:click, :nop}}
     assert Button.handle(model, @ev_kp_trigger) == {model, {:click, :nop}}
     assert Button.handle(model, ev_mp_left(0, 0)) == {model, {:click, :nop}}

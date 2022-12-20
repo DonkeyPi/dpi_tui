@@ -6,7 +6,7 @@ defmodule Ash.Tui.Canvas do
   @fore @white
   @back @black
   @dimmed @black2
-  @factor {1, 0, 0}
+  @scale {1, 0, 0}
   @cursor {false, 0, 0}
 
   def new(cols, rows, opts \\ []) do
@@ -20,13 +20,13 @@ defmodule Ash.Tui.Canvas do
       data: %{},
       cols: cols,
       rows: rows,
-      cell: {@char, fore, back, font, @factor},
+      cell: {@char, fore, back, font, @scale},
       cursor: @cursor,
       font: font,
       fore: fore,
       back: back,
       opaque: true,
-      factor: @factor,
+      scale: @scale,
       clip: {0, 0, cols, rows},
       clips: []
     }
@@ -36,7 +36,7 @@ defmodule Ash.Tui.Canvas do
     canvas = reset(canvas)
     fg = Keyword.get(opts, :fore, @dimmed)
     bg = Keyword.get(opts, :back, @back)
-    data = for {key, {d, _, _, ff, fc}} <- canvas.data, do: {key, {d, fg, bg, ff, fc}}
+    data = for {key, {d, _, _, ff, fs}} <- canvas.data, do: {key, {d, fg, bg, ff, fs}}
     %{canvas | data: Enum.into(data, %{}), cursor: @cursor}
   end
 
@@ -68,8 +68,8 @@ defmodule Ash.Tui.Canvas do
     %{canvas | clip: clip}
   end
 
-  def reset(%{clip: {cx, cy, _, _}, cell: {_, fore, back, font, factor}} = canvas) do
-    %{canvas | font: font, fore: fore, back: back, factor: factor, opaque: true, x: cx, y: cy}
+  def reset(%{clip: {cx, cy, _, _}, cell: {_, fore, back, font, scale}} = canvas) do
+    %{canvas | font: font, fore: fore, back: back, scale: scale, opaque: true, x: cx, y: cy}
   end
 
   def move(%{clip: {cx, cy, _, _}} = canvas, x, y) do
@@ -95,8 +95,8 @@ defmodule Ash.Tui.Canvas do
   def fore(canvas, {r, g, b}) when r in 0..0xFF and g in 0..0xFF and b in 0..0xFF,
     do: %{canvas | fore: r <<< 16 ||| g <<< 8 ||| b}
 
-  def factor(canvas, factor, fx, fy) when factor in 1..16 and fx in 0..15 and fy in 0..15,
-    do: %{canvas | factor: {factor, fx, fy}}
+  def scale(canvas, scale, sx, sy) when scale in 1..16 and sx in 0..15 and sy in 0..15,
+    do: %{canvas | scale: {scale, sx, sy}}
 
   # writes a single line clipping excess to avoid terminal wrapping
   def write(canvas, chardata) do
@@ -109,7 +109,7 @@ defmodule Ash.Tui.Canvas do
       back: bg,
       opaque: opaque,
       cell: cell,
-      factor: fc,
+      scale: fs,
       clip: {cx, cy, cw, ch}
     } = canvas
 
@@ -130,7 +130,7 @@ defmodule Ash.Tui.Canvas do
           else
             # use current background if not opaque
             bg = if opaque, do: bg, else: Map.get(data, {x, y}, cell) |> elem(2)
-            data = Map.put(data, {x, y}, {c, fg, bg, ff, fc})
+            data = Map.put(data, {x, y}, {c, fg, bg, ff, fs})
             {data, x + 1}
           end
         end)
@@ -150,7 +150,7 @@ defmodule Ash.Tui.Canvas do
       font: ff1,
       back: bg1,
       fore: fg1,
-      factor: fc1,
+      scale: fs1,
       cursor: {c1, cx1, cy1}
     } = canvas1
 
@@ -164,7 +164,7 @@ defmodule Ash.Tui.Canvas do
       data: data2,
       rows: ^rows,
       cols: ^cols,
-      factor: fc2,
+      scale: fs2,
       cursor: {c2, cx2, cy2}
     } = canvas2
 
@@ -175,18 +175,18 @@ defmodule Ash.Tui.Canvas do
         false -> {x1, y1}
       end
 
-    {list, f, b, x, y, ff, fc} =
-      for row <- 0..(rows - 1), col <- 0..(cols - 1), reduce: {[], fg1, bg1, x1, y1, ff1, fc1} do
-        {list, f, b, x, y, ff, fc} ->
+    {list, f, b, x, y, ff, fs} =
+      for row <- 0..(rows - 1), col <- 0..(cols - 1), reduce: {[], fg1, bg1, x1, y1, ff1, fs1} do
+        {list, f, b, x, y, ff, fs} ->
           cel1 = Map.get(data1, {col, row}, cel1)
           cel2 = Map.get(data2, {col, row}, cel2)
 
           case cel2 == cel1 do
             true ->
-              {list, f, b, x, y, ff, fc}
+              {list, f, b, x, y, ff, fs}
 
             false ->
-              {d2, fg2, bg2, ff2, fc2} = cel2
+              {d2, fg2, bg2, ff2, fs2} = cel2
 
               list =
                 case x == col do
@@ -219,9 +219,9 @@ defmodule Ash.Tui.Canvas do
                 end
 
               list =
-                case fc == fc2 do
+                case fs == fs2 do
                   true -> list
-                  false -> [{:e, fc2} | list]
+                  false -> [{:e, fs2} | list]
                 end
 
               # To update fore and back the char needs to
@@ -237,7 +237,7 @@ defmodule Ash.Tui.Canvas do
                 end
 
               # term does not wrap x around
-              {list, fg2, bg2, col + 1, row, ff2, fc2}
+              {list, fg2, bg2, col + 1, row, ff2, fs2}
           end
       end
 
@@ -281,9 +281,9 @@ defmodule Ash.Tui.Canvas do
       end
 
     list =
-      case fc == fc2 do
+      case fs == fs2 do
         true -> list
-        false -> [{:e, fc2} | list]
+        false -> [{:e, fs2} | list]
       end
 
     list =
@@ -336,7 +336,7 @@ defmodule Ash.Tui.Canvas do
   end
 
   defp encode(encoder, list, [{:e, e} | tail]) do
-    d = encoder.(:factor, e)
+    d = encoder.(:scale, e)
     encode(encoder, [d | list], tail)
   end
 

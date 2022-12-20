@@ -170,10 +170,10 @@ defmodule Ash.CanvasTest do
              {:n, 2}
            ]
 
-    # Factor.
+    # Scale.
     canvas1 = Canvas.new(2, 1)
     canvas2 = Canvas.write(canvas1, "a")
-    canvas2 = Canvas.factor(canvas2, 2, 0, 0)
+    canvas2 = Canvas.scale(canvas2, 2, 0, 0)
     canvas2 = Canvas.write(canvas2, "b")
 
     assert Canvas.diff(canvas1, canvas2) == [
@@ -182,7 +182,7 @@ defmodule Ash.CanvasTest do
              {:d, 'b'}
            ]
 
-    canvas2 = Canvas.factor(canvas2, 3, 0, 0)
+    canvas2 = Canvas.scale(canvas2, 3, 0, 0)
 
     assert Canvas.diff(canvas1, canvas2) == [
              {:d, 'a'},
@@ -191,7 +191,7 @@ defmodule Ash.CanvasTest do
              {:e, {3, 0, 0}}
            ]
 
-    canvas1 = Canvas.factor(canvas1, 3, 0, 0)
+    canvas1 = Canvas.scale(canvas1, 3, 0, 0)
 
     assert Canvas.diff(canvas1, canvas2) == [
              {:e, {1, 0, 0}},
