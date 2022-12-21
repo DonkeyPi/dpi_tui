@@ -17,12 +17,11 @@ defmodule Ash.Tui.Driver do
     cols = Keyword.fetch!(opts, :cols)
     rows = Keyword.fetch!(opts, :rows)
     put(:canvas, Canvas.new(cols, rows))
+    put(:size, {cols, rows})
     put(:shortcuts, %{})
     put(:module, nil)
     put(:model, nil)
     put(:modal, nil)
-    put(:cols, cols)
-    put(:rows, rows)
     put(:tree, %{})
     put(:ids, [])
     put(:id, nil)
@@ -194,8 +193,7 @@ defmodule Ash.Tui.Driver do
   end
 
   def render(id, {module, model}) do
-    cols = get(:cols)
-    rows = get(:rows)
+    {cols, rows} = get(:size)
     modal = get(:modal)
 
     theme = Theme.get(id, module, model)
