@@ -12,8 +12,7 @@ defmodule Ash.Tui.Driver do
 
   def start(opts) do
     {term, opts} = Keyword.pop!(opts, :term)
-    :ok = Term.start(term, opts)
-    opts = Term.opts()
+    {:ok, opts} = Term.start(term, opts)
     cols = Keyword.fetch!(opts, :cols)
     rows = Keyword.fetch!(opts, :rows)
     put(:canvas, Canvas.new(cols, rows))
@@ -25,10 +24,8 @@ defmodule Ash.Tui.Driver do
     put(:tree, %{})
     put(:ids, [])
     put(:id, nil)
-    :ok
+    {:ok, opts}
   end
-
-  def opts(), do: Term.opts()
 
   def push(id) do
     ids = get(:ids)

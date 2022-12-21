@@ -1,28 +1,24 @@
 defmodule Ash.Tui.Term do
   # Starts the term driver.
-  @callback start(opts :: keyword()) :: state :: any()
+  @callback start(opts :: keyword()) :: {pid :: pid(), opts :: keyword()}
 
-  # Extracts the initialized option from opaque state.
-  @callback opts(state :: any()) :: opts :: keyword()
-
-  # Encodes command in the term languages
-  @callback encode(command :: atom(), param :: any()) :: data :: binary()
+  # Encodes commands
+  @callback encode(cmd :: any(), param :: any()) :: chardata :: iodata()
 
   # Writes encoded data to the term
-  @callback write(state :: any(), chardata :: iodata()) :: :ok
+  @callback write(pid :: pid(), chardata :: iodata()) :: :ok
 
   defp get(key), do: Process.get({__MODULE__, key})
   defp put(key, data), do: Process.put({__MODULE__, key}, data)
 
   def start(module, opts) do
-    put(:module, module)
-    state = module.start(opts)
-    put(:state, state)
-    :ok
+    {pid, opts} = module.start(opts)
+    put(:write, fn chardata -> module.write(pid, chardata) end)
+    put(:encode, fn cmd, param -> module.encode(cmd, param) end)
+    {:ok, opts}
   end
 
-  def opts(), do: get(:state) |> get(:module).opts()
-  def encode(cmd, param), do: get(:module).encode(cmd, param)
-  def write(chardata), do: get(:state) |> get(:module).write(chardata)
-  def set_title(title), do: get(:state) |> get(:module).set_title(title)
+  def encode(cmd, param), do: get(:encode).(cmd, param)
+  def set_title(title), do: write(get(:encode).(:title, title))
+  def write(chardata), do: get(:write).(chardata)
 end
