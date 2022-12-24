@@ -24,6 +24,8 @@ defmodule Ash.CheckboxTest do
     model1 = %{on_change: &Checkbox.nop/1, checked: false}
     model2 = %{on_change: &Checkbox.nop/1, checked: true}
     assert Checkbox.handle(model1, ev_mp_left(0, 0)) == {model2, {:checked, true, {:nop, true}}}
+    assert Checkbox.handle(model1, ev_mp_left(1, 1)) == {model2, {:checked, true, {:nop, true}}}
+    assert Checkbox.handle(model1, ev_mp_left(-1, -1)) == {model2, {:checked, true, {:nop, true}}}
     assert Checkbox.handle(model1, @ev_kp_space) == {model2, {:checked, true, {:nop, true}}}
     assert Checkbox.handle(model2, @ev_kp_trigger) == {model2, {:checked, true, {:nop, true}}}
 

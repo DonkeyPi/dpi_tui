@@ -70,9 +70,7 @@ defmodule Ash.Tui.Checkbox do
   def handle(model, @ev_kp_enter), do: {model, {:focus, :next}}
   def handle(model, @ev_kp_trigger), do: retrigger(model)
   def handle(model, @ev_kp_space), do: trigger(model)
-
-  def handle(model, %{type: :mouse, action: :press, key: :bleft, y: 0, flag: :none}),
-    do: trigger(model)
+  def handle(model, @ev_mp_left), do: trigger(model)
 
   def handle(model, _event), do: {model, nil}
 
