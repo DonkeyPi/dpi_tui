@@ -66,7 +66,7 @@ defmodule Ash.Tui.Select do
   def valid(_), do: true
   def modal(_), do: false
 
-  def update(%{items: items} = model, props) do
+  def update(%{items: items, selected: selected, map: map} = model, props) do
     props = Enum.into(props, %{})
     props = Map.drop(props, [:focused, :count, :map, :offset])
 
@@ -90,6 +90,10 @@ defmodule Ash.Tui.Select do
     props = Control.coalesce(props, :on_change, &Select.nop/1)
     model = Control.merge(model, props)
     model = recalculate(model)
+    previous = {selected, Map.get(map, selected)}
+    %{on_change: on_change, selected: selected, map: map} = model
+    calculated = {selected, Map.get(map, selected)}
+    if calculated != previous, do: on_change.(calculated)
     check(model)
   end
 
@@ -150,6 +154,7 @@ defmodule Ash.Tui.Select do
   def handle(model, @ev_kp_enter), do: {model, {:focus, :next}}
   def handle(model, @ev_kp_space), do: {model, trigger(model)}
   def handle(model, @ev_kp_trigger), do: {model, trigger(model)}
+  def handle(model, @ev_ms_trigger), do: {model, trigger(model)}
   def handle(model, _event), do: {model, nil}
 
   def render(model, canvas, theme) do
