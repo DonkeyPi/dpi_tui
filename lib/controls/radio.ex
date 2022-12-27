@@ -156,6 +156,7 @@ defmodule Ash.Tui.Radio do
   def handle(model, @ev_kp_space), do: {model, trigger(model)}
   def handle(model, @ev_kp_trigger), do: {model, trigger(model)}
   def handle(model, @ev_ms_trigger), do: {model, trigger(model)}
+  def handle(model, @ev_ms_trigger2), do: {model, trigger(model)}
   def handle(model, _event), do: {model, nil}
 
   def render(model, canvas, theme) do

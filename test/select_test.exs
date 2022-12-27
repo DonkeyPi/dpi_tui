@@ -158,12 +158,13 @@ defmodule Ash.SelectTest do
              {%{model | selected: 2, offset: 1}, {:item, 2, 2, {2, 2}}}
 
     # retriggers
-
-    assert Select.handle(model, @ev_ms_trigger) == {model, {:item, 0, 0, {0, 0}}}
-
     assert Select.handle(model, @ev_kp_trigger) == {model, {:item, 0, 0, {0, 0}}}
 
     assert Select.handle(model, @ev_kp_space) == {model, {:item, 0, 0, {0, 0}}}
+
+    assert Select.handle(model, @ev_ms_trigger) == {model, {:item, 0, 0, {0, 0}}}
+
+    assert Select.handle(model, @ev_ms_trigger2) == {model, {:item, 0, 0, {0, 0}}}
 
     # nops
 

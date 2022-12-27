@@ -5,7 +5,7 @@ defmodule Buffer do
 
   def get(), do: Process.get(__MODULE__)
 
-  def start(), do: put("")
+  def start(data \\ ""), do: put(data)
 
   def add(data) do
     put(get() <> data)

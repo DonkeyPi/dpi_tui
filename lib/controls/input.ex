@@ -20,6 +20,7 @@ defmodule Ash.Tui.Input do
     cursor = Map.get(opts, :cursor, String.length(text))
     on_change = Map.get(opts, :on_change, &Input.nop/1)
     validate = Map.get(opts, :validate, &Input.validate/1)
+    selected = Map.get(opts, :selected, false)
 
     model = %{
       focused: false,
@@ -33,9 +34,11 @@ defmodule Ash.Tui.Input do
       text: text,
       cursor: cursor,
       on_change: on_change,
-      validate: validate
+      validate: validate,
+      selected: selected
     }
 
+    if String.length(text) > 0, do: on_change.(text)
     check(model)
   end
 
@@ -49,6 +52,7 @@ defmodule Ash.Tui.Input do
   def focusable(%{on_change: cb}) when not is_function(cb, 1), do: false
   def focusable(%{findex: findex}), do: findex >= 0
   def focused(%{focused: focused}), do: focused
+  def focused(model, true), do: %{model | focused: true, selected: true}
   def focused(model, focused), do: %{model | focused: focused}
   def valid(%{validate: validate, text: text}), do: validate.(text)
   def refocus(model, _), do: model
@@ -79,6 +83,8 @@ defmodule Ash.Tui.Input do
 
     props = Control.coalesce(props, :on_change, &Input.nop/1)
     model = Control.merge(model, props)
+    current = model.text
+    if text != current, do: model.on_change.(current)
     check(model)
   end
 
@@ -92,26 +98,48 @@ defmodule Ash.Tui.Input do
 
   def handle(%{cursor: cursor} = model, @ev_kp_kleft) do
     cursor = if cursor > 0, do: cursor - 1, else: cursor
-    model = %{model | cursor: cursor}
+    model = %{model | cursor: cursor, selected: false}
     {model, nil}
   end
 
   def handle(%{cursor: cursor, text: text} = model, @ev_kp_kright) do
     count = String.length(text)
     cursor = if cursor < count, do: cursor + 1, else: cursor
-    model = %{model | cursor: cursor}
+    model = %{model | cursor: cursor, selected: false}
+    {model, nil}
+  end
+
+  def handle(model, @ev_kp_home_shift) do
+    model = %{model | cursor: 0, selected: true}
     {model, nil}
   end
 
   def handle(model, @ev_kp_home) do
-    model = %{model | cursor: 0}
+    model = %{model | cursor: 0, selected: false}
+    {model, nil}
+  end
+
+  def handle(%{text: text} = model, @ev_kp_end_shift) do
+    count = String.length(text)
+    model = %{model | cursor: count, selected: true}
     {model, nil}
   end
 
   def handle(%{text: text} = model, @ev_kp_end) do
     count = String.length(text)
-    model = %{model | cursor: count}
+    model = %{model | cursor: count, selected: false}
     {model, nil}
+  end
+
+  def handle(%{selected: true, text: text} = model, @ev_kp_backspace) do
+    case String.length(text) do
+      0 ->
+        {model, nil}
+
+      _ ->
+        model = %{model | text: "", cursor: 0, selected: false}
+        {model, trigger(model)}
+    end
   end
 
   def handle(%{cursor: cursor, text: text} = model, @ev_kp_backspace) do
@@ -125,6 +153,17 @@ defmodule Ash.Tui.Input do
         {prefix, _} = String.split_at(prefix, cursor)
         text = "#{prefix}#{suffix}"
         model = %{model | text: text, cursor: cursor}
+        {model, trigger(model)}
+    end
+  end
+
+  def handle(%{selected: true, text: text} = model, @ev_kp_delete) do
+    case String.length(text) do
+      0 ->
+        {model, nil}
+
+      _ ->
+        model = %{model | text: "", cursor: 0, selected: false}
         {model, trigger(model)}
     end
   end
@@ -151,9 +190,23 @@ defmodule Ash.Tui.Input do
     handle(model, %{msg | flag: :none})
   end
 
+  def handle(%{text: text, selected: true} = model, %{
+        type: :key,
+        action: :press,
+        key: data,
+        flag: :none
+      })
+      when is_list(data) do
+    next = "#{data}"
+    model = %{model | text: next, cursor: String.length(next), selected: false}
+    resp = if next == text, do: nil, else: trigger(model)
+    {model, resp}
+  end
+
   def handle(model, %{type: :key, action: :press, key: data, flag: :none}) when is_list(data) do
     %{cursor: cursor, text: text, size: {cols, _}} = model
     count = String.length(text)
+    model = %{model | selected: false}
 
     case count do
       ^cols ->
@@ -175,6 +228,12 @@ defmodule Ash.Tui.Input do
     end
   end
 
+  def handle(%{text: text} = model, @ev_ms_trigger2) do
+    count = String.length(text)
+    model = %{model | selected: true, cursor: count}
+    {model, nil}
+  end
+
   def handle(%{text: text} = model, %{
         type: :mouse,
         action: :press,
@@ -184,7 +243,7 @@ defmodule Ash.Tui.Input do
         flag: :none
       }) do
     cursor = min(mx, String.length(text))
-    model = %{model | cursor: cursor}
+    model = %{model | cursor: cursor, selected: false}
     {model, nil}
   end
 
@@ -195,6 +254,7 @@ defmodule Ash.Tui.Input do
       cursor: cursor,
       password: password,
       size: {cols, rows},
+      selected: selected,
       focused: focused,
       text: text
     } = model
@@ -217,7 +277,10 @@ defmodule Ash.Tui.Input do
         _ -> text
       end
 
-    text = String.pad_trailing(text, cols)
+    type = if selected, do: :selected, else: :normal
+    canvas = Canvas.fore(canvas, theme.(:fore, type))
+    canvas = Canvas.back(canvas, theme.(:back, type))
+
     canvas = Canvas.move(canvas, 0, 0)
     canvas = Canvas.write(canvas, text)
 
@@ -250,6 +313,7 @@ defmodule Ash.Tui.Input do
     Check.assert_gte(:cursor, model.cursor, 0)
     Check.assert_function(:on_change, model.on_change, 1)
     Check.assert_function(:validate, model.validate, 1)
+    Check.assert_boolean(:selected, model.selected)
     model
   end
 end

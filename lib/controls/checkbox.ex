@@ -32,6 +32,7 @@ defmodule Ash.Tui.Checkbox do
       on_change: on_change
     }
 
+    if checked, do: on_change.(checked)
     check(model)
   end
 
@@ -53,11 +54,13 @@ defmodule Ash.Tui.Checkbox do
   def valid(_), do: true
   def modal(_), do: false
 
-  def update(model, props) do
+  def update(%{checked: checked} = model, props) do
     props = Enum.into(props, %{})
     props = Map.drop(props, [:focused])
     props = Control.coalesce(props, :on_change, &Checkbox.nop/1)
     model = Control.merge(model, props)
+    current = model.checked
+    if checked != current, do: model.on_change.(current)
     check(model)
   end
 
@@ -71,6 +74,7 @@ defmodule Ash.Tui.Checkbox do
   def handle(model, @ev_kp_enter), do: {model, {:focus, :next}}
   def handle(model, @ev_kp_trigger), do: retrigger(model)
   def handle(model, @ev_ms_trigger), do: retrigger(model)
+  def handle(model, @ev_ms_trigger2), do: retrigger(model)
   def handle(model, @ev_kp_space), do: trigger(model)
   def handle(model, @ev_mp_left), do: trigger(model)
 

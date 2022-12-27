@@ -18,11 +18,33 @@ defmodule Ash.InputTest do
              password: false,
              text: "",
              cursor: 0,
+             selected: false,
              on_change: &Input.nop/1,
              validate: &Input.validate/1
            }
 
-    on_change = fn value -> value end
+    Buffer.start()
+
+    on_change = fn value ->
+      Buffer.add("#{value}")
+      value
+    end
+
+    Input.init(on_change: on_change, text: "text")
+    assert Buffer.get() == "text"
+    Buffer.start()
+
+    model = Input.init(on_change: on_change, text: "")
+    assert Buffer.get() == ""
+    Buffer.start()
+
+    model = Input.update(model, text: "text")
+    assert Buffer.get() == "text"
+    Buffer.start()
+
+    Input.update(model, text: "text2")
+    assert Buffer.get() == "text2"
+    Buffer.start()
 
     # updates
 
@@ -98,6 +120,7 @@ defmodule Ash.InputTest do
     |> render()
     |> assert_color("T", 0, @tc_normal)
     |> focused(true)
+    |> selected(false)
     |> render()
     |> assert_color("T", 0, @tc_focused)
     |> enabled(false)
@@ -140,6 +163,7 @@ defmodule Ash.InputTest do
     state =
       input(size: {5, 1})
       |> focused(true)
+      |> selected(false)
       |> render()
       |> assert_cursor("     ", 0, 0)
       |> handle(ev_kp_data('ṕ'), {:text, "ṕ", {:nop, "ṕ"}})
@@ -243,5 +267,67 @@ defmodule Ash.InputTest do
     |> update(text: "TTT", size: {3, 1})
     |> render()
     |> assert_color("TTT", 0, @tc_normal)
+
+    # selection
+
+    initial = Input.init(text: "text", cursor: 1, on_change: on_change)
+    assert initial.selected == false
+    assert initial.cursor == 1
+    assert initial.text == "text"
+    # on focus selected all
+    model = Input.focused(initial, true)
+    assert model.selected == true
+    # shift + home selected all
+    {model, _} = Input.handle(initial, @ev_kp_home_shift)
+    assert model.selected == true
+    assert model.cursor == 0
+    # shift + end selected all
+    {model, _} = Input.handle(initial, @ev_kp_end_shift)
+    assert model.selected == true
+    assert model.cursor == 4
+    # double click select all
+    {selected, _} = Input.handle(initial, @ev_ms_trigger2)
+    assert selected.selected == true
+    assert selected.cursor == 4
+    # single click clears selection
+    {model, _} = Input.handle(selected, ev_mp_left(0, 0))
+    assert model.selected == false
+    # left/right/home/end/data arrow clears selection
+    {model, _} = Input.handle(selected, @ev_kp_kleft)
+    assert model.selected == false
+    {model, _} = Input.handle(selected, @ev_kp_kright)
+    assert model.selected == false
+    {model, _} = Input.handle(selected, @ev_kp_home)
+    assert model.selected == false
+    {model, _} = Input.handle(selected, @ev_kp_end)
+    assert model.selected == false
+    {model, _} = Input.handle(selected, ev_kp_data('a'))
+    assert model.selected == false
+    # delete/backspace/data replaces selection
+    Buffer.start()
+    {model, _} = Input.handle(selected, @ev_kp_backspace)
+    assert model.selected == false
+    assert model.cursor == 0
+    assert model.text == ""
+    assert Buffer.get() == ""
+    Buffer.start()
+    {model, _} = Input.handle(selected, @ev_kp_delete)
+    assert model.selected == false
+    assert model.cursor == 0
+    assert model.text == ""
+    assert Buffer.get() == ""
+    Buffer.start()
+    {model, _} = Input.handle(selected, ev_kp_data('a'))
+    assert model.selected == false
+    assert model.cursor == 1
+    assert model.text == "a"
+    assert Buffer.get() == "a"
+    Buffer.start()
+    {model, _} = Input.handle(selected, ev_kp_data('ab'))
+    assert model.selected == false
+    assert model.cursor == 2
+    assert model.text == "ab"
+    assert Buffer.get() == "ab"
+    Buffer.start()
   end
 end

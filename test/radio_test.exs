@@ -134,11 +134,13 @@ defmodule Ash.RadioTest do
              {%{model | selected: 0}, {:item, 0, 0, {0, 0}}}
 
     # retriggers
-    assert Radio.handle(model, @ev_ms_trigger) == {model, {:item, 0, 0, {0, 0}}}
-
     assert Radio.handle(model, @ev_kp_trigger) == {model, {:item, 0, 0, {0, 0}}}
 
     assert Radio.handle(model, @ev_kp_space) == {model, {:item, 0, 0, {0, 0}}}
+
+    assert Radio.handle(model, @ev_ms_trigger) == {model, {:item, 0, 0, {0, 0}}}
+
+    assert Radio.handle(model, @ev_ms_trigger2) == {model, {:item, 0, 0, {0, 0}}}
 
     # nops
 

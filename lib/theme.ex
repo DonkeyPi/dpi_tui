@@ -58,6 +58,8 @@ defmodule Ash.Tui.Theme do
   def gets(:fore, _, %{type: Input, enabled: true, focused: true}), do: 0x0F
   def gets(:fore, _, %{type: Input, enabled: true}), do: 0x07
 
+  def gets(:back, :selected, %{type: Input, enabled: true, focused: true, valid: true}), do: 0x1C
+  def gets(:back, :selected, %{type: Input, enabled: true, focused: true, valid: false}), do: 0xA0
   def gets(:back, _, %{type: Input, enabled: true, focused: true, valid: true}), do: 0x16
   def gets(:back, _, %{type: Input, enabled: true, focused: true, valid: false}), do: 0x7C
   def gets(:back, _, %{type: Input, enabled: true, focused: false, valid: false}), do: 0x34

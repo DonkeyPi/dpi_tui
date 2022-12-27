@@ -12,6 +12,8 @@ defmodule Ash.Tui.Events do
       @ev_kp_delete %{type: :key, action: :press, key: :delete, flag: :none}
       @ev_kp_pdown %{type: :key, action: :press, key: :pdown, flag: :none}
       @ev_kp_pup %{type: :key, action: :press, key: :pup, flag: :none}
+      @ev_kp_home_shift %{type: :key, action: :press, key: :home, flag: :shift}
+      @ev_kp_end_shift %{type: :key, action: :press, key: :end, flag: :shift}
 
       # add :none to make it handler order insensitive
       @ev_kp_fnext %{type: :key, action: :press, key: :tab, flag: :none}
@@ -21,6 +23,7 @@ defmodule Ash.Tui.Events do
       @ev_kp_enter %{type: :key, action: :press, key: :return, flag: :none}
       @ev_kp_trigger %{type: :key, action: :press, key: :return, flag: :control}
       @ev_ms_trigger %{type: :mouse, action: :press, key: :bleft, flag: :control}
+      @ev_ms_trigger2 %{type: :mouse, action: :press2, key: :bleft, flag: :none}
 
       @ev_mp_left %{type: :mouse, action: :press, key: :bleft, flag: :none}
 

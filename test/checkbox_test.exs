@@ -20,6 +20,37 @@ defmodule Ash.CheckboxTest do
              on_change: &Checkbox.nop/1
            }
 
+    Buffer.start()
+
+    on_change = fn value ->
+      Buffer.add("#{value}")
+      value
+    end
+
+    Checkbox.init(on_change: on_change, checked: false)
+    assert Buffer.get() == ""
+    Buffer.start()
+
+    model = Checkbox.init(on_change: on_change, checked: true)
+    assert Buffer.get() == "true"
+    Buffer.start()
+
+    model = Checkbox.update(model, checked: true)
+    assert Buffer.get() == ""
+    Buffer.start()
+
+    model = Checkbox.update(model, checked: false)
+    assert Buffer.get() == "false"
+    Buffer.start()
+
+    model = Checkbox.update(model, checked: false)
+    assert Buffer.get() == ""
+    Buffer.start()
+
+    Checkbox.update(model, checked: true)
+    assert Buffer.get() == "true"
+    Buffer.start()
+
     # triggers: left click, space, ctrl+enter
     model1 = %{on_change: &Checkbox.nop/1, checked: false}
     model2 = %{on_change: &Checkbox.nop/1, checked: true}
@@ -29,6 +60,7 @@ defmodule Ash.CheckboxTest do
     assert Checkbox.handle(model1, @ev_kp_space) == {model2, {:checked, true, {:nop, true}}}
     assert Checkbox.handle(model2, @ev_kp_trigger) == {model2, {:checked, true, {:nop, true}}}
     assert Checkbox.handle(model2, @ev_ms_trigger) == {model2, {:checked, true, {:nop, true}}}
+    assert Checkbox.handle(model2, @ev_ms_trigger2) == {model2, {:checked, true, {:nop, true}}}
 
     # colors properly applied for each state
     checkbox(text: "T")

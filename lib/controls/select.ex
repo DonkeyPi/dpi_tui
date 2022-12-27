@@ -114,6 +114,7 @@ defmodule Ash.Tui.Select do
   def handle(model, @ev_kp_space), do: {model, trigger(model)}
   def handle(model, @ev_kp_trigger), do: {model, trigger(model)}
   def handle(model, @ev_ms_trigger), do: {model, trigger(model)}
+  def handle(model, @ev_ms_trigger2), do: {model, trigger(model)}
 
   # Prevent next handlers from receiving a key event with no items.
   def handle(%{items: []} = model, %{type: :key}), do: {model, nil}
