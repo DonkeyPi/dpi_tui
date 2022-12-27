@@ -66,7 +66,7 @@ defmodule Ash.Tui.Radio do
   def valid(_), do: true
   def modal(_), do: false
 
-  def update(%{items: items} = model, props) do
+  def update(%{items: items, selected: selected, map: map} = model, props) do
     props = Enum.into(props, %{})
     props = Map.drop(props, [:focused, :count, :map])
 
@@ -89,6 +89,10 @@ defmodule Ash.Tui.Radio do
     props = Control.coalesce(props, :on_change, &Radio.nop/1)
     model = Control.merge(model, props)
     model = recalculate(model)
+    previous = {selected, Map.get(map, selected)}
+    %{on_change: on_change, selected: selected, map: map} = model
+    calculated = {selected, Map.get(map, selected)}
+    if calculated != previous, do: on_change.(calculated)
     check(model)
   end
 
@@ -141,12 +145,14 @@ defmodule Ash.Tui.Radio do
   def handle(model, @ev_ms_up), do: handle(model, @ev_kp_kleft)
   def handle(model, @ev_ms_down), do: handle(model, @ev_kp_kright)
   def handle(model, @ev_kp_fprev), do: {model, {:focus, :prev}}
+  def handle(model, @ev_kp_fprev2), do: {model, {:focus, :prev}}
   def handle(model, @ev_kp_fnext), do: {model, {:focus, :next}}
   def handle(model, @ev_kp_kdown), do: {model, {:focus, :next}}
   def handle(model, @ev_kp_kup), do: {model, {:focus, :prev}}
   def handle(model, @ev_kp_space), do: {model, trigger(model)}
   def handle(model, @ev_kp_trigger), do: {model, trigger(model)}
   def handle(model, @ev_kp_enter), do: {model, {:focus, :next}}
+  def handle(model, @ev_ms_trigger), do: {model, trigger(model)}
   def handle(model, _event), do: {model, nil}
 
   def render(model, canvas, theme) do

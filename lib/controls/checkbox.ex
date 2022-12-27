@@ -62,6 +62,7 @@ defmodule Ash.Tui.Checkbox do
   end
 
   def handle(model, @ev_kp_fprev), do: {model, {:focus, :prev}}
+  def handle(model, @ev_kp_fprev2), do: {model, {:focus, :prev}}
   def handle(model, @ev_kp_fnext), do: {model, {:focus, :next}}
   def handle(model, @ev_kp_kdown), do: {model, {:focus, :next}}
   def handle(model, @ev_kp_kright), do: {model, {:focus, :next}}
@@ -69,6 +70,7 @@ defmodule Ash.Tui.Checkbox do
   def handle(model, @ev_kp_kup), do: {model, {:focus, :prev}}
   def handle(model, @ev_kp_enter), do: {model, {:focus, :next}}
   def handle(model, @ev_kp_trigger), do: retrigger(model)
+  def handle(model, @ev_ms_trigger), do: retrigger(model)
   def handle(model, @ev_kp_space), do: trigger(model)
   def handle(model, @ev_mp_left), do: trigger(model)
 
@@ -100,7 +102,9 @@ defmodule Ash.Tui.Checkbox do
       text |> String.slice(0, max(0, cols - 3))
     ]
 
-    canvas = Canvas.move(canvas, 0, 0)
+    # center vertically
+    offy = div(rows - 1, 2)
+    canvas = Canvas.move(canvas, 0, offy)
     Canvas.write(canvas, line)
   end
 

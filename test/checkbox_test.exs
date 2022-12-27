@@ -28,6 +28,7 @@ defmodule Ash.CheckboxTest do
     assert Checkbox.handle(model1, ev_mp_left(-1, -1)) == {model2, {:checked, true, {:nop, true}}}
     assert Checkbox.handle(model1, @ev_kp_space) == {model2, {:checked, true, {:nop, true}}}
     assert Checkbox.handle(model2, @ev_kp_trigger) == {model2, {:checked, true, {:nop, true}}}
+    assert Checkbox.handle(model2, @ev_ms_trigger) == {model2, {:checked, true, {:nop, true}}}
 
     # colors properly applied for each state
     checkbox(text: "T")

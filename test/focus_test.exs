@@ -36,6 +36,13 @@ defmodule Ash.FocusTest do
     {panel, nil} = Panel.handle(panel, @ev_kp_fprev)
     assert panel.focus == :c0
 
+    panel = Panel.children(root, children)
+    assert panel.focus == :c0
+    {panel, nil} = Panel.handle(panel, @ev_kp_fprev2)
+    assert panel.focus == :c1
+    {panel, nil} = Panel.handle(panel, @ev_kp_fprev2)
+    assert panel.focus == :c0
+
     children = [
       l0: {Label, Label.init()},
       c0: {Button, Button.init()},
@@ -52,6 +59,11 @@ defmodule Ash.FocusTest do
     panel = Panel.children(root, children)
     assert panel.focus == :c0
     {panel, nil} = Panel.handle(panel, @ev_kp_fprev)
+    assert panel.focus == :c0
+
+    panel = Panel.children(root, children)
+    assert panel.focus == :c0
+    {panel, nil} = Panel.handle(panel, @ev_kp_fprev2)
     assert panel.focus == :c0
   end
 
@@ -82,6 +94,14 @@ defmodule Ash.FocusTest do
     {panel, nil} = Panel.handle(panel, @ev_kp_fprev)
     assert elem(panel.children.p0, 1).focus == :c1
     {panel, nil} = Panel.handle(panel, @ev_kp_fprev)
+    assert elem(panel.children.p0, 1).focus == :c0
+
+    panel = Panel.children(normal, children)
+    panel = Panel.children(root, p0: {Panel, panel})
+    assert elem(panel.children.p0, 1).focus == :c0
+    {panel, nil} = Panel.handle(panel, @ev_kp_fprev2)
+    assert elem(panel.children.p0, 1).focus == :c1
+    {panel, nil} = Panel.handle(panel, @ev_kp_fprev2)
     assert elem(panel.children.p0, 1).focus == :c0
   end
 end

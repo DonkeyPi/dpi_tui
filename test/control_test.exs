@@ -165,10 +165,12 @@ defmodule Ash.ControlTest do
 
       assert module.handle(%{}, @ev_kp_fnext) == {%{}, {:focus, :next}}
       assert module.handle(%{}, @ev_kp_fprev) == {%{}, {:focus, :prev}}
+      assert module.handle(%{}, @ev_kp_fprev2) == {%{}, {:focus, :prev}}
     else
       assert module.handle(%{}, @ev_kp_enter) == {%{}, nil}
       assert module.handle(%{}, @ev_kp_fnext) == {%{}, nil}
       assert module.handle(%{}, @ev_kp_fprev) == {%{}, nil}
+      assert module.handle(%{}, @ev_kp_fprev2) == {%{}, nil}
     end
 
     case module do

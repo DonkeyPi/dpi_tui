@@ -23,22 +23,52 @@ defmodule Ash.RadioTest do
              on_change: &Radio.nop/1
            }
 
-    on_change = fn value -> value end
+    Buffer.start()
+
+    on_change = fn value ->
+      Buffer.add("#{inspect(value)}")
+      value
+    end
 
     # 0 1 2
     # 01234
     model = Radio.init(items: [0, 1, 2], size: {7, 1}, on_change: on_change)
 
-    # updates
+    # updates (and on_change triggers)
+
+    # selected explicitly updated
+    assert Radio.update(%{model | selected: -1}, selected: 0) == model
+    assert Buffer.get() == "{0, 0}"
+    Buffer.start()
+
+    assert Radio.update(%{model | selected: -1}, selected: 1) == %{model | selected: 1}
+    assert Buffer.get() == "{1, 1}"
+    Buffer.start()
+
+    assert Radio.update(model, selected: -1) == %{model | selected: -1}
+    assert Buffer.get() == "{-1, nil}"
+    Buffer.start()
+
+    assert Radio.update(model, selected: -2) == %{model | selected: -1}
+    assert Buffer.get() == "{-1, nil}"
+    Buffer.start()
+
+    assert Radio.update(model, selected: 3) == %{model | selected: -1}
+    assert Buffer.get() == "{-1, nil}"
+    Buffer.start()
 
     # update items
-    assert Radio.update(initial, items: [0, 1]) == %{
+    assert Radio.update(%{initial | on_change: on_change}, items: [0, 1]) == %{
              initial
-             | items: [0, 1],
+             | on_change: on_change,
+               items: [0, 1],
                selected: 0,
                count: 2,
                map: %{0 => 0, 1 => 1}
            }
+
+    assert Buffer.get() == "{0, 0}"
+    Buffer.start()
 
     # update items + selected
     assert Radio.update(initial, items: [0, 1], selected: 1) == %{
@@ -102,6 +132,8 @@ defmodule Ash.RadioTest do
              {%{model | selected: 0}, {:item, 0, 0, {0, 0}}}
 
     # retriggers
+    assert Radio.handle(model, @ev_ms_trigger) == {model, {:item, 0, 0, {0, 0}}}
+
     assert Radio.handle(model, @ev_kp_trigger) == {model, {:item, 0, 0, {0, 0}}}
 
     assert Radio.handle(model, @ev_kp_space) == {model, {:item, 0, 0, {0, 0}}}

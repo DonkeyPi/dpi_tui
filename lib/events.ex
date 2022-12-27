@@ -15,7 +15,9 @@ defmodule Ash.Tui.Events do
 
       # add :none to make it handler order insensitive
       @ev_kp_fnext %{type: :key, action: :press, key: :tab, flag: :none}
-      @ev_kp_fprev %{type: :key, action: :press, key: :tab, flag: :control}
+      @ev_kp_fprev %{type: :key, action: :press, key: :tab, flag: :shift}
+      # easy to disable second focus prev trigger
+      @ev_kp_fprev2 %{type: :key, action: :press, key: :tab, flag: :control}
       @ev_kp_enter %{type: :key, action: :press, key: :return, flag: :none}
       @ev_kp_trigger %{type: :key, action: :press, key: :return, flag: :control}
       @ev_ms_trigger %{type: :mouse, action: :press, key: :bleft, flag: :control}

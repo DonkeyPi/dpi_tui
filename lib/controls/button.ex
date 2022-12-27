@@ -65,6 +65,7 @@ defmodule Ash.Tui.Button do
   end
 
   def handle(model, @ev_kp_fprev), do: {model, {:focus, :prev}}
+  def handle(model, @ev_kp_fprev2), do: {model, {:focus, :prev}}
   def handle(model, @ev_kp_fnext), do: {model, {:focus, :next}}
   def handle(model, @ev_kp_kdown), do: {model, {:focus, :next}}
   def handle(model, @ev_kp_kright), do: {model, {:focus, :next}}

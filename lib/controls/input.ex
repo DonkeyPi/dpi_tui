@@ -83,6 +83,7 @@ defmodule Ash.Tui.Input do
   end
 
   def handle(model, @ev_kp_fprev), do: {model, {:focus, :prev}}
+  def handle(model, @ev_kp_fprev2), do: {model, {:focus, :prev}}
   def handle(model, @ev_kp_fnext), do: {model, {:focus, :next}}
   def handle(model, @ev_kp_kdown), do: {model, {:focus, :next}}
   def handle(model, @ev_kp_kup), do: {model, {:focus, :prev}}
