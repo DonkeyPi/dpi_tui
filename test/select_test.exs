@@ -32,6 +32,8 @@ defmodule Ash.SelectTest do
     end
 
     model = Select.init(items: [0, 1, 2], size: {10, 2}, on_change: on_change)
+    assert Buffer.get() == "{0, 0}"
+    Buffer.start()
 
     # updates (and on_change triggers)
 

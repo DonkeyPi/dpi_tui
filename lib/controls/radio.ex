@@ -45,6 +45,9 @@ defmodule Ash.Tui.Radio do
     }
 
     model = recalculate(model)
+    %{on_change: on_change, selected: selected, map: map} = model
+    calculated = {selected, Map.get(map, selected)}
+    if calculated != {-1, nil}, do: on_change.(calculated)
     check(model)
   end
 
@@ -149,9 +152,9 @@ defmodule Ash.Tui.Radio do
   def handle(model, @ev_kp_fnext), do: {model, {:focus, :next}}
   def handle(model, @ev_kp_kdown), do: {model, {:focus, :next}}
   def handle(model, @ev_kp_kup), do: {model, {:focus, :prev}}
+  def handle(model, @ev_kp_enter), do: {model, {:focus, :next}}
   def handle(model, @ev_kp_space), do: {model, trigger(model)}
   def handle(model, @ev_kp_trigger), do: {model, trigger(model)}
-  def handle(model, @ev_kp_enter), do: {model, {:focus, :next}}
   def handle(model, @ev_ms_trigger), do: {model, trigger(model)}
   def handle(model, _event), do: {model, nil}
 

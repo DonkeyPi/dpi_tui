@@ -45,6 +45,9 @@ defmodule Ash.Tui.Select do
     }
 
     model = recalculate(model)
+    %{on_change: on_change, selected: selected, map: map} = model
+    calculated = {selected, Map.get(map, selected)}
+    if calculated != {-1, nil}, do: on_change.(calculated)
     check(model)
   end
 
@@ -97,6 +100,21 @@ defmodule Ash.Tui.Select do
     check(model)
   end
 
+  # handle focus even on empty items
+  def handle(model, @ev_ms_up), do: handle(model, @ev_kp_kup)
+  def handle(model, @ev_ms_down), do: handle(model, @ev_kp_kdown)
+  def handle(model, @ev_ms_pup), do: handle(model, @ev_kp_pup)
+  def handle(model, @ev_ms_pdown), do: handle(model, @ev_kp_pdown)
+  def handle(model, @ev_kp_fprev), do: {model, {:focus, :prev}}
+  def handle(model, @ev_kp_fprev2), do: {model, {:focus, :prev}}
+  def handle(model, @ev_kp_fnext), do: {model, {:focus, :next}}
+  def handle(model, @ev_kp_kright), do: {model, {:focus, :next}}
+  def handle(model, @ev_kp_kleft), do: {model, {:focus, :prev}}
+  def handle(model, @ev_kp_enter), do: {model, {:focus, :next}}
+  def handle(model, @ev_kp_space), do: {model, trigger(model)}
+  def handle(model, @ev_kp_trigger), do: {model, trigger(model)}
+  def handle(model, @ev_ms_trigger), do: {model, trigger(model)}
+
   # Prevent next handlers from receiving a key event with no items.
   def handle(%{items: []} = model, %{type: :key}), do: {model, nil}
   # Prevent next handlers from receiving a mouse event with no items.
@@ -143,19 +161,6 @@ defmodule Ash.Tui.Select do
     trigger(model, next, selected)
   end
 
-  def handle(model, @ev_ms_up), do: handle(model, @ev_kp_kup)
-  def handle(model, @ev_ms_down), do: handle(model, @ev_kp_kdown)
-  def handle(model, @ev_ms_pup), do: handle(model, @ev_kp_pup)
-  def handle(model, @ev_ms_pdown), do: handle(model, @ev_kp_pdown)
-  def handle(model, @ev_kp_fprev), do: {model, {:focus, :prev}}
-  def handle(model, @ev_kp_fprev2), do: {model, {:focus, :prev}}
-  def handle(model, @ev_kp_fnext), do: {model, {:focus, :next}}
-  def handle(model, @ev_kp_kright), do: {model, {:focus, :next}}
-  def handle(model, @ev_kp_kleft), do: {model, {:focus, :prev}}
-  def handle(model, @ev_kp_enter), do: {model, {:focus, :next}}
-  def handle(model, @ev_kp_space), do: {model, trigger(model)}
-  def handle(model, @ev_kp_trigger), do: {model, trigger(model)}
-  def handle(model, @ev_ms_trigger), do: {model, trigger(model)}
   def handle(model, _event), do: {model, nil}
 
   def render(model, canvas, theme) do
@@ -227,7 +232,7 @@ defmodule Ash.Tui.Select do
   end
 
   defp trigger(%{selected: selected, map: map, on_change: on_change}) do
-    item = map[selected]
+    item = Map.get(map, selected)
     resp = on_change.({selected, item})
     {:item, selected, item, resp}
   end
