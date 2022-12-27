@@ -21,4 +21,8 @@ defmodule Ash.Tui do
   def set_title(title) do
     Term.set_title(title)
   end
+
+  def set_layout(layout) do
+    Term.set_layout(layout)
+  end
 end

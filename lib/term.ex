@@ -20,5 +20,6 @@ defmodule Ash.Tui.Term do
 
   def encode(cmd, param), do: get(:encode).(cmd, param)
   def set_title(title), do: write(get(:encode).(:title, title))
+  def set_layout(layout), do: write(get(:encode).(:layout, layout))
   def write(chardata), do: get(:write).(chardata)
 end
