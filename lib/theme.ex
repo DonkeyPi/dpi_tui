@@ -46,10 +46,18 @@ defmodule Ash.Tui.Theme do
   def gets(:fore, _, %{class: %{fore: fore}}), do: fore
   def gets(:back, _, %{class: %{back: back}}), do: back
 
+  def gets(:fore, _, %{type: Label, class: :info}), do: 0x0F
+  def gets(:fore, _, %{type: Label, class: :error}), do: 0x0F
+  def gets(:fore, _, %{type: Label, class: :success}), do: 0x0F
+  def gets(:back, _, %{type: Label, class: :info}), do: 0xEA
+  def gets(:back, _, %{type: Label, class: :error}), do: 0x7C
+  def gets(:back, _, %{type: Label, class: :success}), do: 0x16
+
   def gets(:back, _, %{type: Frame}), do: nil
   def gets(:back, _, %{type: Panel}), do: nil
   def gets(:back, _, %{type: Label}), do: nil
   def gets(:fore, _, %{type: Label}), do: 0xF6
+  def gets(:back, _, %{type: Button, focused: true, class: :danger}), do: 0x7C
   def gets(:fore, _, %{type: Button, focused: true}), do: 0x0F
   def gets(:back, _, %{type: Button, focused: true}), do: 0x16
   def gets(:fore, _, %{type: Checkbox, focused: true}), do: 0x0F
