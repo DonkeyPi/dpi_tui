@@ -4,6 +4,7 @@ defmodule Ash.Tui do
 
   defmacro __using__(_opts) do
     quote do
+      use Ash.Tui.Fonts
       use Ash.Tui.Colors
       use Ash.Tui.Layouts
       import Ash.Tui.Macros
