@@ -20,10 +20,14 @@ defmodule Ash.Tui do
     Theme.get_style(item, type, selector)
   end
 
+  # no need to check App.in_nerves
+  # has no effect on rpiX
   def set_title(title) do
     Term.set_title(title)
   end
 
+  # no need to check App.in_nerves
+  # has no effect on host
   def set_layout(layout) do
     Term.set_layout(layout)
   end
