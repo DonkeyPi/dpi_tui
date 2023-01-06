@@ -1,4 +1,4 @@
-defmodule Ash.LabelTest do
+defmodule Dpi.LabelTest do
   use ExUnit.Case
   use TestMacros
 

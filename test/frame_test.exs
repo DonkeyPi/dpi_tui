@@ -1,4 +1,4 @@
-defmodule Ash.FrameTest do
+defmodule Dpi.FrameTest do
   use ExUnit.Case
   use TestMacros
 

@@ -1,10 +1,10 @@
-defmodule Ash.Tui.Driver do
-  @behaviour Ash.React.Driver
-  use Ash.Tui.Events
-  alias Ash.Tui.Term
-  alias Ash.Tui.Canvas
-  alias Ash.Tui.Control
-  alias Ash.Tui.Theme
+defmodule Dpi.Tui.Driver do
+  @behaviour Dpi.React.Driver
+  use Dpi.Tui.Events
+  alias Dpi.Tui.Term
+  alias Dpi.Tui.Canvas
+  alias Dpi.Tui.Control
+  alias Dpi.Tui.Theme
 
   defp get(key, value \\ nil), do: Process.get({__MODULE__, key}, value)
   defp put(key, value), do: Process.put({__MODULE__, key}, value)

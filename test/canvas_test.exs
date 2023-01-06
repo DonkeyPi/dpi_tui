@@ -1,4 +1,4 @@
-defmodule Ash.CanvasTest do
+defmodule Dpi.CanvasTest do
   use ExUnit.Case
   use TestMacros
 

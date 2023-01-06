@@ -1,4 +1,4 @@
-defmodule Ash.Tui.Term do
+defmodule Dpi.Tui.Term do
   # Starts the term driver.
   @callback start(opts :: keyword()) :: {pid :: pid(), opts :: keyword()}
 

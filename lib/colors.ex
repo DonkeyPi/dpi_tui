@@ -1,8 +1,8 @@
-defmodule Ash.Tui.Colors do
+defmodule Dpi.Tui.Colors do
   defmacro __using__(_) do
     quote do
       # logo color
-      @ash_logo_fore 0x1C
+      @dpi_logo_fore 0x1C
 
       # basic linux console colors
       @black 0

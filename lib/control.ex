@@ -1,4 +1,4 @@
-defmodule Ash.Tui.Control do
+defmodule Dpi.Tui.Control do
   @callback init(opts :: map()) :: model :: map()
   @callback handle(model :: map(), event :: any()) :: {model :: map(), cmd :: any()}
   @callback render(model :: map(), canvas :: map(), theme :: function()) :: canvas :: map()

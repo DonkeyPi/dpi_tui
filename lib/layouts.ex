@@ -1,4 +1,4 @@
-defmodule Ash.Tui.Layouts do
+defmodule Dpi.Tui.Layouts do
   defmacro __using__(_) do
     quote do
       @en_us 0

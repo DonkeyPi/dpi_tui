@@ -1,4 +1,4 @@
-defmodule Ash.RadioTest do
+defmodule Dpi.RadioTest do
   use ExUnit.Case
   use TestMacros
 

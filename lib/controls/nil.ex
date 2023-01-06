@@ -1,5 +1,5 @@
-defmodule Ash.Tui.Nil do
-  @behaviour Ash.Tui.Control
+defmodule Dpi.Tui.Nil do
+  @behaviour Dpi.Tui.Control
 
   def init(_ \\ nil), do: nil
   def bounds(_), do: {0, 0, 0, 0}

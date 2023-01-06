@@ -1,5 +1,5 @@
-defmodule Ash.Tui.Custom do
-  @behaviour Ash.Tui.Control
+defmodule Dpi.Tui.Custom do
+  @behaviour Dpi.Tui.Control
 
   @props %{size: {0, 0}, origin: {0, 0}}
 

@@ -1,5 +1,5 @@
-defmodule Ash.Tui.Canvas do
-  use Ash.Tui.Colors
+defmodule Dpi.Tui.Canvas do
+  use Dpi.Tui.Colors
   use Bitwise
 
   @char 32

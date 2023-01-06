@@ -1,4 +1,4 @@
-defmodule Ash.ButtonTest do
+defmodule Dpi.ButtonTest do
   use ExUnit.Case
   use TestMacros
 

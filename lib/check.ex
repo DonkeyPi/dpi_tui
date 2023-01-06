@@ -1,4 +1,4 @@
-defmodule Ash.Tui.Check do
+defmodule Dpi.Tui.Check do
   def assert_string(name, value) do
     if !is_binary(value), do: raise("#{name} not string: #{inspect(value)}")
   end

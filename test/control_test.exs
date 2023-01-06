@@ -1,4 +1,4 @@
-defmodule Ash.ControlTest do
+defmodule Dpi.ControlTest do
   use ExUnit.Case
   use TestMacros
 

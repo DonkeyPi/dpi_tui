@@ -1,4 +1,4 @@
-defmodule Ash.Tui.Events do
+defmodule Dpi.Tui.Events do
   defmacro __using__(_) do
     quote do
       @ev_kp_kdown %{type: :key, action: :press, key: :kdown, flag: :none}

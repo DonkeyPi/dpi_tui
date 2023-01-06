@@ -1,4 +1,4 @@
-defmodule Ash.PanelTest do
+defmodule Dpi.PanelTest do
   use ExUnit.Case
   use TestMacros
 

@@ -1,4 +1,4 @@
-defmodule Ash.SelectTest do
+defmodule Dpi.SelectTest do
   use ExUnit.Case
   use TestMacros
 

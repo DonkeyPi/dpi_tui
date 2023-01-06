@@ -15,10 +15,10 @@ end
 defmodule TestMacros do
   defmacro __using__(_) do
     quote do
-      alias Ash.Tui.Canvas
-      use Ash.Tui.Aliases
-      use Ash.Tui.Events
-      use Ash.Tui.Colors
+      alias Dpi.Tui.Canvas
+      use Dpi.Tui.Aliases
+      use Dpi.Tui.Events
+      use Dpi.Tui.Colors
       import TestImports
       use TestColors
     end
@@ -63,7 +63,7 @@ defmodule TestColors do
 end
 
 defmodule TestTheme do
-  use Ash.Tui.Aliases
+  use Dpi.Tui.Aliases
   use TestColors
 
   def get_style(:back, _, %{class: %{back: back}}), do: back
@@ -82,8 +82,8 @@ end
 
 defmodule TestImports do
   use ExUnit.Case
-  use Ash.Tui.Aliases
-  alias Ash.Tui.Canvas
+  use Dpi.Tui.Aliases
+  alias Dpi.Tui.Canvas
   use TestColors
 
   defp init(module, props) do

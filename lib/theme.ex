@@ -1,6 +1,6 @@
-defmodule Ash.Tui.Theme do
-  use Ash.Tui.Aliases
-  use Ash.Tui.Colors
+defmodule Dpi.Tui.Theme do
+  use Dpi.Tui.Aliases
+  use Dpi.Tui.Colors
 
   # Mandatory selector props:
   #  - id      - Node id (not full path).

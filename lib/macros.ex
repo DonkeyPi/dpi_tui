@@ -1,14 +1,14 @@
-defmodule Ash.Tui.Macros do
-  alias Ash.Tui.Checkbox
-  alias Ash.Tui.Select
-  alias Ash.Tui.Button
-  alias Ash.Tui.Frame
-  alias Ash.Tui.Input
-  alias Ash.Tui.Label
-  alias Ash.Tui.Panel
-  alias Ash.Tui.Radio
-  alias Ash.Tui.Custom
-  use Ash.Node
+defmodule Dpi.Tui.Macros do
+  alias Dpi.Tui.Checkbox
+  alias Dpi.Tui.Select
+  alias Dpi.Tui.Button
+  alias Dpi.Tui.Frame
+  alias Dpi.Tui.Input
+  alias Dpi.Tui.Label
+  alias Dpi.Tui.Panel
+  alias Dpi.Tui.Radio
+  alias Dpi.Tui.Custom
+  use Dpi.Node
 
   defmacro panel(id, props) do
     quote do

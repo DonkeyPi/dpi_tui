@@ -1,4 +1,4 @@
-defmodule Ash.Tui.Fonts do
+defmodule Dpi.Tui.Fonts do
   defmacro __using__(_) do
     quote do
       @dejavumono 0

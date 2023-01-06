@@ -1,11 +1,11 @@
-defmodule Ash.Tui.Input do
-  @behaviour Ash.Tui.Control
-  use Ash.Tui.Events
-  use Ash.Tui.Colors
-  alias Ash.Tui.Control
-  alias Ash.Tui.Check
-  alias Ash.Tui.Input
-  alias Ash.Tui.Canvas
+defmodule Dpi.Tui.Input do
+  @behaviour Dpi.Tui.Control
+  use Dpi.Tui.Events
+  use Dpi.Tui.Colors
+  alias Dpi.Tui.Control
+  alias Dpi.Tui.Check
+  alias Dpi.Tui.Input
+  alias Dpi.Tui.Canvas
 
   def init(opts \\ []) do
     opts = Enum.into(opts, %{})

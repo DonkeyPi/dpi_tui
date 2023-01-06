@@ -1,4 +1,4 @@
-defmodule Ash.FocusTest do
+defmodule Dpi.FocusTest do
   use ExUnit.Case
   use TestMacros
 

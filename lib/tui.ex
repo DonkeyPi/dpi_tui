@@ -1,14 +1,14 @@
-defmodule Ash.Tui do
-  alias Ash.Tui.Theme
-  alias Ash.Tui.Term
+defmodule Dpi.Tui do
+  alias Dpi.Tui.Theme
+  alias Dpi.Tui.Term
 
   defmacro __using__(_opts) do
     quote do
-      use Ash.Tui.Fonts
-      use Ash.Tui.Colors
-      use Ash.Tui.Layouts
-      import Ash.Tui.Macros
-      import Ash.Tui
+      use Dpi.Tui.Fonts
+      use Dpi.Tui.Colors
+      use Dpi.Tui.Layouts
+      import Dpi.Tui.Macros
+      import Dpi.Tui
     end
   end
 

@@ -1,4 +1,4 @@
-# AppShell Tui
+# DonkeyPi Tui
 
 ## Controls
 
