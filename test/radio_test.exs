@@ -129,8 +129,14 @@ defmodule Dpi.RadioTest do
     assert Radio.handle(model, ev_mp_left(2, 0)) ==
              {%{model | selected: 1}, {:item, 1, 1, {1, 1}}}
 
+    assert Radio.handle(model, ev_mp_left(2, 1)) ==
+             {%{model | selected: 1}, {:item, 1, 1, {1, 1}}}
+
     # mouse click sets selection to clicked item
     assert Radio.handle(%{model | selected: 2}, ev_mp_left(0, 0)) ==
+             {%{model | selected: 0}, {:item, 0, 0, {0, 0}}}
+
+    assert Radio.handle(%{model | selected: 2}, ev_mp_left(0, 1)) ==
              {%{model | selected: 0}, {:item, 0, 0, {0, 0}}}
 
     # retriggers

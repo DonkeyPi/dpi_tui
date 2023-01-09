@@ -126,7 +126,8 @@ defmodule Dpi.Tui.Radio do
     trigger(model, 0, selected)
   end
 
-  def handle(model, %{type: :mouse, action: :press, key: :bleft, x: mx, y: 0, flag: :none}) do
+  # honor click for any y
+  def handle(model, %{type: :mouse, action: :press, key: :bleft, x: mx, flag: :none}) do
     %{count: count, map: map, selected: selected} = model
 
     list = for i <- 0..(count - 1), do: {i, String.length("#{map[i]}")}
@@ -168,7 +169,7 @@ defmodule Dpi.Tui.Radio do
     } = model
 
     canvas = Canvas.fore(canvas, theme.(:fore, :normal))
-    canvas = Canvas.back(canvas, theme.(:back, :normal))
+    canvas = Canvas.back(canvas, @black)
 
     line = String.duplicate(" ", cols)
 
@@ -178,6 +179,11 @@ defmodule Dpi.Tui.Radio do
           canvas = Canvas.move(canvas, 0, r)
           Canvas.write(canvas, line)
       end
+
+    # use background only on first line to be slim even when rows > 1
+    canvas = Canvas.back(canvas, theme.(:back, :normal))
+    canvas = Canvas.move(canvas, 0, 0)
+    canvas = Canvas.write(canvas, line)
 
     {canvas, _} =
       for i <- 0..(count - 1), reduce: {canvas, 0} do
