@@ -7,19 +7,23 @@ defmodule Dpi.Tui.Button do
   alias Dpi.Tui.Button
   alias Dpi.Tui.Frame
   alias Dpi.Tui.Canvas
+  alias Dpi.Tui.Label
 
   def init(opts \\ []) do
     opts = Enum.into(opts, %{})
     text = Map.get(opts, :text, "")
     origin = Map.get(opts, :origin, {0, 0})
-    size = Map.get(opts, :size, {String.length(text), 1})
+    scale = Map.get(opts, :scale, 1)
+    border = Map.get(opts, :border, nil)
+    margin = if border == nil, do: 0, else: 2
+    size = Map.get(opts, :size, {String.length(text) * scale + margin, scale + margin})
     visible = Map.get(opts, :visible, true)
     enabled = Map.get(opts, :enabled, true)
     findex = Map.get(opts, :findex, 0)
     class = Map.get(opts, :class, nil)
+    align = Map.get(opts, :align, :center)
     shortcut = Map.get(opts, :shortcut, nil)
     on_click = Map.get(opts, :on_click, &Button.nop/0)
-    border = Map.get(opts, :border, nil)
 
     model = %{
       focused: false,
@@ -30,6 +34,8 @@ defmodule Dpi.Tui.Button do
       findex: findex,
       class: class,
       text: text,
+      align: align,
+      scale: scale,
       border: border,
       shortcut: shortcut,
       on_click: on_click
@@ -87,35 +93,27 @@ defmodule Dpi.Tui.Button do
   def render(model, canvas, theme) do
     %{
       text: text,
+      scale: scale,
+      align: align,
       border: border,
       size: {cols, rows}
     } = model
 
-    # center vertically and horizontally
-    offy = div(rows - 1, 2)
-    offx = div(cols - String.length(text), 2)
-
     if border == nil do
-      canvas = Canvas.fore(canvas, theme.(:fore, :normal))
-      canvas = Canvas.back(canvas, theme.(:back, :normal))
-
-      line = String.duplicate(" ", cols)
-
-      canvas =
-        for r <- 0..(rows - 1), reduce: canvas do
-          canvas ->
-            canvas = Canvas.move(canvas, 0, r)
-            Canvas.write(canvas, line)
-        end
-
-      canvas = Canvas.move(canvas, offx, offy)
-      Canvas.write(canvas, text)
+      Label.render(
+        %{size: {cols, rows}, text: text, scale: scale, font: 0, align: align},
+        canvas,
+        theme
+      )
     else
       canvas = Frame.render(%{size: {cols, rows}, text: "", border: border}, canvas, theme)
-      canvas = Canvas.fore(canvas, theme.(:fore, :normal))
-      canvas = Canvas.back(canvas, theme.(:back, :normal))
-      canvas = Canvas.move(canvas, offx, offy)
-      Canvas.write(canvas, text)
+      canvas = Canvas.push(canvas, {1, 1, cols - 2, rows - 2})
+
+      Label.render(
+        %{size: {cols - 2, rows - 2}, text: text, scale: scale, font: 0, align: :center},
+        canvas,
+        theme
+      )
     end
   end
 
@@ -135,6 +133,8 @@ defmodule Dpi.Tui.Button do
     Check.assert_boolean(:enabled, model.enabled)
     Check.assert_gte(:findex, model.findex, -1)
     Check.assert_string(:text, model.text)
+    Check.assert_in_range(:scale, model.scale, 1..16)
+    Check.assert_in_list(:align, model.align, [:center, :left, :right])
     Check.assert_in_list(:border, model.border, [nil, :single, :double, :round])
     Check.assert_function(:on_click, model.on_click, 0)
     model

@@ -16,6 +16,8 @@ defmodule Dpi.ButtonTest do
              findex: 0,
              class: nil,
              text: "",
+             scale: 1,
+             align: :center,
              border: nil,
              shortcut: nil,
              on_click: &Button.nop/0

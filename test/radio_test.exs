@@ -210,7 +210,7 @@ defmodule Dpi.RadioTest do
     |> render()
     |> assert_color("0", 0, @tc_selected)
     |> assert_color(" ", 1, @tc_normal)
-    |> assert_color("  ", 0, 1, @tc_normal)
+    |> assert_color("  ", 0, 1, [@tc_normal, :transparent])
 
     # navigation keyboard
     radio(items: [0, 1, 2])

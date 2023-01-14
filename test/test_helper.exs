@@ -39,6 +39,7 @@ defmodule TestColors do
       @tcb_selected 0x18
       @tcf_invalid 0x19
       @tcb_invalid 0x1A
+      @tcb_default 0x00
 
       @tc_normal :normal
       @tc_focused :focused
@@ -58,6 +59,7 @@ defmodule TestColors do
       def get_color(:back, :selected), do: @tcb_selected
       def get_color(:fore, :invalid), do: @tcf_invalid
       def get_color(:back, :invalid), do: @tcb_invalid
+      def get_color(:back, nil), do: @tcb_default
     end
   end
 end
@@ -144,8 +146,14 @@ defmodule TestImports do
   end
 
   def assert_color(map, text, x, y, color) do
-    fg = get_color(:fore, color)
-    bg = get_color(:back, color)
+    {fore, back} =
+      case color do
+        [fore, :transparent] -> {fore, nil}
+        color -> {color, color}
+      end
+
+    fg = get_color(:fore, fore)
+    bg = get_color(:back, back)
     text1 = String.to_charlist(text)
     len = length(text1)
     data = map.canvas.data
