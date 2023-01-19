@@ -15,18 +15,23 @@ defmodule Dpi.Tui.Events do
       @ev_kp_home_shift %{type: :key, action: :press, key: :home, flag: :shift}
       @ev_kp_end_shift %{type: :key, action: :press, key: :end, flag: :shift}
 
-      # add :none to make it handler order insensitive
+      # FOCUS
+      # add :none to make its handler order insensitive
       @ev_kp_fnext %{type: :key, action: :press, key: :tab, flag: :none}
       @ev_kp_fprev %{type: :key, action: :press, key: :tab, flag: :shift}
-      # easy to disable second focus prev trigger
+      # easy to disable second focus prev trigger (for desktop)
       @ev_kp_fprev2 %{type: :key, action: :press, key: :tab, flag: :control}
       @ev_kp_enter %{type: :key, action: :press, key: :return, flag: :none}
-      @ev_kp_trigger %{type: :key, action: :press, key: :return, flag: :control}
-      @ev_ms_trigger %{type: :mouse, action: :press, key: :bleft, flag: :control}
-      @ev_ms_trigger2 %{type: :mouse, action: :press2, key: :bleft, flag: :none}
 
+      # TRIGGER
+      @ev_kp_enter_ctrl %{type: :key, action: :press, key: :return, flag: :control}
+      @ev_ms_click_ctrl %{type: :mouse, action: :press, key: :bleft, flag: :control}
+      @ev_ms_dblclick %{type: :mouse, action: :press2, key: :bleft, flag: :none}
+
+      # CLICK
       @ev_mp_left %{type: :mouse, action: :press, key: :bleft, flag: :none}
 
+      # SCROLL
       @ev_ms_up %{type: :mouse, action: :scroll, dir: :up, flag: :none}
       @ev_ms_down %{type: :mouse, action: :scroll, dir: :down, flag: :none}
       @ev_ms_pup %{type: :mouse, action: :scroll, dir: :up, flag: :control}

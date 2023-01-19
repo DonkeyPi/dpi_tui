@@ -93,7 +93,7 @@ defmodule Dpi.Tui.Input do
   def handle(model, @ev_kp_fnext), do: {model, {:focus, :next}}
   def handle(model, @ev_kp_kdown), do: {model, {:focus, :next}}
   def handle(model, @ev_kp_kup), do: {model, {:focus, :prev}}
-  def handle(model, @ev_kp_trigger), do: {model, trigger(model)}
+  def handle(model, @ev_kp_enter_ctrl), do: {model, trigger(model)}
   def handle(model, @ev_kp_enter), do: {model, {:focus, :next}}
 
   def handle(%{cursor: cursor} = model, @ev_kp_kleft) do
@@ -228,7 +228,7 @@ defmodule Dpi.Tui.Input do
     end
   end
 
-  def handle(%{text: text} = model, @ev_ms_trigger2) do
+  def handle(%{text: text} = model, @ev_ms_dblclick) do
     count = String.length(text)
     model = %{model | selected: true, cursor: count}
     {model, nil}

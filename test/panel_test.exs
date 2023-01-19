@@ -71,12 +71,12 @@ defmodule Dpi.PanelTest do
 
     panel = Panel.children(root, c0: Control.init(Label, size: {1, 1}))
     {^panel, nil} = Panel.handle(panel, @ev_kp_fnext)
-    {^panel, nil} = Panel.handle(panel, @ev_kp_trigger)
+    {^panel, nil} = Panel.handle(panel, @ev_kp_enter_ctrl)
     {^panel, nil} = Panel.handle(panel, ev_mp_left(0, 0))
 
     panel = Panel.children(root, c0: Control.init(Button, size: {1, 1}))
     {^panel, nil} = Panel.handle(panel, @ev_kp_fnext)
-    {^panel, {:c0, {:click, :nop}}} = Panel.handle(panel, @ev_kp_trigger)
+    {^panel, {:c0, {:click, :nop}}} = Panel.handle(panel, @ev_kp_enter_ctrl)
     {^panel, {:c0, {:click, :nop}}} = Panel.handle(panel, ev_mp_left(0, 0))
 
     # mouse changes focus with reversed order match search
@@ -133,7 +133,7 @@ defmodule Dpi.PanelTest do
     panel = Panel.children(normal, c0: Control.init(Button))
     panel = Panel.children(root, p0: {Panel, panel})
     {^panel, nil} = Panel.handle(panel, @ev_kp_fnext)
-    {^panel, {:p0, {:c0, {:click, :nop}}}} = Panel.handle(panel, @ev_kp_trigger)
+    {^panel, {:p0, {:c0, {:click, :nop}}}} = Panel.handle(panel, @ev_kp_enter_ctrl)
 
     # mouse gets to nested focused control
     panel = Panel.update(normal, size: {1, 1})
@@ -187,13 +187,13 @@ defmodule Dpi.PanelTest do
     panel1 = Panel.children(panel1, c0: Control.init(Radio, origin: {1, 1}, items: [0, 1]))
     panel = Panel.update(root, size: {5, 3})
     panel = Panel.children(panel, p0: {Panel, panel0}, p1: {Panel, panel1})
-    {panel, {:p0, {:c0, {:click, :nop}}}} = Panel.handle(panel, @ev_kp_trigger)
+    {panel, {:p0, {:c0, {:click, :nop}}}} = Panel.handle(panel, @ev_kp_enter_ctrl)
     {panel, nil} = Panel.handle(panel, ev_mp_left(0, 0))
     {panel, nil} = Panel.handle(panel, ev_mp_left(1, 1))
     {panel, nil} = Panel.handle(panel, ev_mp_left(2, 2))
     {panel, {:p1, {:c0, {:item, 1, 1, {:nop, {1, 1}}}}}} = Panel.handle(panel, ev_mp_left(4, 2))
     {panel, {:p1, {:c0, {:item, 0, 0, {:nop, {0, 0}}}}}} = Panel.handle(panel, ev_mp_left(2, 2))
-    {panel, {:p1, {:c0, {:item, 0, 0, {:nop, {0, 0}}}}}} = Panel.handle(panel, @ev_kp_trigger)
+    {panel, {:p1, {:c0, {:item, 0, 0, {:nop, {0, 0}}}}}} = Panel.handle(panel, @ev_kp_enter_ctrl)
     {_, nil} = Panel.handle(panel, ev_mp_left(3, 3))
   end
 

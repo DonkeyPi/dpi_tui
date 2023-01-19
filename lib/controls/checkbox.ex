@@ -72,9 +72,9 @@ defmodule Dpi.Tui.Checkbox do
   def handle(model, @ev_kp_kleft), do: {model, {:focus, :prev}}
   def handle(model, @ev_kp_kup), do: {model, {:focus, :prev}}
   def handle(model, @ev_kp_enter), do: {model, {:focus, :next}}
-  def handle(model, @ev_kp_trigger), do: retrigger(model)
-  def handle(model, @ev_ms_trigger), do: retrigger(model)
-  def handle(model, @ev_ms_trigger2), do: retrigger(model)
+  def handle(model, @ev_kp_enter_ctrl), do: retrigger(model)
+  def handle(model, @ev_ms_click_ctrl), do: retrigger(model)
+  def handle(model, @ev_ms_dblclick), do: retrigger(model)
   def handle(model, @ev_kp_space), do: trigger(model)
   def handle(model, @ev_mp_left), do: trigger(model)
 

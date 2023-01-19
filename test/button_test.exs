@@ -27,23 +27,24 @@ defmodule Dpi.ButtonTest do
     model = %{on_click: &Button.nop/0, enabled: true}
     assert Button.handle(model, @ev_kp_enter) == {model, {:click, :nop}}
     assert Button.handle(model, @ev_kp_space) == {model, {:click, :nop}}
-    assert Button.handle(model, @ev_kp_trigger) == {model, {:click, :nop}}
+    assert Button.handle(model, @ev_kp_enter_ctrl) == {model, {:click, :nop}}
+    assert Button.handle(model, @ev_ms_click_ctrl) == {model, {:click, :nop}}
     assert Button.handle(model, ev_mp_left(0, 0)) == {model, {:click, :nop}}
 
     # trigger restricted to focusables by panel
     panel(root: true, size: {1, 1})
     |> children(button: Control.init(Button, size: {1, 1}))
     |> handle(@ev_kp_space, {:button, {:click, :nop}})
-    |> handle(@ev_kp_trigger, {:button, {:click, :nop}})
+    |> handle(@ev_kp_enter_ctrl, {:button, {:click, :nop}})
     |> handle(ev_mp_left(0, 0), {:button, {:click, :nop}})
     |> children(button: Control.init(Button, size: {1, 1}, enabled: false))
     |> handle(@ev_kp_space, nil)
     |> children(button: Control.init(Button, size: {1, 1}, visible: false))
     |> handle(@ev_kp_space, nil)
     |> children(button: Control.init(Button, size: {1, 1}, enabled: false))
-    |> handle(@ev_kp_trigger, nil)
+    |> handle(@ev_kp_enter_ctrl, nil)
     |> children(button: Control.init(Button, size: {1, 1}, visible: false))
-    |> handle(@ev_kp_trigger, nil)
+    |> handle(@ev_kp_enter_ctrl, nil)
     |> children(button: Control.init(Button, size: {1, 1}, enabled: false))
     |> handle(ev_mp_left(0, 0), nil)
     |> children(button: Control.init(Button, size: {1, 1}, visible: false))
@@ -100,7 +101,7 @@ defmodule Dpi.ButtonTest do
 
     # triggers
     button(text: "T")
-    |> handle(@ev_kp_trigger, {:click, :nop})
+    |> handle(@ev_kp_enter_ctrl, {:click, :nop})
     |> render()
     |> assert_color("T", 0, @tc_normal)
     |> handle(@ev_mp_left, {:click, :nop})

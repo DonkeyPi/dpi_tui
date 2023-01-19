@@ -58,9 +58,9 @@ defmodule Dpi.CheckboxTest do
     assert Checkbox.handle(model1, ev_mp_left(1, 1)) == {model2, {:checked, true, {:nop, true}}}
     assert Checkbox.handle(model1, ev_mp_left(-1, -1)) == {model2, {:checked, true, {:nop, true}}}
     assert Checkbox.handle(model1, @ev_kp_space) == {model2, {:checked, true, {:nop, true}}}
-    assert Checkbox.handle(model2, @ev_kp_trigger) == {model2, {:checked, true, {:nop, true}}}
-    assert Checkbox.handle(model2, @ev_ms_trigger) == {model2, {:checked, true, {:nop, true}}}
-    assert Checkbox.handle(model2, @ev_ms_trigger2) == {model2, {:checked, true, {:nop, true}}}
+    assert Checkbox.handle(model2, @ev_kp_enter_ctrl) == {model2, {:checked, true, {:nop, true}}}
+    assert Checkbox.handle(model2, @ev_ms_click_ctrl) == {model2, {:checked, true, {:nop, true}}}
+    assert Checkbox.handle(model2, @ev_ms_dblclick) == {model2, {:checked, true, {:nop, true}}}
 
     # colors properly applied for each state
     checkbox(text: "T")
@@ -86,13 +86,13 @@ defmodule Dpi.CheckboxTest do
 
     # triggers
     checkbox(text: "T")
-    |> handle(@ev_kp_trigger, {:checked, false, {:nop, false}})
+    |> handle(@ev_kp_enter_ctrl, {:checked, false, {:nop, false}})
     |> render()
     |> assert_color("[ ]T", 0, @tc_normal)
     |> checked(true)
     |> render()
     |> assert_color("[X]T", 0, @tc_normal)
-    |> handle(@ev_kp_trigger, {:checked, true, {:nop, true}})
+    |> handle(@ev_kp_enter_ctrl, {:checked, true, {:nop, true}})
     |> render()
     |> assert_color("[X]T", 0, @tc_normal)
     |> handle(ev_mp_left(0, 0), {:checked, false, {:nop, false}})

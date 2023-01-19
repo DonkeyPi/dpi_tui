@@ -24,6 +24,8 @@ defmodule Dpi.Tui.Select do
     class = Map.get(opts, :class, nil)
     selected = Map.get(opts, :selected, 0)
     offset = Map.get(opts, :offset, 0)
+    stringer = Map.get(opts, :stringer, &Select.stringer/1)
+    on_action = Map.get(opts, :on_action, &Select.nop/1)
     on_change = Map.get(opts, :on_change, &Select.nop/1)
 
     {count, map} = internals(items)
@@ -41,6 +43,8 @@ defmodule Dpi.Tui.Select do
       count: count,
       map: map,
       offset: offset,
+      stringer: stringer,
+      on_action: on_action,
       on_change: on_change
     }
 
@@ -51,6 +55,7 @@ defmodule Dpi.Tui.Select do
     check(model)
   end
 
+  def stringer(value), do: "#{value}"
   def nop({index, value}), do: {:nop, {index, value}}
 
   def bounds(%{origin: {x, y}, size: {w, h}}), do: {x, y, w, h}
@@ -111,15 +116,36 @@ defmodule Dpi.Tui.Select do
   def handle(model, @ev_kp_kright), do: {model, {:focus, :next}}
   def handle(model, @ev_kp_kleft), do: {model, {:focus, :prev}}
   def handle(model, @ev_kp_enter), do: {model, {:focus, :next}}
-  def handle(model, @ev_kp_space), do: {model, trigger(model)}
-  def handle(model, @ev_kp_trigger), do: {model, trigger(model)}
-  def handle(model, @ev_ms_trigger), do: {model, trigger(model)}
-  def handle(model, @ev_ms_trigger2), do: {model, trigger(model)}
 
   # Prevent next handlers from receiving a key event with no items.
   def handle(%{items: []} = model, %{type: :key}), do: {model, nil}
   # Prevent next handlers from receiving a mouse event with no items.
   def handle(%{items: []} = model, %{type: :mouse}), do: {model, nil}
+
+  def handle(model, @ev_kp_space), do: {model, retrigger(model)}
+  def handle(model, @ev_kp_enter_ctrl), do: {model, retrigger(model)}
+
+  def handle(model, %{type: :mouse, action: :press, key: :bleft, y: my, flag: :control}) do
+    %{count: count, selected: selected, offset: offset} = model
+    next = my + offset
+    next = if next >= count, do: selected, else: next
+
+    case next == selected do
+      true -> {model, retrigger(model)}
+      _ -> {model, nil}
+    end
+  end
+
+  def handle(model, %{type: :mouse, action: :press2, key: :bleft, y: my, flag: :none}) do
+    %{count: count, selected: selected, offset: offset} = model
+    next = my + offset
+    next = if next >= count, do: selected, else: next
+
+    case next == selected do
+      true -> {model, retrigger(model)}
+      _ -> {model, nil}
+    end
+  end
 
   def handle(model, @ev_kp_kdown) do
     %{count: count, selected: selected} = model
@@ -167,6 +193,7 @@ defmodule Dpi.Tui.Select do
   def render(model, canvas, theme) do
     %{
       map: map,
+      stringer: stringer,
       size: {cols, rows},
       selected: selected,
       offset: offset
@@ -187,8 +214,12 @@ defmodule Dpi.Tui.Select do
 
         canvas = Canvas.move(canvas, 0, i)
 
-        item = Map.get(map, oi, "")
-        item = "#{item}"
+        item =
+          case Map.has_key?(map, oi) do
+            true -> Map.get(map, oi) |> stringer.()
+            _ -> ""
+          end
+
         item = String.slice(item, 0, cols)
         item = String.pad_trailing(item, cols)
         Canvas.write(canvas, item)
@@ -238,6 +269,12 @@ defmodule Dpi.Tui.Select do
     {:item, selected, item, resp}
   end
 
+  defp retrigger(%{selected: selected, map: map, on_action: on_action}) do
+    item = Map.get(map, selected)
+    resp = on_action.({selected, item})
+    {:item, selected, item, resp}
+  end
+
   defp internals(map) do
     for item <- map, reduce: {0, %{}} do
       {count, map} ->
@@ -257,6 +294,8 @@ defmodule Dpi.Tui.Select do
     Check.assert_map(:map, model.map)
     Check.assert_gte(:count, model.count, 0)
     Check.assert_gte(:offset, model.offset, 0)
+    Check.assert_function(:stringer, model.stringer, 1)
+    Check.assert_function(:on_action, model.on_action, 1)
     Check.assert_function(:on_change, model.on_change, 1)
     model
   end

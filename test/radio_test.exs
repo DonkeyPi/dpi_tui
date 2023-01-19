@@ -140,13 +140,13 @@ defmodule Dpi.RadioTest do
              {%{model | selected: 0}, {:item, 0, 0, {0, 0}}}
 
     # retriggers
-    assert Radio.handle(model, @ev_kp_trigger) == {model, {:item, 0, 0, {0, 0}}}
+    assert Radio.handle(model, @ev_kp_enter_ctrl) == {model, {:item, 0, 0, {0, 0}}}
 
     assert Radio.handle(model, @ev_kp_space) == {model, {:item, 0, 0, {0, 0}}}
 
-    assert Radio.handle(model, @ev_ms_trigger) == {model, {:item, 0, 0, {0, 0}}}
+    assert Radio.handle(model, @ev_ms_click_ctrl) == {model, {:item, 0, 0, {0, 0}}}
 
-    assert Radio.handle(model, @ev_ms_trigger2) == {model, {:item, 0, 0, {0, 0}}}
+    assert Radio.handle(model, @ev_ms_dblclick) == {model, {:item, 0, 0, {0, 0}}}
 
     # nops
 
@@ -300,7 +300,7 @@ defmodule Dpi.RadioTest do
     radio(items: [0], size: {1, 1})
     |> render()
     |> assert_color("0", 0, @tc_selected)
-    |> handle(@ev_kp_trigger, {:item, 0, 0, {:nop, {0, 0}}})
+    |> handle(@ev_kp_enter_ctrl, {:item, 0, 0, {:nop, {0, 0}}})
     |> render()
     |> assert_color("0", 0, @tc_selected)
     |> handle(@ev_kp_space, {:item, 0, 0, {:nop, {0, 0}}})

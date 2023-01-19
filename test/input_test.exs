@@ -83,7 +83,7 @@ defmodule Dpi.InputTest do
              {%{model | text: "bc", cursor: 0}, {:text, "bc", "bc"}}
 
     # retrigger
-    assert Input.handle(%{model | text: "abc", cursor: 1}, @ev_kp_trigger) ==
+    assert Input.handle(%{model | text: "abc", cursor: 1}, @ev_kp_enter_ctrl) ==
              {%{model | text: "abc", cursor: 1}, {:text, "abc", "abc"}}
 
     # mouse
@@ -256,7 +256,7 @@ defmodule Dpi.InputTest do
     input(text: "T")
     |> render()
     |> assert_color("T", 0, @tc_normal)
-    |> handle(@ev_kp_trigger, {:text, "T", {:nop, "T"}})
+    |> handle(@ev_kp_enter_ctrl, {:text, "T", {:nop, "T"}})
     |> render()
     |> assert_color("T", 0, @tc_normal)
 
@@ -286,7 +286,7 @@ defmodule Dpi.InputTest do
     assert model.selected == true
     assert model.cursor == 4
     # double click select all
-    {selected, _} = Input.handle(initial, @ev_ms_trigger2)
+    {selected, _} = Input.handle(initial, @ev_ms_dblclick)
     assert selected.selected == true
     assert selected.cursor == 4
     # single click clears selection

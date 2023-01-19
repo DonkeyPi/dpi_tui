@@ -21,41 +21,50 @@ defmodule Dpi.SelectTest do
              count: 0,
              map: %{},
              offset: 0,
+             stringer: &Select.stringer/1,
+             on_action: &Select.nop/1,
              on_change: &Select.nop/1
            }
 
     Buffer.start()
 
     on_change = fn value ->
-      Buffer.add("#{inspect(value)}")
+      Buffer.add("on_change #{inspect(value)}")
       value
     end
 
-    model = Select.init(items: [0, 1, 2], size: {10, 2}, on_change: on_change)
-    assert Buffer.get() == "{0, 0}"
+    on_action = fn value ->
+      Buffer.add("on_action #{inspect(value)}")
+      value
+    end
+
+    model =
+      Select.init(items: [0, 1, 2], size: {10, 2}, on_change: on_change, on_action: on_action)
+
+    assert Buffer.get() == "on_change {0, 0}"
     Buffer.start()
 
     # updates (and on_change triggers)
 
     # selected explicitly updated
     assert Select.update(%{model | selected: -1}, selected: 0) == model
-    assert Buffer.get() == "{0, 0}"
+    assert Buffer.get() == "on_change {0, 0}"
     Buffer.start()
 
     assert Select.update(%{model | selected: -1}, selected: 1) == %{model | selected: 1}
-    assert Buffer.get() == "{1, 1}"
+    assert Buffer.get() == "on_change {1, 1}"
     Buffer.start()
 
     assert Select.update(model, selected: -1) == %{model | selected: -1}
-    assert Buffer.get() == "{-1, nil}"
+    assert Buffer.get() == "on_change {-1, nil}"
     Buffer.start()
 
     assert Select.update(model, selected: -2) == %{model | selected: -1}
-    assert Buffer.get() == "{-1, nil}"
+    assert Buffer.get() == "on_change {-1, nil}"
     Buffer.start()
 
     assert Select.update(model, selected: 3) == %{model | selected: -1}
-    assert Buffer.get() == "{-1, nil}"
+    assert Buffer.get() == "on_change {-1, nil}"
     Buffer.start()
 
     # update items (zero area)
@@ -82,7 +91,7 @@ defmodule Dpi.SelectTest do
                selected: 0
            }
 
-    assert Buffer.get() == "{0, 0}"
+    assert Buffer.get() == "on_change {0, 0}"
     Buffer.start()
 
     # update items + size + selected
@@ -154,17 +163,33 @@ defmodule Dpi.SelectTest do
              {%{model | selected: 1}, {:item, 1, 1, {1, 1}}}
 
     # mouse click selects clicked item
+
     assert Select.handle(model, ev_mp_left(0, 2)) ==
              {%{model | selected: 2, offset: 1}, {:item, 2, 2, {2, 2}}}
 
     # retriggers
-    assert Select.handle(model, @ev_kp_trigger) == {model, {:item, 0, 0, {0, 0}}}
+    Buffer.start()
+
+    assert Select.handle(model, @ev_kp_enter_ctrl) == {model, {:item, 0, 0, {0, 0}}}
+    assert Buffer.get() == "on_action {0, 0}"
+    Buffer.start()
 
     assert Select.handle(model, @ev_kp_space) == {model, {:item, 0, 0, {0, 0}}}
+    assert Buffer.get() == "on_action {0, 0}"
+    Buffer.start()
 
-    assert Select.handle(model, @ev_ms_trigger) == {model, {:item, 0, 0, {0, 0}}}
+    assert Select.handle(model, Map.put(@ev_ms_click_ctrl, :y, 0)) ==
+             {model, {:item, 0, 0, {0, 0}}}
 
-    assert Select.handle(model, @ev_ms_trigger2) == {model, {:item, 0, 0, {0, 0}}}
+    assert Buffer.get() == "on_action {0, 0}"
+    Buffer.start()
+
+    assert Select.handle(model, Map.put(@ev_ms_dblclick, :y, 0)) == {model, {:item, 0, 0, {0, 0}}}
+    assert Buffer.get() == "on_action {0, 0}"
+    Buffer.start()
+
+    assert Select.handle(model, Map.put(@ev_ms_click_ctrl, :y, 1)) == {model, nil}
+    assert Select.handle(model, Map.put(@ev_ms_dblclick, :y, 1)) == {model, nil}
 
     # nops
 
@@ -386,7 +411,7 @@ defmodule Dpi.SelectTest do
     select(items: [0], size: {1, 1})
     |> render()
     |> assert_color("0", 0, @tc_selected)
-    |> handle(@ev_kp_trigger, {:item, 0, 0, {:nop, {0, 0}}})
+    |> handle(@ev_kp_enter_ctrl, {:item, 0, 0, {:nop, {0, 0}}})
     |> render()
     |> assert_color("0", 0, @tc_selected)
     |> handle(@ev_kp_space, {:item, 0, 0, {:nop, {0, 0}}})
