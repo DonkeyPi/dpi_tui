@@ -12,9 +12,11 @@ defmodule Dpi.Tui.Select do
     origin = Map.get(opts, :origin, {0, 0})
     items = Map.get(opts, :items, [])
 
+    stringer = Map.get(opts, :stringer, &Select.stringer/1)
+
     {cols, rows} =
       for item <- items, reduce: {0, 0} do
-        {cols, rows} -> {max(cols, String.length("#{item}")), rows + 1}
+        {cols, rows} -> {max(cols, String.length(stringer.(item))), rows + 1}
       end
 
     size = Map.get(opts, :size, {cols, rows})
@@ -24,7 +26,6 @@ defmodule Dpi.Tui.Select do
     class = Map.get(opts, :class, nil)
     selected = Map.get(opts, :selected, 0)
     offset = Map.get(opts, :offset, 0)
-    stringer = Map.get(opts, :stringer, &Select.stringer/1)
     on_action = Map.get(opts, :on_action, &Select.nop/1)
     on_change = Map.get(opts, :on_change, &Select.nop/1)
 
