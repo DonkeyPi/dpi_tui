@@ -78,6 +78,6 @@ defmodule Dpi.Tui.Theme do
   def gets(:back, :selected, %{enabled: true, focused: false}), do: 0xEF
 
   def gets(:fore, _, %{enabled: true}), do: 0x07
-  def gets(:fore, _, _), do: 0xF1
-  def gets(:back, _, _), do: 0xEA
+  def gets(:fore, _, _), do: @dpi_def_fore
+  def gets(:back, _, _), do: @dpi_def_back
 end

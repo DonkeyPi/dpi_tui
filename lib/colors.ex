@@ -3,6 +3,9 @@ defmodule Dpi.Tui.Colors do
     quote do
       # logo color
       @dpi_logo_fore 0x1C
+      @dpi_def_fore 0xF1
+      @dpi_def_back 0xEA
+      @dpi_logo_class %{fore: @dpi_logo_fore, back: @dpi_def_back}
 
       # basic linux console colors
       @black 0
