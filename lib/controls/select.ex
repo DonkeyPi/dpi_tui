@@ -56,6 +56,7 @@ defmodule Dpi.Tui.Select do
     check(model)
   end
 
+  def stringer(value) when is_binary(value), do: value
   def stringer(value), do: "#{value}"
   def nop({index, value}), do: {:nop, {index, value}}
 
