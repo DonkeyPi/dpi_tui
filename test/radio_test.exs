@@ -30,10 +30,28 @@ defmodule Dpi.RadioTest do
       value
     end
 
+    # init recalculate and change triggers
+    # selected is recalculated without items
+    assert Radio.init(on_change: on_change, selected: 0).selected == -1
+    assert Buffer.get() == "{-1, nil}"
+    Buffer.start()
+    # selected is recalculated with items (-1 is valid)
+    assert Radio.init(on_change: on_change, selected: -1, items: [0]).selected == -1
+    assert Buffer.get() == ""
+    Buffer.start()
+    # selected is recalculated with items
+    assert Radio.init(on_change: on_change, selected: 1, items: [0]).selected == -1
+    assert Buffer.get() == "{-1, nil}"
+    Buffer.start()
+    # selected is kept with items
+    assert Radio.init(on_change: on_change, selected: 1, items: [0, 1, 2]).selected == 1
+    assert Buffer.get() == ""
+    Buffer.start()
+
     # 0 1 2
     # 01234
     model = Radio.init(items: [0, 1, 2], size: {7, 1}, on_change: on_change)
-    assert Buffer.get() == "{0, 0}"
+    assert Buffer.get() == ""
     Buffer.start()
 
     # updates (and on_change triggers)

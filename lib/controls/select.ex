@@ -24,7 +24,8 @@ defmodule Dpi.Tui.Select do
     enabled = Map.get(opts, :enabled, true)
     findex = Map.get(opts, :findex, 0)
     class = Map.get(opts, :class, nil)
-    selected = Map.get(opts, :selected, 0)
+    selected = if items == [], do: -1, else: 0
+    selected = Map.get(opts, :selected, selected)
     offset = Map.get(opts, :offset, 0)
     on_action = Map.get(opts, :on_action, &Select.nop/1)
     on_change = Map.get(opts, :on_change, &Select.nop/1)
@@ -49,10 +50,11 @@ defmodule Dpi.Tui.Select do
       on_change: on_change
     }
 
+    initial = {selected, Map.get(map, selected)}
     model = recalculate(model)
-    %{on_change: on_change, selected: selected, map: map} = model
+    %{selected: selected} = model
     calculated = {selected, Map.get(map, selected)}
-    if calculated != {-1, nil}, do: on_change.(calculated)
+    if calculated != initial, do: on_change.(calculated)
     check(model)
   end
 

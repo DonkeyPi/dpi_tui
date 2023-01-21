@@ -24,7 +24,8 @@ defmodule Dpi.Tui.Radio do
     enabled = Map.get(opts, :enabled, true)
     findex = Map.get(opts, :findex, 0)
     class = Map.get(opts, :class, nil)
-    selected = Map.get(opts, :selected, 0)
+    selected = if items == [], do: -1, else: 0
+    selected = Map.get(opts, :selected, selected)
     on_change = Map.get(opts, :on_change, &Radio.nop/1)
 
     {count, map} = internals(items)
@@ -44,10 +45,11 @@ defmodule Dpi.Tui.Radio do
       on_change: on_change
     }
 
+    initial = {selected, Map.get(map, selected)}
     model = recalculate(model)
-    %{on_change: on_change, selected: selected, map: map} = model
+    %{selected: selected} = model
     calculated = {selected, Map.get(map, selected)}
-    if calculated != {-1, nil}, do: on_change.(calculated)
+    if calculated != initial, do: on_change.(calculated)
     check(model)
   end
 

@@ -38,10 +38,28 @@ defmodule Dpi.SelectTest do
       value
     end
 
+    # init recalculate and change triggers
+    # selected is recalculated without items
+    assert Select.init(on_change: on_change, selected: 0).selected == -1
+    assert Buffer.get() == "on_change {-1, nil}"
+    Buffer.start()
+    # selected is recalculated with items (-1 is valid)
+    assert Select.init(on_change: on_change, selected: -1, items: [0]).selected == -1
+    assert Buffer.get() == ""
+    Buffer.start()
+    # selected is recalculated with items
+    assert Select.init(on_change: on_change, selected: 1, items: [0]).selected == -1
+    assert Buffer.get() == "on_change {-1, nil}"
+    Buffer.start()
+    # selected is kept with items
+    assert Select.init(on_change: on_change, selected: 1, items: [0, 1, 2]).selected == 1
+    assert Buffer.get() == ""
+    Buffer.start()
+
     model =
       Select.init(items: [0, 1, 2], size: {10, 2}, on_change: on_change, on_action: on_action)
 
-    assert Buffer.get() == "on_change {0, 0}"
+    assert Buffer.get() == ""
     Buffer.start()
 
     # updates (and on_change triggers)
