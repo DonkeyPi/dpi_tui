@@ -34,7 +34,6 @@ defmodule Dpi.Tui.Theme do
   end
 
   def get_style(item, type, selector) do
-    # IO.inspect({prop, selector, gets(prop, selector)})
     gets(item, type, selector)
   end
 

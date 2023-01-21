@@ -86,7 +86,6 @@ defmodule Dpi.Tui.Label do
 
     for {c, i} <- chars, x <- 0..(scale - 1), y <- 0..(scale - 1), reduce: canvas do
       canvas ->
-        # IO.inspect({i, c, x, y})
         canvas = Canvas.scale(canvas, scale, x, y)
         x = offx + i * scale + x
         y = offy + y
