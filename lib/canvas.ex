@@ -129,7 +129,16 @@ defmodule Dpi.Tui.Canvas do
             {data, x + 1}
           else
             # use current background if not opaque
-            bg = if opaque, do: bg, else: Map.get(data, {x, y}, cell) |> elem(2)
+            # use current foreground and char if space
+            {cc, cfg, cbg, _, _} = Map.get(data, {x, y}, cell)
+
+            {c, fg, bg} =
+              case {opaque, c == 32} do
+                {true, _} -> {c, fg, bg}
+                {false, false} -> {c, fg, cbg}
+                {false, true} -> {cc, cfg, cbg}
+              end
+
             data = Map.put(data, {x, y}, {c, fg, bg, ff, fs})
             {data, x + 1}
           end
