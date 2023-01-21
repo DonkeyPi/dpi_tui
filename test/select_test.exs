@@ -206,8 +206,14 @@ defmodule Dpi.SelectTest do
     assert Buffer.get() == "on_action {0, 0}"
     Buffer.start()
 
-    assert Select.handle(model, Map.put(@ev_ms_click_ctrl, :y, 1)) == {model, nil}
-    assert Select.handle(model, Map.put(@ev_ms_dblclick, :y, 1)) == {model, nil}
+    # not on selected item
+    my = length(model.items)
+    assert Select.handle(model, Map.put(@ev_ms_click_ctrl, :y, my)) == {model, nil}
+    assert Buffer.get() == ""
+    Buffer.start()
+    assert Select.handle(model, Map.put(@ev_ms_dblclick, :y, my)) == {model, nil}
+    assert Buffer.get() == ""
+    Buffer.start()
 
     # nops
 
